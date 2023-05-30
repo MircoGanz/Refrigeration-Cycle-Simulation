@@ -1,0 +1,19 @@
+﻿Junction Port Matrix:;Compressor HT;Gas cooler;Cascade HX 1;Cascade HX 2;Separator HT;EV 1;Evaporator;Compressor LT;Condenser;Separator LT;EV 2;EV 3;Fluid Loop;Source / Sink
+Junction 1;1;0;0;0;0;0;-3;0;0;0;0;0;1;0
+Junction 2;-1;2;0;0;0;0;0;0;0;0;0;0;1;0
+Junction 3;0;-2;2;2;0;0;0;0;0;0;0;0;1;0
+Junction 4;0;0;-2;-2;1;0;0;0;0;0;0;0;1;0
+Junction 5;0;0;0;0;-1;1;0;0;0;0;0;0;1;0
+Junction 6;0;0;0;0;0;-1;3;0;0;0;0;0;1;0
+Junction 7;0;0;-3;-3;0;0;0;1;0;0;0;0;2;0
+Junction 8;0;0;0;0;0;0;0;-1;2;0;0;0;2;0
+Junction 9;0;0;0;0;0;0;0;0;-2;1;0;0;2;0
+Junction 10;0;0;0;0;0;0;0;0;0;-1;1;1;2;0
+Junction 11;0;0;3;0;0;0;0;0;0;0;-1;0;2;0
+Junction 12;0;0;0;3;0;0;0;0;0;0;0;-1;2;0
+Source 1;0;3;0;0;0;0;0;0;0;0;0;0;3;1
+Sink 1;0;-3;0;0;0;0;0;0;0;0;0;0;3;-1
+Source 2;0;0;0;0;0;0;2;0;0;0;0;0;4;1
+Sink 2;0;0;0;0;0;0;-2;0;0;0;0;0;4;-1
+Source 3;0;0;0;0;0;0;0;0;3;0;0;0;5;1
+Sink 3;0;0;0;0;0;0;0;0;-3;0;0;0;5;-1

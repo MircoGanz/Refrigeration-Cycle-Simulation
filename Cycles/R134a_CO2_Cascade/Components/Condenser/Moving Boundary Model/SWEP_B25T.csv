@@ -1,0 +1,18 @@
+﻿System Solver Information:;;
+Component Typ:;Heat Exchanger;
+Boundary Typ:;Mass Flow Based;
+Fluids:;R134a / Water;R290 / Water
+;;
+Inputs:;;
+;;
+Outputs:;;
+Capacity [kW];;
+Evaporation Temp. [°C];;
+;;
+Specification:;;
+Typ:;Plate Heat Exchanger;
+Model:;P80Hx46/1P;
+max. Capacity:;27.8 kW;
+;;
+Parameter:;;
+A [m2];3.65;
