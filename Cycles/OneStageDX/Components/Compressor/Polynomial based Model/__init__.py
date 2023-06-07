@@ -1,6 +1,5 @@
 from system import Component, PressureBasedComponent, MassFlowBasedComponent
 import csv
-import tkinter as tk
 from CoolProp.CoolProp import PropsSI
 from pathlib import Path
 import pandas as pd
