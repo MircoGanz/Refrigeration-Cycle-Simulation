@@ -12,5 +12,5 @@ dependencies:
   - numpy
   - CoolProp
   - typing
-
+  - ipywidgets
 
