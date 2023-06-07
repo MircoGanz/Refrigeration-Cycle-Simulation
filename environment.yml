@@ -9,6 +9,3 @@ dependencies:
   - jupyterlab
   - matplotlib
   - numpy
-  - csv
-  - functools
-  - labellines
