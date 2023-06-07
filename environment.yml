@@ -9,3 +9,11 @@ dependencies:
   - jupyterlab
   - matplotlib
   - numpy
+  - csv
+  - CoolProp
+  - functools
+  - labelines
+  - matplotlib
+  - typing
+
+
