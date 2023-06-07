@@ -10,9 +10,7 @@ dependencies:
   - matplotlib
   - matplotlib-label-lines
   - numpy
-  - python-csv
   - CoolProp
-  - functools
   - typing
 
 
