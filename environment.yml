@@ -8,11 +8,11 @@ dependencies:
   - jupyter
   - jupyterlab
   - matplotlib
+  - matplotlib-label-lines
   - numpy
   - csv
   - CoolProp
   - functools
-  - labelines
   - matplotlib
   - typing
 
