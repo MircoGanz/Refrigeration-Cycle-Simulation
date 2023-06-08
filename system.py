@@ -1550,8 +1550,8 @@ def system_solver(x0: list, Vt: list, component_list: list, exec_list: list, res
                 if isinstance(c, PressureBasedComponent):
                     if port.port_typ == 'in' and port.port_id[-1] == 0:
                         c.x0.append(port.p.value)
-                    elif port.port_typ == 'out' and port.port_id[-1] == 0:
                         c.x0.append(port.h.value)
+                    elif port.port_typ == 'out' and port.port_id[-1] == 0:
                         c.x0.append(port.p.value)
                 elif isinstance(c, MassFlowBasedComponent):
                     if port.port_typ == 'in' and port.port_id[-1] == 0:
