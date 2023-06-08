@@ -10,5 +10,5 @@ The notebook can be run interactively on MyBinder.org by clicking on the button 
 ![fig](./Figures/Circuit_OneStageDX.svg)
 
 
-## CO_2/R134a Cascade Cycle 
+## CO2/R134a Cascade Cycle 
 ![fig](./Figures/Circuit_CO2_R134a_Cascade.svg)
