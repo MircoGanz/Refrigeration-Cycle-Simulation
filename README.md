@@ -6,5 +6,4 @@ The notebook can be run interactively on MyBinder.org by clicking on the button 
 
 
 ## One-Stage DX Cycle
-
- "![fig](./Figures/Circuit_OneStageDX.svg)
+![fig](./Figures/Circuit_OneStageDX.svg)
