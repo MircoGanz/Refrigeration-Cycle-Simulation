@@ -1496,11 +1496,14 @@ def system_solver(x0: list, Vt: list, component_list: list, exec_list: list, res
         F_array = []
 
         while np.linalg.norm(F, 2) > epsilon:
+            λ = 1.0
             try:
                 dx = np.linalg.solve(J, -F)
             except:
                 return {'x': x[-1], 'f': F, 'n_it': it + 1, 'converged': False, 'message': 'singular jacobian!'}
-            x.append(x[it] + dx)
+            while any(x[it] + λ * dx < 0):
+                λ *= 1/2
+            x.append(x[it] + λ * dx)
             newF, convergence_flag = fun(x[-1])
 
             if convergence_flag == 0:
