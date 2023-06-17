@@ -1487,6 +1487,7 @@ def system_solver(x0: list, Vt: list, component_list: list, exec_list: list, res
         """
         x = [x0]
         it = 0
+        λmin = 1e-19
         F, convergence_flag = fun(x[0])
 
         if convergence_flag == 0:
@@ -1501,7 +1502,7 @@ def system_solver(x0: list, Vt: list, component_list: list, exec_list: list, res
                 dx = np.linalg.solve(J, -F)
             except:
                 return {'x': x[-1], 'f': F, 'n_it': it + 1, 'converged': False, 'message': 'singular jacobian!'}
-            while any(x[it] + λ * dx < 0):
+            while (any(x[it] + λ * dx < 0) or any(np.abs(dx * λ / x[it]) > 5e-1)) and λ > λmin:
                 λ *= 1/2
             x.append(x[it] + λ * dx)
             newF, convergence_flag = fun(x[-1])
@@ -1589,7 +1590,7 @@ def system_solver(x0: list, Vt: list, component_list: list, exec_list: list, res
         lamda_max = 0.5  # Maximum lambda value
         lamda_final = 1.0  # Final lambda value
         tol = 1e-2  # Tolerance between setpoint and actual lambda value
-        epsilon = 1e-9  # Convergence criteria for Broyden solver
+        epsilon = 1e-6  # Convergence criteria for Broyden solver
         max_fails = 20  # Maximum number of allowed solver fails
         N_max_outer = 50  # Maximum number of outer iterations
         N_max = 20  # Maximum number of allowed Broyden step iterations
@@ -1740,14 +1741,14 @@ def system_solver(x0: list, Vt: list, component_list: list, exec_list: list, res
             return {'x': x[-1], 'converged': False, 'message': 'model execution error'}
 
         print('Executes Broyden Solver for solving actual system...')
-        sol = broyden_method(fun, J, max_iter, 1e-12, True, x[-1][0:-1])
+        sol = broyden_method(fun, J, max_iter, 1e-6, True, x[-1][0:-1])
         return sol
 
     # maximum number of iterations for broyden solver
     max_iter = 50
 
     # convergence criteria
-    epsilon = 1e-12
+    epsilon = 1e-6
 
     # scales initial values
     x0_scaled = np.zeros(len(x0))
