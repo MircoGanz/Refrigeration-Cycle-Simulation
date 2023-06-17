@@ -15,8 +15,7 @@ def solver(component: [Component]):
 
     try:
 
-        A = 0.6
-        k = 200
+        UA = component.parameter['UA']
 
         for port in component.ports:
             if port.port_id[2] == psd['c']:
@@ -46,7 +45,7 @@ def solver(component: [Component]):
         T_in_c = PropsSI('T', 'H', h_in_c, 'P', p_in_c, cold_fluid)
 
         R = C_h / C_c
-        NTU = k * A / C_h
+        NTU = UA / C_h
         epsilon = 1 - np.exp((np.exp(-R * NTU) - 1) / R)
         Q = epsilon * C_h * (T_in_h - T_in_c)
         p_out_h = p_in_h
@@ -79,6 +78,6 @@ def solver(component: [Component]):
                     port.h.set_value(h_out_h)
                     port.m.set_value(m_out_h)
 
-    except (RuntimeError, ValueError):
+    except:
         print(component.name + ' failed!')
         component.status = 0

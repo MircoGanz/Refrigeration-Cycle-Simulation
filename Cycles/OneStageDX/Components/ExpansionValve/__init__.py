@@ -14,7 +14,7 @@ def solver(component: [Component]):
 
     try:
 
-        CA = 1.0e-6
+        CA = component.parameter['CA']
 
         for port in component.ports:
             if port.port_id[2] == psd['p']:
@@ -27,11 +27,11 @@ def solver(component: [Component]):
             x = np.array(component.x0.copy())
             i = 0
             for port in component.ports:
-                if port.port_typ == 'in' and port.port_id[-1] == 0:
+                if port.port_type == 'in' and port.port_id[-1] == 0:
                     x[i] = port.p.value
                     x[i+1] = port.h.value
                     i += 2
-                elif port.port_typ == 'out' and port.port_id[-1] == 0:
+                elif port.port_type == 'out' and port.port_id[-1] == 0:
                     x[i] = port.p.value
                     i += 1
 
@@ -55,6 +55,6 @@ def solver(component: [Component]):
                 port.h.set_value(h_out)
                 port.m.set_value(m_out)
 
-    except(RuntimeError, ValueError):
+    except:
         print(component.name + ' failed!')
         component.status = 0

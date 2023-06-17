@@ -255,8 +255,6 @@ class HeatExchanger(object):
         if and_solve and not only_external:
             Q = self.solve()
 
-        self.pressure_solve()
-
         Qtotal = self.mdot_c * (self.hvec_c[-1] - self.hvec_c[0])
 
         # Build the normalized enthalpy vectors
@@ -320,26 +318,6 @@ class HeatExchanger(object):
             self.Q = self.Qmax
         return self.Q
 
-        # self.Q = scipy.optimize.brentq(self.objective_function, 1e-5, self.Qmax - 1e-10, rtol=1e-14, xtol=1e-10)
-
-    def pressure_solve(self):
-        N = len(self.hvec_h) - 1
-        dp_h = []
-        dp_c = []
-        for i in range(0, N):
-            h_h = (self.hvec_h[i] + self.hvec_h[i + 1]) / 2
-            T_h = (self.Tvec_h[i] + self.Tvec_h[i + 1]) / 2
-            h_c = (self.hvec_c[i] + self.hvec_c[i + 1]) / 2
-            T_c = (self.Tvec_c[i] + self.Tvec_c[i + 1]) / 2
-            T_w = ((self.Tvec_h[i] + self.Tvec_h[i + 1]) / 2 + (self.Tvec_c[i] + self.Tvec_c[i]) / 2) / 2
-            dp_h.append(
-                self.pressure_loss(self.p_hi, h_h, T_h, T_w, self.mdot_h, self.phases_h[i], self.Fluid_h, self.Areq[i]))
-            dp_c.append(
-                self.pressure_loss(self.p_ci, h_c, T_c, T_w, self.mdot_c, self.phases_c[i], self.Fluid_c, self.Areq[i]))
-
-        self.p_co = self.p_ci - sum(dp_c)
-        self.p_ho = self.p_hi - sum(dp_h)
-
     def alpha_correlation(self, p, h, T, Tw, m, phase, fluid):
 
         S = self.S
@@ -381,46 +359,6 @@ class HeatExchanger(object):
         else:
             return 12200
 
-    def pressure_loss(self, p, h, T, Tw, m, phase, fluid, A_req):
-
-        S = self.S
-        D_h = self.Dh
-        A = self.A_h
-        L = self.L
-        n = self.n
-        rho = PropsSI('D', 'H', h, 'P', p, fluid)
-
-        if phase == 'two-phase':
-
-            if fluid == 'R134a':
-
-                """
-                R134a Pressure Drop Correlation by
-                Huang, J., Sheer, T.J., Bailey - McEwan, M., 2012. Heat transfer and pressure drop in
-                plate heat exchanger refrigerant evaporators. Int.J.Refrigeration 35, 325–335.
-
-                """
-
-                rho_l = PropsSI('D', 'P', p, 'Q', 0.0, fluid)
-                rho_v = PropsSI('D', 'P', p, 'Q', 1.0, fluid)
-                x = PropsSI('Q', 'P', p, 'H', h, fluid)
-                rho_m = (x / rho_v + (1 - x) / rho_l) ** -1
-                mu_l = PropsSI('V', 'P', p, 'Q', 0.0, fluid)
-                mu_v = PropsSI('V', 'P', p, 'Q', 1.0, fluid)
-                mu_tp = rho_m * (x * mu_v / rho_v + (1 - x) * mu_l / rho_l)
-                G = m / n / S
-                Re_tp = G * D_h / mu_tp
-                F = 0.183 - 0.275 + 1.1
-                f = 3.81 * 1e4 * F / (Re_tp**0.9 * (rho_l/rho_v)**0.16)
-
-            else:
-                f = 0.0
-
-            return 2 * f * G ** 2 / rho * L * A_req / A / D_h / 10
-
-        else:
-            return 0
-
 
 def solver(component: [Component]):
 
@@ -432,7 +370,8 @@ def solver(component: [Component]):
     """
 
     try:
-        A = 2.64
+
+        A = component.parameter['A']
 
         for port in component.ports:
             if port.port_id[2] == psd['c']:
@@ -450,7 +389,7 @@ def solver(component: [Component]):
             x = np.array(component.x0.copy())
             i = 0
             for port in component.ports:
-                if port.port_typ == 'in' and port.port_id[-1] == 0:
+                if port.port_type == 'in' and port.port_id[-1] == 0:
                     x[i] = port.p.value
                     x[i+1] = port.h.value
                     x[i+2] = port.m.value
@@ -462,8 +401,8 @@ def solver(component: [Component]):
             HX.run(and_solve=True)
             h_out_h = HX.hvec_c[-1]
             h_out_c = HX.hvec_h[0]
-            p_out_h = HX.p_co
-            p_out_c = HX.p_ho
+            p_out_h = p_in_h
+            p_out_c = p_in_c
             m_out_h = m_in_h
             m_out_c = m_in_c
         else:
@@ -472,8 +411,8 @@ def solver(component: [Component]):
             HX.run(and_solve=True)
             h_out_h = HX.hvec_h[0]
             h_out_c = HX.hvec_c[-1]
-            p_out_c = HX.p_co
-            p_out_h = HX.p_ho
+            p_out_c = p_in_c
+            p_out_h = p_in_h
             m_out_h = m_in_h
             m_out_c = m_in_c
 
@@ -504,29 +443,21 @@ def solver(component: [Component]):
         component.svec_h = HX.svec_h.copy()
         component.svec_c = HX.svec_c.copy()
 
-    except (RuntimeError, ValueError):
+    except:
         print('Evaporator ' + str(component.number) + ' ' + 'failed!')
         component.status = 0
 
-    # A = [0]
-    # for i, element in enumerate(HX.Areq):
-    #     A.append(A[-1] + element)
-    # A = A / sum(HX.Areq)
+    if component.diagramm_plot:
+        A = [0]
+        for i, element in enumerate(HX.Areq):
+            A.append((sum(A) + element))
+        A = A / sum(HX.Areq)
 
-    # fig, ax = plt.subplots()
-    # fig.suptitle('Condenser', fontsize=16)
-    # ax.plot(np.flip(HX.hvec_c), np.flip(HX.Tvec_c), 'b-')
-    # ax.plot(HX.hvec_h, HX.Tvec_h, 'r-')
-    # ax.set_xlabel('Enthalpy [kJ/kg]')
-    # ax.set_ylabel('Temperature [K]')
-    # ax.grid(True)
-    # plt.show()
-
-    # fig, ax = plt.subplots()
-    # fig.suptitle('Condenser', fontsize=16)
-    # ax.plot(A, HX.Tvec_c, 'b-')
-    # ax.plot(A, HX.Tvec_h, 'r-')
-    # ax.set_xlabel('Enthalpy [kJ/kg]')
-    # ax.set_ylabel('Temperature [K]')
-    # ax.grid(True)
-    # plt.show()
+        fig, ax = plt.subplots()
+        fig.suptitle(f'{component.name} \n {round(HX.Q / 1000, 3)} kW', fontsize=16)
+        ax.plot(A, HX.Tvec_c - 273.15, 'b-')
+        ax.plot(A, HX.Tvec_h - 273.15, 'r-')
+        ax.set_xlabel('$A / A_{ges} [-]$')
+        ax.set_ylabel('$Temperature [\u00b0 C]$')
+        ax.grid(True)
+        plt.show()

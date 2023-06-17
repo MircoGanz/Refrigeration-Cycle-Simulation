@@ -258,8 +258,6 @@ class HeatExchanger(object):
         if and_solve and not only_external:
             Q = self.solve()
 
-        self.pressure_solve()
-
         Qtotal = self.mdot_c * (self.hvec_c[-1] - self.hvec_c[0])
 
         # Build the normalized enthalpy vectors
@@ -323,22 +321,6 @@ class HeatExchanger(object):
             self.Q = self.Qmax
         return self.Q
 
-    def pressure_solve(self):
-        N = len(self.hvec_h) - 1
-        dp_h = []
-        dp_c = []
-        for i in range(0, N):
-            h_h = (self.hvec_h[i] + self.hvec_h[i + 1]) / 2
-            T_h = (self.Tvec_h[i] + self.Tvec_h[i + 1]) / 2
-            h_c = (self.hvec_c[i] + self.hvec_c[i + 1]) / 2
-            T_c = (self.Tvec_c[i] + self.Tvec_c[i + 1]) / 2
-            T_w = ((self.Tvec_h[i] + self.Tvec_h[i + 1]) / 2 + (self.Tvec_c[i] + self.Tvec_c[i]) / 2) / 2
-            dp_h.append(self.pressure_loss(self.p_hi, h_h, T_h, T_w, self.mdot_h, self.phases_h[i], self.Fluid_h, self.Areq[i]))
-            dp_c.append(self.pressure_loss(self.p_ci, h_c, T_c, T_w, self.mdot_c, self.phases_c[i], self.Fluid_c, self.Areq[i]))
-
-        self.p_co = self.p_ci - sum(dp_c)
-        self.p_ho = self.p_hi - sum(dp_h)
-
     def alpha_correlation(self, p, h, T, Tw, m, phase, fluid):
 
         S = self.S
@@ -394,47 +376,6 @@ class HeatExchanger(object):
         else:
             return 4780
 
-    def pressure_loss(self, p, h, T, Tw, m, phase, fluid, A_req):
-
-        S = self.S
-        t = self.t
-        D_h = self.Dh
-        A = self.A_c
-        L = self.L
-        n = self.n
-
-        rho = PropsSI('D', 'H', h, 'P', p, fluid)
-        G = m / S
-
-        if phase == 'two-phase':
-
-            if fluid == 'R134a':
-
-                # R134a Pressure Drop Correlation by
-                # Yan, Y.Y., Lin, T.F., 1999. Evaporation heat transfer and pressure drop of refrigerant R-134a
-                # in a plate heat exchanger. J. Heat Transfer 121
-
-                x = PropsSI('Q', 'P', p, 'H', h, fluid)
-                rho_l = PropsSI('D', 'P', p, 'Q', 0.0, fluid)
-                rho_v = PropsSI('D', 'P', p, 'Q', 1.0, fluid)
-                mu_l = PropsSI('V', 'P', p, 'Q', 0.0, fluid)
-                p_crit = PropsSI('PCRIT', fluid)
-                h_evap = PropsSI('H', 'P', p, 'Q', 1.0, fluid) - PropsSI('H', 'P', p, 'Q', 0.0, fluid)
-                G = m / n / S
-                Re = G * D_h / mu_l
-                G_eq = G * ((1 - x) + x * (rho_l / rho_v)) ** (1 / 2)
-                Re_eq = G_eq * D_h / mu_l
-                q = 8.09
-                Bo = q / (G * h_evap)
-                f = 94.75 * (p / p_crit) ** 0.8 * Bo**0.5 * Re ** (-0.4) * Re_eq ** (-0.0467)
-            else:
-                f = 0.0
-
-            return 2 * f * G ** 2 / rho * L * A_req / A / D_h * 100
-
-        else:
-            return 0
-
 
 def solver(component: [Component]):
 
@@ -447,7 +388,7 @@ def solver(component: [Component]):
 
     try:
 
-        A = 3.65
+        A = component.parameter['A']
 
         for port in component.ports:
             if port.port_id[2] == psd['c']:
@@ -465,7 +406,7 @@ def solver(component: [Component]):
             x = np.array(component.x0.copy())
             i = 0
             for port in component.ports:
-                if port.port_typ == 'in' and port.port_id[-1] == 0:
+                if port.port_type == 'in' and port.port_id[-1] == 0:
                     x[i] = port.p.value
                     x[i+1] = port.h.value
                     x[i+2] = port.m.value
@@ -477,8 +418,8 @@ def solver(component: [Component]):
             HX.run(and_solve=True)
             h_out_h = HX.hvec_c[-1]
             h_out_c = HX.hvec_h[0]
-            p_out_c = HX.p_ho
-            p_out_h = HX.p_co
+            p_out_c = p_in_c
+            p_out_h = p_in_h
             m_out_h = m_in_h
             m_out_c = m_in_c
         else:
@@ -487,8 +428,8 @@ def solver(component: [Component]):
             HX.run(and_solve=True)
             h_out_h = HX.hvec_h[0]
             h_out_c = HX.hvec_c[-1]
-            p_out_c = HX.p_co
-            p_out_h = HX.p_ho
+            p_out_c = p_in_c
+            p_out_h = p_in_h
             m_out_h = m_in_h
             m_out_c = m_in_c
 
@@ -515,7 +456,7 @@ def solver(component: [Component]):
                 port.h.set_value(h_out_h)
                 port.m.set_value(m_out_h)
 
-    except (RuntimeError, ValueError):
+    except:
         print(component.name + ' failed!')
         component.status = 0
 

@@ -15,30 +15,31 @@ def solver(component: [Component]):
     """
     try:
 
+        f = component.parameter['f']
+
         for port in component.ports:
-            if port.port_typ == "in":
+            if port.port_type == "in":
                 p_in = port.p.value
                 h_in = port.h.value
-            elif port.port_typ == "out":
+            elif port.port_type == "out":
                 p_out = port.p.value
 
         if component.linearized:
             x = np.array(component.x0.copy())
             i = 0
             for port in component.ports:
-                if port.port_typ == 'in' and port.port_id[-1] == 0:
+                if port.port_type == 'in' and port.port_id[-1] == 0:
                     x[i] = port.p.value
                     x[i+1] = port.h.value
                     i += 2
-                elif port.port_typ == 'out' and port.port_id[-1] == 0:
+                elif port.port_type == 'out' and port.port_id[-1] == 0:
                     x[i] = port.p.value
                     i += 1
 
         t_evap = PropsSI("T", "P", p_in, "Q", 1, port.fluid) - 273.15
         t_cond = PropsSI("T", "P", p_out, "Q", 0, port.fluid) - 273.15
-        SH2 = PropsSI("T", "P", p_in, "H", h_in, port.fluid) - 273.15 - t_evap
+        SH_ref = 10
 
-        f = 30
         if not f % 5 == 0 and 30 <= f <= 70:
             raise RuntimeError(f'Frequency must be divisible by 5 and between 30 and 70 Hz, but is {f}.')
         directory = component.solver_path
@@ -55,20 +56,17 @@ def solver(component: [Component]):
 
             return Phi
 
-        m = evalPoly(t_evap, t_cond, coefficients.loc['m [kg/h]', :]) / 3600  # [kg/h]
-
-        if PropsSI('T', 'P', p_in, 'Q', 1.0, 'R134a') - (t_evap + SH2 + 273.15) < 1e-4:
-            Z = PropsSI("D", "P", p_in, "Q", 1.0, port.fluid)
-        else:
-            Z = PropsSI("D", "P", p_in, "T", t_evap + SH2 + 273.15, port.fluid)
-        if PropsSI("D", "P", p_in, "Q", 1.0, port.fluid) - t_evap + 10 + 273.15 < 1e-4:
+        Z = PropsSI("D", "P", p_in, "H", h_in, port.fluid)
+        if abs(PropsSI("T", "P", p_in, "Q", 1.0, port.fluid) - (t_evap + SH_ref + 273.15)) < 1e-4:
             N = PropsSI("D", "P", p_in, "Q", 1.0, port.fluid)
         else:
-            N = PropsSI("D", "P", p_in, "T", t_evap + 10 + 273.15, port.fluid)
+            N = PropsSI("D", "P", p_in, "T", t_evap + SH_ref + 273.15, port.fluid)
+
+        m = evalPoly(t_evap, t_cond, coefficients.loc['m [kg/h]', :]) / 3600
 
         m *= Z / N
 
-        P_el = evalPoly(t_evap, t_cond, coefficients.loc['P [W]', :])  # [W]
+        P_el = evalPoly(t_evap, t_cond, coefficients.loc['P [W]', :])
 
         h_out = h_in + P_el / m
 
@@ -83,13 +81,13 @@ def solver(component: [Component]):
             m_out = m
 
         for port in component.ports:
-            if port.port_typ == "in":
+            if port.port_type == "in":
                 port.m.set_value(m_in)
         for port in component.ports:
-            if port.port_typ == "out":
+            if port.port_type == "out":
                 port.m.set_value(m_out)
                 port.h.set_value(h_out)
 
-    except (RuntimeError, ValueError):
+    except:
         print(component.name + ' ' + ' failed!')
         component.status = 0

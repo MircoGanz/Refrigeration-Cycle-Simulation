@@ -16,7 +16,7 @@ from labellines import labelLines
 import matplotlib.pyplot as plt
 from typing import List
 
-
+# test
 # dictionary to convert junction port connectivity matrix string values to integer values
 psd = {'0': 0,
        'p': 1, '-p': -1,
@@ -36,28 +36,28 @@ class Variable:
 
     Attributes:
         name (str): Name of the variable.
-        port_typ (str): Port type.
+        port_type (str): Port type.
         port_id (list): Port ID.
         var_typ (str): Variable type.
         value (float): Value of the variable.
         known (bool): Indicates if the variable value is known.
     """
 
-    def __init__(self, name: str, port_typ: str, port_id: list, var_typ: str, initial_value: float):
+    def __init__(self, name: str, port_type: str, port_id: list, var_type: str, initial_value: float):
         """
         Initialize a Variable object.
 
         Args:
             name: Name of the variable.
-            port_typ: Port type.
+            port_type: Port type.
             port_id: Port ID.
-            var_typ: Variable type.
+            var_type: Variable type.
             initial_value: Initial value of the variable.
         """
         self.name = name
-        self.port_typ = port_typ
+        self.port_type = port_type
         self.port_id = port_id
-        self.var_typ = var_typ
+        self.var_type = var_type
         self.value = initial_value
         self.known = False
 
@@ -93,54 +93,53 @@ class Port:
         m (Variable): Mass flow variable of the port.
     """
 
-    def __init__(self, port_id: list, port_typ: str):
+    def __init__(self, port_id: list, port_type: str):
         """
         Initialize a Port object.
 
         Args:
             port_id: Port ID.
-            port_typ: Port type.
+            port_type: Port type.
         """
         self.port_id = port_id
-        self.port_typ = port_typ
+        self.port_type = port_type
         self.fluid = None
-        self.p = Variable(f"p({self.port_typ})", self.port_typ, self.port_id, "p", 1)
-        self.h = Variable(f"h({self.port_typ})", self.port_typ, self.port_id, "h", 1)
-        self.m = Variable(f"m({self.port_typ})", self.port_typ, self.port_id, "m", 1)
-
+        self.p = Variable(f"p({self.port_type})", self.port_type, self.port_id, "p", 1)
+        self.h = Variable(f"h({self.port_type})", self.port_type, self.port_id, "h", 1)
+        self.m = Variable(f"m({self.port_type})", self.port_type, self.port_id, "m", 1)
 
 class Component:
 
     """
-    A base class representing a component in a system.
+    A base class representing a component in a thermal hydraulic system.
 
     Attributes:
-        boundary_typ (str): The boundary type of the component. Default value is "undefined".
+        modeling_type (str): The modeling type of the component. Default value is "undefined".
         number (int): The component number.
-        component_typ (str): The component type.
+        component_type (str): The component type.
         name (str): The component name.
         source_component (bool): Indicates if the component is a source component.
-        fluid_loop_list (list): The list of fluid loops associated with the component.
+        fluid_loop_list (list): list of fluids for which at least one component port is connected.
         executed (bool): Indicates if the component has been executed.
         ports (list): The list of ports associated with the component.
-        specifications (list): The list of specifications for the component.
-        parameter (list): The list of parameters for the component.
-        inputs (list): The inputs of the component.
-        outputs (list): The outputs of the component.
+        specifications (dict): A dictionary of specifications for the component.
+        parameters (dict): A dictionary of parameters for the component.
+        inputs (dict): A dictionary of inputs of the component.
+        outputs (dict): A dictionary of outputs of the component.
         solver_path (str): The path to the solver for the component.
-        status (int): The status of the component.
-        lamda (float): The lambda value of the component.
-        linearized(bool): Indicates if the linearized component is used in solver
-        J (list): The J values of the component.
-        F0 (list): The F0 values of the component.
-        x0 (list): The x0 values of the component.
+        status (int): The status of the component (1: solving component successful, 0: solving component unsuccessful).
+        lamda (float): Homotopy parameter of the solver
+        linearized(bool): Indicates if linearization of the component is used in solver
+        x0 (list): The values at which the component is linearized.
+        J (list): The Jacobian at x0 of the component.
+        F0 (list): The output values at the input values x0 of the component.
         no_in_ports (int): The number of input ports.
         no_out_ports (int): The number of output ports.
     """
 
-    boundary_typ = "undefined"
+    modeling_type = "undefined"
 
-    def __init__(self, number: int, component_typ: str, name: str, jpcm: list):
+    def __init__(self, number: int, component_type: str, name: str, jpcm: list):
         """
         Initialize a Component object.
 
@@ -151,24 +150,24 @@ class Component:
             jpcm: List of jpcm values.
         """
         self.number = number
-        self.component_typ = component_typ
+        self.component_type = component_type
         self.name = name
-        self.source_component = False
         self.fluid_loop_list = set()
         self.executed = False
         self.solved = False
+        self.diagramm_plot = False
         self.ports = []
-        self.specifications = []
-        self.parameter = []
-        self.inputs = ["", None]
-        self.outputs = ["", None]
+        self.specifications = {}
+        self.parameter = {}
+        self.inputs = {}
+        self.outputs = {}
         self.solver_path = ""
         self.status = 1
         self.lamda = 1.0
         self.linearized = False
+        self.x0 = []
         self.J = []
         self.F0 = []
-        self.x0 = []
         self.no_in_ports = 0
         self.no_out_ports = 0
 
@@ -200,7 +199,7 @@ class Component:
 
 
 class PressureBasedComponent(Component):
-    boundary_typ = "Pressure Based"
+    modeling_type = "Pressure Based"
 
     def solve(self):
         """
@@ -217,7 +216,7 @@ class PressureBasedComponent(Component):
         """
         Calculate the Jacobian matrix for the component.
 
-        This method calculates the Jacobian matrix of the mass flow based component using finite differences.
+        This method calculates the Jacobian matrix of the pressure based component using finite differences.
         The Jacobian matrix represents the partial derivatives of the component's output variables
         with respect to its input variables.
 
@@ -230,35 +229,35 @@ class PressureBasedComponent(Component):
         self.J = np.zeros([2 * self.no_out_ports + self.no_in_ports, 2 * self.no_in_ports + self.no_out_ports])
         self.F0 = np.zeros([2 * self.no_out_ports + self.no_in_ports])
         for port in self.ports:
-            if port.port_typ == 'in' and port.port_id[-1] == 0:
+            if port.port_type == 'in' and port.port_id[-1] == 0:
                 port.p.set_value(self.x0[i])
                 port.h.set_value(self.x0[i+1])
                 i += 2
-            elif port.port_typ == 'out' and port.port_id[-1] == 0:
+            elif port.port_type == 'out' and port.port_id[-1] == 0:
                 port.h.set_value(self.x0[i])
                 i += 1
         self.solve()
         i = 0
         for port in self.ports:
-            if port.port_typ == 'in' and not port.port_id[-1] == 1:
+            if port.port_type == 'in' and not port.port_id[-1] == 1:
                 self.F0[i] = port.m.value
                 i += 1
-            elif port.port_typ == 'out' and not port.port_id[-1] == 1:
+            elif port.port_type == 'out' and not port.port_id[-1] == 1:
                 self.F0[i] = port.h.value
                 self.F0[i+1] = port.m.value
                 i += 2
 
         i = 0
         for port in self.ports:
-            if port.port_typ == 'in' and not port.port_id[-1] == 1:
+            if port.port_type == 'in' and not port.port_id[-1] == 1:
                 j = 0
                 port.p.set_value(self.x0[i] + 1e-6 * max(abs(self.x0[i]), 0.01))
                 self.solve()
                 for port_inside in self.ports:
-                    if port_inside.port_typ == 'in' and not port_inside.port_id[-1] == 1:
+                    if port_inside.port_type == 'in' and not port_inside.port_id[-1] == 1:
                         self.J[j, i] = (port_inside.m.value - self.F0[i]) / (1e-6 * max(abs(self.x0[i]), 0.01))
                         j += 1
-                    elif port_inside.port_typ == 'out' and not port_inside.port_id[-1] == 1:
+                    elif port_inside.port_type == 'out' and not port_inside.port_id[-1] == 1:
                         self.J[j, i] = (port_inside.h.value - self.F0[j]) / (1e-6 * max(abs(self.x0[i]), 0.01))
                         self.J[j+1, i] = (port_inside.m.value - self.F0[j+1]) / (1e-6 * max(abs(self.x0[i]), 0.01))
                         j += 2
@@ -269,25 +268,25 @@ class PressureBasedComponent(Component):
                 port.h.set_value(self.x0[i] + 1e-6 * max(abs(self.x0[i]), 0.01))
                 self.solve()
                 for port_inside in self.ports:
-                    if port_inside.port_typ == 'in' and not port_inside.port_id[-1] == 1:
+                    if port_inside.port_type == 'in' and not port_inside.port_id[-1] == 1:
                         self.J[j, i] = (port_inside.m.value - self.F0[j]) / (1e-6 * max(abs(self.x0[i]), 0.01))
                         j += 1
-                    elif port_inside.port_typ == 'out' and not port_inside.port_id[-1] == 1:
+                    elif port_inside.port_type == 'out' and not port_inside.port_id[-1] == 1:
                         self.J[j, i] = (port_inside.h.value - self.F0[j]) / (1e-6 * max(abs(self.x0[i]), 0.01))
                         self.J[j+1, i] = (port_inside.m.value - self.F0[j+1]) / (1e-6 * max(abs(self.x0[i]), 0.01))
                         j += 2
                 port.h.set_value(self.x0[i])
                 i += 1
 
-            if port.port_typ == 'out' and not port.port_id[-1] == 1:
+            if port.port_type == 'out' and not port.port_id[-1] == 1:
                 j = 0
                 port.p.set_value(self.x0[i] + 1e-6 * max(abs(self.x0[i]), 0.01))
                 self.solve()
                 for port_inside in self.ports:
-                    if port_inside.port_typ == 'in' and not port_inside.port_id[-1] == 1:
+                    if port_inside.port_type == 'in' and not port_inside.port_id[-1] == 1:
                         self.J[j, i] = (port_inside.m.value - self.F0[j]) / (1e-6 * max(abs(self.x0[i]), 0.01))
                         j += 1
-                    elif port_inside.port_typ == 'out' and not port_inside.port_id[-1] == 1:
+                    elif port_inside.port_type == 'out' and not port_inside.port_id[-1] == 1:
                         self.J[j, i] = (port_inside.h.value - self.F0[j]) / (1e-6 * max(abs(self.x0[i]), 0.01))
                         self.J[j+1, i] = (port_inside.m.value - self.F0[j+1]) / (1e-6 * max(abs(self.x0[i]), 0.01))
                         j += 2
@@ -310,12 +309,12 @@ class PressureBasedComponent(Component):
 
         n_unknown = 0
         for port in self.ports:
-            if port.port_typ == "in":
+            if port.port_type == "in":
                 if not port.p.known:
                     n_unknown += 1
                 if not port.h.known:
                     n_unknown += 1
-            elif port.port_typ == "out":
+            elif port.port_type == "out":
                 if not port.p.known:
                     n_unknown += 1
         return n_unknown
@@ -343,7 +342,7 @@ class MassFlowBasedComponent(Component):
             raise RuntimeError(f"Tried to solve Component:  {self.component_typ}, but it is not executable yet!")
         self.executed = True
         for port in self.ports:
-            if port.port_typ == "out":
+            if port.port_type == "out":
                 port.p.known = True
                 port.h.known = True
                 port.m.known = True
@@ -375,7 +374,7 @@ class MassFlowBasedComponent(Component):
         self.J = np.zeros([3 * self.no_out_ports, 3 * self.no_in_ports])
         self.F0 = np.zeros([3 * self.no_out_ports])
         for port in self.ports:
-            if port.port_typ == 'in' and port.port_id[-1] == 0:
+            if port.port_type == 'in' and port.port_id[-1] == 0:
                 port.p.set_value(self.x0[i])
                 port.h.set_value(self.x0[i+1])
                 port.m.set_value(self.x0[i+2])
@@ -383,7 +382,7 @@ class MassFlowBasedComponent(Component):
         self.solve()
         i = 0
         for port in self.ports:
-            if port.port_typ == 'out' and not port.port_id[-1] == 1:
+            if port.port_type == 'out' and not port.port_id[-1] == 1:
                 self.F0[i] = port.p.value
                 self.F0[i+1] = port.h.value
                 self.F0[i+2] = port.m.value
@@ -391,12 +390,12 @@ class MassFlowBasedComponent(Component):
 
         i = 0
         for port in self.ports:
-            if port.port_typ == 'in' and port.port_id[-1] == 0:
+            if port.port_type == 'in' and port.port_id[-1] == 0:
                 j = 0
                 port.p.set_value(self.x0[i] + 1e-6 * max(abs(self.x0[i]), 0.01))
                 self.solve()
                 for port_inside in self.ports:
-                    if port_inside.port_typ == 'out' and not port_inside.port_id[-1] == 1:
+                    if port_inside.port_type == 'out' and not port_inside.port_id[-1] == 1:
                         self.J[j, i] = (port_inside.p.value - self.F0[j]) / (1e-6 * max(abs(self.x0[i]), 0.01))
                         self.J[j+1, i] = (port_inside.h.value - self.F0[j+1]) / (1e-6 * max(abs(self.x0[i]), 0.01))
                         self.J[j+2, i] = (port_inside.m.value - self.F0[j+2]) / (1e-6 * max(abs(self.x0[i]), 0.01))
@@ -408,7 +407,7 @@ class MassFlowBasedComponent(Component):
                 port.h.set_value(self.x0[i] + 1e-6 * max(abs(self.x0[i]), 0.01))
                 self.solve()
                 for port_inside in self.ports:
-                    if port_inside.port_typ == 'out' and not port_inside.port_id[-1] == 1:
+                    if port_inside.port_type == 'out' and not port_inside.port_id[-1] == 1:
                         self.J[j, i] = (port_inside.p.value - self.F0[j]) / (1e-6 * max(abs(self.x0[i]), 0.01))
                         self.J[j+1, i] = (port_inside.h.value - self.F0[j+1]) / (1e-6 * max(abs(self.x0[i]), 0.01))
                         self.J[j+2, i] = (port_inside.m.value - self.F0[j+2]) / (1e-6 * max(abs(self.x0[i]), 0.01))
@@ -420,7 +419,7 @@ class MassFlowBasedComponent(Component):
                 port.m.set_value(self.x0[i] + 1e-6 * max(abs(self.x0[i]), 0.01))
                 self.solve()
                 for port_inside in self.ports:
-                    if port_inside.port_typ == 'out' and not port_inside.port_id[-1] == 1:
+                    if port_inside.port_type == 'out' and not port_inside.port_id[-1] == 1:
                         self.J[j, i] = (port_inside.p.value - self.F0[j]) / (1e-6 * max(abs(self.x0[i]), 0.01))
                         self.J[j+1, i] = (port_inside.h.value - self.F0[j+1]) / (1e-6 * max(abs(self.x0[i]), 0.01))
                         self.J[j+2, i] = (port_inside.m.value - self.F0[j+2]) / (1e-6 * max(abs(self.x0[i]), 0.01))
@@ -442,7 +441,7 @@ class MassFlowBasedComponent(Component):
         """
         count = 0
         for port in self.ports:
-            if port.port_typ == 'in':
+            if port.port_type == 'in':
                 if not port.p.known:
                     count += 1
                 if not port.h.known:
@@ -461,7 +460,7 @@ class MassFlowBasedComponent(Component):
         Returns:
             bool: True if the component is ready for execution, False otherwise.
         """
-        return all(port.p.known and port.h.known and port.m.known for port in self.ports if port.port_typ == 'in')
+        return all(port.p.known and port.h.known and port.m.known for port in self.ports if port.port_type == 'in')
 
 
 class BypassComponent(Component):
@@ -494,7 +493,7 @@ class BypassComponent(Component):
         """
         count = 0
         for port in self.ports:
-            if port.port_typ == 'in':
+            if port.port_type == 'in':
                 if not port.p.known:
                     count += 1
                 if not port.h.known:
@@ -517,8 +516,8 @@ class BypassComponent(Component):
             bool: True if the component is ready for execution, False otherwise.
         """
         return all((port.p.known and port.h.known and port.m.known)
-                   for port in self.ports if port.port_typ == "in") and \
-               all(port.p.known for port in self.ports if port.port_typ == "out")
+                   for port in self.ports if port.port_typie == "in") and \
+               all(port.p.known for port in self.ports if port.port_type == "out")
 
 
 class BalanceEquation:
@@ -581,9 +580,9 @@ class MassFlowBalance(BalanceEquation):
         unknown_variable = None
         for variable in self.variables:
             if variable.known:
-                if variable.port_typ == 'out':
+                if variable.port_type == 'out':
                     m_total += variable.value
-                elif variable.port_typ == 'in':
+                elif variable.port_type == 'in':
                     m_total -= variable.value
             else:
                 unknown_variable = variable
@@ -601,8 +600,8 @@ class MassFlowBalance(BalanceEquation):
         Returns:
             float: Residual value of the equation.
         """
-        res = sum(variable.value for variable in self.variables if variable.port_typ == "out") \
-              - sum(variable.value for variable in self.variables if variable.port_typ == "in")
+        res = sum(variable.value for variable in self.variables if variable.port_type == "out") \
+              - sum(variable.value for variable in self.variables if variable.port_type == "in")
         return res * 10
 
 
@@ -744,7 +743,7 @@ class EnthalpyFlowBalance:
         if not self.is_solvable():
             raise RuntimeError("Tried to solve equation: " + self.name + ", but it is not solvable yet.")
 
-        H_total = sum(variable[0].value * variable[1].value * self.port_typ_multiplier[variable[0].port_typ]
+        H_total = sum(variable[0].value * variable[1].value * self.port_typ_multiplier[variable[0].port_type]
                       for variable in self.variables if variable[0].known and variable[1].known)
 
         for variable in self.variables:
@@ -760,7 +759,7 @@ class EnthalpyFlowBalance:
         Returns:
             float: Residual value of the equation.
         """
-        res = sum(variable[0].value * variable[1].value * self.port_typ_multiplier[variable[0].port_typ]
+        res = sum(variable[0].value * variable[1].value * self.port_typ_multiplier[variable[0].port_type]
                   for variable in self.variables)
         return res * 1e-5 * 10
 
@@ -890,7 +889,7 @@ class DesignParameterEquation(DesignEquation):
             float: The residual value of the equation.
         """
         for port in self.component.ports:
-            if port.p.var_typ == self.DC_var_type and port.p.port_typ == self.DC_port_type:
+            if port.p.var_type == self.DC_var_type and port.p.port_type == self.DC_port_type:
                 self.res = (port.p.value - self.DC_value) * 1e-9
                 break
         return self.res
@@ -930,7 +929,7 @@ class Junction:
         enthalpy_flow_variables = []
         for ic in self.in_comp:
             for port in ic.ports:
-                if port.port_typ == 'out' and port.port_id[0] == self.number:
+                if port.port_type == 'out' and port.port_id[0] == self.number:
                     pressure_variables.append(port.p)
                     mass_flow_variables.append(port.m)
                     if len(self.in_comp) == 1:
@@ -939,7 +938,7 @@ class Junction:
 
         for oc in self.out_comp:
             for port in oc.ports:
-                if port.port_typ == 'in' and port.port_id[0] == self.number:
+                if port.port_type == 'in' and port.port_id[0] == self.number:
                     pressure_variables.append(port.p)
                     mass_flow_variables.append(port.m)
                     enthalpy_variables.append(port.h)
@@ -1021,20 +1020,20 @@ class TripartiteGraph:
         self.E = [(v, u) for v in self.V for u in self.U if v in u.variables]
         self.Ed = [(v, c) for c in self.C for v in self.V
                    if v.port_id[1] == c.number and ((isinstance(c, PressureBasedComponent)
-                                                     and ((v.port_typ == 'in' and v.var_typ in ['p', 'h'])
-                                                          or (v.port_typ == 'out' and v.var_typ == 'p')))
-                                                    or (isinstance(c, MassFlowBasedComponent) and v.port_typ == 'in')
+                                                     and ((v.port_type == 'in' and v.var_type in ['p', 'h'])
+                                                          or (v.port_type == 'out' and v.var_type == 'p')))
+                                                    or (isinstance(c, MassFlowBasedComponent) and v.port_type == 'in')
                                                     or (isinstance(c, BypassComponent) and (
-                            (v.port_typ == 'in' and v.var_typ in ['p', 'h', 'm'])
-                            or (v.port_typ == 'out' and v.var_typ == 'p'))))]
+                            (v.port_type == 'in' and v.var_type in ['p', 'h', 'm'])
+                            or (v.port_type == 'out' and v.var_type == 'p'))))]
         self.Ed.extend([(c, v) for c in self.C for v in self.V
                         if v.port_id[1] == c.number and (isinstance(c, PressureBasedComponent)
-                                                         and (v.var_typ == 'm' or (
-                            v.var_typ == 'h' and v.port_typ == 'out'))
+                                                         and (v.var_type == 'm' or (
+                            v.var_type == 'h' and v.port_type == 'out'))
                                                          or isinstance(c,
-                                                                       MassFlowBasedComponent) and v.port_typ == 'out'
+                                                                       MassFlowBasedComponent) and v.port_type == 'out'
                                                          or isinstance(c,
-                                                                       BypassComponent) and v.port_typ == 'out' and v.var_typ in [
+                                                                       BypassComponent) and v.port_type == 'out' and v.var_type in [
                                                              'h', 'm'])])
 
 
@@ -1060,9 +1059,9 @@ def tearing_alg(tpg: TripartiteGraph):
     res_equa = []
 
     while len(comp_exec) != len(tpg.C):
-        if any(c.component_typ == 'Compressor' for c in comp_not_exec):
+        if any(c.component_type == 'Compressor' for c in comp_not_exec):
             indices = [i for i, c in enumerate(comp_not_exec)
-                       if c.component_typ == 'Compressor']
+                       if c.component_type == 'Compressor']
             for i, index in enumerate(indices):
                 c = comp_not_exec[index]
                 if i == 0:
@@ -1167,7 +1166,7 @@ def source_search(junc_no: int, var: Variable, jpcm, components: List[Component]
     for c in comp_list:
         if jpcm[junc_no - 1, -1] == 1:
             return c + 1
-        elif components[c].component_typ not in ['Compressor', 'Pump', 'Expansion Valve']:
+        elif components[c].component_type not in ['Compressor', 'Pump', 'Expansion Valve']:
             for j, value in enumerate(jpcm[:, c]):
                 if value != 0 and jpcm[junc_no - 1, c] * value < 0 and jpcm[junc_no - 1, -2] == jpcm[j, -2]:
                     if components[c].source_component:
@@ -1201,11 +1200,11 @@ def system_solver(x0: list, Vt: list, component_list: list, exec_list: list, res
         """
 
         for i, variable in enumerate(Vt):
-            if variable.var_typ == 'p':
+            if variable.var_type == 'p':
                 variable.set_value(x[i] / scale_factors[0])
-            elif variable.var_typ == 'h':
+            elif variable.var_type == 'h':
                 variable.set_value(x[i] / scale_factors[1])
-            elif variable.var_typ == 'm':
+            elif variable.var_type == 'm':
                 variable.set_value(x[i] / scale_factors[2])
 
         for item in exec_list:
@@ -1239,11 +1238,11 @@ def system_solver(x0: list, Vt: list, component_list: list, exec_list: list, res
         """
 
         for i, variable in enumerate(Vt):
-            if variable.var_typ == 'p':
+            if variable.var_type == 'p':
                 variable.set_value(x[i] / scale_factors[0])
-            elif variable.var_typ == 'h':
+            elif variable.var_type == 'h':
                 variable.set_value(x[i] / scale_factors[1])
-            elif variable.var_typ == 'm':
+            elif variable.var_type == 'm':
                 variable.set_value(x[i] / scale_factors[2])
 
         for item in exec_list:
@@ -1279,11 +1278,11 @@ def system_solver(x0: list, Vt: list, component_list: list, exec_list: list, res
         """
 
         for i, variable in enumerate(Vt):
-            if variable.var_typ == 'm':
+            if variable.var_type == 'm':
                 variable.set_value(x[i] / scale_factors[2])
-            elif variable.var_typ == 'p':
+            elif variable.var_type == 'p':
                 variable.set_value(x[i] / scale_factors[0])
-            elif variable.var_typ == 'h':
+            elif variable.var_type == 'h':
                 variable.set_value(x[i] / scale_factors[1])
 
         for item in exec_list:
@@ -1318,11 +1317,11 @@ def system_solver(x0: list, Vt: list, component_list: list, exec_list: list, res
         """
 
         for i, variable in enumerate(Vt):
-            if variable.var_typ == 'm':
+            if variable.var_type == 'm':
                 variable.set_value(x[i] / scale_factors[2])
-            elif variable.var_typ == 'p':
+            elif variable.var_type == 'p':
                 variable.set_value(x[i] / scale_factors[0])
-            elif variable.var_typ == 'h':
+            elif variable.var_type == 'h':
                 variable.set_value(x[i] / scale_factors[1])
 
         for item in exec_list:
@@ -1359,11 +1358,11 @@ def system_solver(x0: list, Vt: list, component_list: list, exec_list: list, res
 
         """
         for i, variable in enumerate(Vt):
-            if variable.var_typ == 'p':
+            if variable.var_type == 'p':
                 variable.set_value(x[i] / scale_factors[0])
-            elif variable.var_typ == 'h':
+            elif variable.var_type == 'h':
                 variable.set_value(x[i] / scale_factors[1])
-            elif variable.var_typ == 'm':
+            elif variable.var_type == 'm':
                 variable.set_value(x[i] / scale_factors[2])
 
         for item in exec_list:
@@ -1487,6 +1486,7 @@ def system_solver(x0: list, Vt: list, component_list: list, exec_list: list, res
         """
         x = [x0]
         it = 0
+        λmin = 1e-19
         F, convergence_flag = fun(x[0])
 
         if convergence_flag == 0:
@@ -1501,7 +1501,7 @@ def system_solver(x0: list, Vt: list, component_list: list, exec_list: list, res
                 dx = np.linalg.solve(J, -F)
             except:
                 return {'x': x[-1], 'f': F, 'n_it': it + 1, 'converged': False, 'message': 'singular jacobian!'}
-            while any(x[it] + λ * dx < 0):
+            while (any(x[it] + λ * dx < 0) or any(np.abs(dx * λ / x[it]) > 5e-1)) and λ > λmin:
                 λ *= 1/2
             x.append(x[it] + λ * dx)
             newF, convergence_flag = fun(x[-1])
@@ -1534,11 +1534,11 @@ def system_solver(x0: list, Vt: list, component_list: list, exec_list: list, res
         print('linearizing system components...')
 
         for j, variable in enumerate(Vt):
-            if variable.var_typ == 'p':
+            if variable.var_type == 'p':
                 variable.set_value(x0[j])
-            elif variable.var_typ == 'h':
+            elif variable.var_type == 'h':
                 variable.set_value(x0[j])
-            elif variable.var_typ == 'm':
+            elif variable.var_type == 'm':
                 variable.set_value(x0[j])
 
         for item in exec_list:
@@ -1551,13 +1551,13 @@ def system_solver(x0: list, Vt: list, component_list: list, exec_list: list, res
             c.x0 = []
             for port in c.ports:
                 if isinstance(c, PressureBasedComponent):
-                    if port.port_typ == 'in' and port.port_id[-1] == 0:
+                    if port.port_type == 'in' and port.port_id[-1] == 0:
                         c.x0.append(port.p.value)
                         c.x0.append(port.h.value)
-                    elif port.port_typ == 'out' and port.port_id[-1] == 0:
+                    elif port.port_type == 'out' and port.port_id[-1] == 0:
                         c.x0.append(port.p.value)
                 elif isinstance(c, MassFlowBasedComponent):
-                    if port.port_typ == 'in' and port.port_id[-1] == 0:
+                    if port.port_type == 'in' and port.port_id[-1] == 0:
                         c.x0.append(port.p.value)
                         c.x0.append(port.h.value)
                         c.x0.append(port.m.value)
@@ -1589,7 +1589,7 @@ def system_solver(x0: list, Vt: list, component_list: list, exec_list: list, res
         lamda_max = 0.5  # Maximum lambda value
         lamda_final = 1.0  # Final lambda value
         tol = 1e-2  # Tolerance between setpoint and actual lambda value
-        epsilon = 1e-9  # Convergence criteria for Broyden solver
+        epsilon = 1e-6  # Convergence criteria for Broyden solver
         max_fails = 20  # Maximum number of allowed solver fails
         N_max_outer = 50  # Maximum number of outer iterations
         N_max = 20  # Maximum number of allowed Broyden step iterations
@@ -1740,21 +1740,21 @@ def system_solver(x0: list, Vt: list, component_list: list, exec_list: list, res
             return {'x': x[-1], 'converged': False, 'message': 'model execution error'}
 
         print('Executes Broyden Solver for solving actual system...')
-        sol = broyden_method(fun, J, max_iter, 1e-12, True, x[-1][0:-1])
+        sol = broyden_method(fun, J, max_iter, 1e-6, True, x[-1][0:-1])
         return sol
 
     # maximum number of iterations for broyden solver
     max_iter = 50
 
     # convergence criteria
-    epsilon = 1e-12
+    epsilon = 1e-6
 
     # scales initial values
     x0_scaled = np.zeros(len(x0))
     for i, var in enumerate(x0):
-        if Vt[i].var_typ == 'p':
+        if Vt[i].var_type == 'p':
             x0_scaled[i] = x0[i] * scale_factors[0]
-        elif Vt[i].var_typ == 'h':
+        elif Vt[i].var_type == 'h':
             x0_scaled[i] = x0[i] * scale_factors[1]
         else:
             x0_scaled[i] = x0[i] * scale_factors[2]
@@ -1953,14 +1953,14 @@ def initialization(component: [Component], root: str, file: str):
 
         
 # function for just creating widget to define boundary conditions and later on saving them in variables
-def set_bc_values_onestage(pi_v_so=1.0, Ti_v_so=-10, mi_v_so=1.0, pi_c_so=1.0, Ti_c_so=20, mi_c_so=1.0):
+def set_inputs_onestage(pi_v_so=1.0, Ti_v_so=-5, mi_v_so=1.0, pi_c_so=1.0, Ti_c_so=30, mi_c_so=1.0):
     print(f'Evaporator: pi_v_so= {pi_v_so:5.1f} bar, Ti_v_so = {Ti_v_so:5.1f} °C, mi_v_so = {mi_v_so:5.1f} kg/s \n')
     print(f'Condenser:  pi_c_so= {pi_c_so:5.1f} bar, Ti_c_so = {Ti_c_so:5.1f} °C, mi_c_so = {mi_c_so:5.1f} kg/s \n')
     return pi_v_so, Ti_v_so, mi_v_so, pi_c_so, Ti_c_so, mi_c_so
 
 
 # function for just creating widget to define boundary conditions and later on saving them in variables
-def set_bc_values_cascade(pi_v_so=1.0, Ti_v_so=-10, mi_v_so=1.0,
+def set_inputs_cascade(pi_v_so=1.0, Ti_v_so=-10, mi_v_so=1.0,
                           pi_c_so=1.0, Ti_c_so=20, mi_c_so=1.0,
                           pi_gc_so=1.0, Ti_gc_so=20, mi_gc_so=1.0):
     print(f'Evaporator: pi_v_so= {pi_v_so:5.1f} bar, Ti_v_so = {Ti_v_so:5.1f} °C, mi_v_so = {mi_v_so:5.1f} kg/s \n')
