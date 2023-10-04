@@ -36,6 +36,6 @@ def solver(component: [Component]):
                 port.h.set_value(h_out)
                 port.m.set_value(m_out)
 
-    except (RuntimeError, ValueError):
+    except:
         print(component.component_typ + 'failed!')
         component.status = 0

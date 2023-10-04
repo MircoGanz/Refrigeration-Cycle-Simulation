@@ -1,0 +1,12 @@
+﻿Junction Port Matrix:;Compressor;Condenser;Separator;Expansion Valve;Evaporator;IHX;Source Evaporator;Source Condenser;Sink Evaporator;Sink Condenser;Fluid Loop;Source / Sink
+Junction 1;1;0;0;0;0;-3;0;0;0;0;1;0
+Junction 2;-1;2;0;0;0;0;0;0;0;0;1;0
+Junction 3;0;-2;4;0;0;0;0;0;0;0;1;0
+Junction 4;0;0;-6;0;0;2;0;0;0;0;1;0
+Junction 5;0;0;0;1;0;-2;0;0;0;0;1;0
+Junction 6;0;0;0;-1;3;0;0;0;0;0;1;0
+Junction 5;0;0;0;0;-3;3;0;0;0;0;1;0
+Junction 6;0;0;0;0;2;0;-1;0;0;0;2;1
+Junction 7;0;0;0;0;-2;0;0;0;1;0;2;-1
+Junction 8;0;3;0;0;0;0;0;-1;0;0;3;1
+Junction 9;0;-3;0;0;0;0;0;0;0;1;3;-1

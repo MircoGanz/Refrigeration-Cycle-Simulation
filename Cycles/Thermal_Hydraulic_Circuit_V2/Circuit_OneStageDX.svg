@@ -1,0 +1,3852 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Generiert durch Microsoft Visio, SVG Export Circuit_OneStageDX.svg Zeichenblatt-1 -->
+
+<svg
+   width="7.3414917in"
+   height="6.3061814in"
+   viewBox="0 0 528.58767 454.04521"
+   xml:space="preserve"
+   color-interpolation-filters="sRGB"
+   class="st24"
+   version="1.1"
+   id="svg18520"
+   sodipodi:docname="Circuit_OneStageDX.svg"
+   inkscape:version="1.1 (c68e22c387, 2021-05-23)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:v="http://schemas.microsoft.com/visio/2003/SVGExtensions/"><sodipodi:namedview
+   id="namedview18522"
+   pagecolor="#ffffff"
+   bordercolor="#666666"
+   borderopacity="1.0"
+   inkscape:pageshadow="2"
+   inkscape:pageopacity="0.0"
+   inkscape:pagecheckerboard="0"
+   inkscape:document-units="in"
+   showgrid="false"
+   inkscape:zoom="0.67647871"
+   inkscape:cx="352.56099"
+   inkscape:cy="302.30072"
+   inkscape:window-width="1920"
+   inkscape:window-height="1017"
+   inkscape:window-x="-8"
+   inkscape:window-y="-8"
+   inkscape:window-maximized="1"
+   inkscape:current-layer="svg18520"
+   fit-margin-top="0"
+   fit-margin-left="0"
+   fit-margin-right="0"
+   fit-margin-bottom="0" />
+	<v:documentProperties
+   v:langID="2055"
+   v:metric="true"
+   v:viewMarkup="false" />
+
+	<style
+   type="text/css"
+   id="style17377">
+	<![CDATA[
+		.st1 {fill:none;stroke:none;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
+		.st2 {fill:#000000;font-family:Times New Roman;font-size:1.16666em;font-weight:bold}
+		.st3 {fill:none;stroke:#000000;stroke-linecap:round;stroke-linejoin:round;stroke-width:1.5}
+		.st4 {stroke:#000000;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
+		.st5 {fill:#000000;font-family:Times New Roman;font-size:1.33333em;font-weight:bold}
+		.st6 {fill:#ffffff;stroke:#000000;stroke-linecap:round;stroke-linejoin:round;stroke-width:1}
+		.st7 {marker-start:url(#mrkr4-157);stroke:#000000;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
+		.st8 {fill:#000000;fill-opacity:1;stroke:#000000;stroke-opacity:1;stroke-width:0.22935779816514}
+		.st9 {stroke:#000000;stroke-linecap:round;stroke-linejoin:round;stroke-width:1.5}
+		.st10 {fill:#ffffff}
+		.st11 {font-size:1em}
+		.st12 {fill:#ff0000;font-family:Times New Roman;font-size:1.16666em;font-weight:bold}
+		.st13 {baseline-shift:-32.4943%;font-size:0.649886em}
+		.st14 {fill:#000000;font-family:Times New Roman;font-size:1.16666em}
+		.st15 {fill:#000000;font-family:Calibri;font-size:1.00001em}
+		.st16 {fill:#000000;stroke:#000000;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.24}
+		.st17 {marker-start:url(#mrkr4-157);stroke:#000000;stroke-linecap:butt;stroke-width:0.75}
+		.st18 {marker-end:url(#mrkr4-354);stroke:#000000;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
+		.st19 {fill:#000000;font-family:Times New Roman;font-size:0.833336em;font-weight:bold}
+		.st20 {fill:#00b050;font-family:Times New Roman;font-size:1.16666em;font-weight:bold}
+		.st21 {fill:#00b050;font-family:Calibri;font-size:1.00001em;font-weight:bold}
+		.st22 {fill:#ff0000;font-family:Calibri;font-size:1.00001em;font-weight:bold}
+		.st23 {fill:none;stroke:#000000;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
+		.st24 {fill:none;fill-rule:evenodd;font-size:12px;overflow:visible;stroke-linecap:square;stroke-miterlimit:3}
+	]]>
+	</style>
+
+	<defs
+   id="Markers">
+		<g
+   id="lend4">
+			<path
+   d="M 2,1 0,0 2,-1 v 2"
+   style="stroke:none"
+   id="path17379" />
+		</g>
+		<marker
+   id="mrkr4-157"
+   class="st8"
+   v:arrowType="4"
+   v:arrowSize="2"
+   v:setback="8.24"
+   refX="8.2399998"
+   orient="auto"
+   markerUnits="strokeWidth"
+   overflow="visible">
+			<use
+   xlink:href="#lend4"
+   transform="scale(4.36)"
+   id="use17382"
+   x="0"
+   y="0"
+   width="100%"
+   height="100%" />
+		</marker>
+		<marker
+   id="mrkr4-354"
+   class="st8"
+   v:arrowType="4"
+   v:arrowSize="2"
+   v:setback="8.72"
+   refX="-8.7200003"
+   orient="auto"
+   markerUnits="strokeWidth"
+   overflow="visible">
+			<use
+   xlink:href="#lend4"
+   transform="scale(-4.36)"
+   id="use17385"
+   x="0"
+   y="0"
+   width="100%"
+   height="100%" />
+		</marker>
+	<g
+   id="lend4-5">
+			<path
+   d="M 2,1 0,0 2,-1 v 2"
+   style="stroke:none"
+   id="path17379-7" />
+		</g><marker
+   id="mrkr4-157-4"
+   class="st8"
+   v:arrowType="4"
+   v:arrowSize="2"
+   v:setback="8.24"
+   refX="8.2399998"
+   orient="auto"
+   markerUnits="strokeWidth"
+   overflow="visible">
+			<use
+   xlink:href="#lend4-5"
+   transform="scale(4.36)"
+   id="use17382-4"
+   x="0"
+   y="0"
+   width="100%"
+   height="100%" />
+		</marker><marker
+   id="mrkr4-354-1"
+   class="st8"
+   v:arrowType="4"
+   v:arrowSize="2"
+   v:setback="8.72"
+   refX="-8.7200003"
+   orient="auto"
+   markerUnits="strokeWidth"
+   overflow="visible">
+			<use
+   xlink:href="#lend4-5"
+   transform="scale(-4.36)"
+   id="use17385-4"
+   x="0"
+   y="0"
+   width="100%"
+   height="100%" />
+		</marker><g
+   id="lend4-8">
+			<path
+   d="M 2,1 0,0 2,-1 v 2"
+   style="stroke:none"
+   id="path22556" />
+		</g><marker
+   id="mrkr4-157-43"
+   class="st8"
+   v:arrowType="4"
+   v:arrowSize="2"
+   v:setback="8.24"
+   refX="8.2399998"
+   orient="auto"
+   markerUnits="strokeWidth"
+   overflow="visible">
+			<use
+   xlink:href="#lend4-8"
+   transform="scale(4.36)"
+   id="use22559"
+   x="0"
+   y="0"
+   width="100%"
+   height="100%" />
+		</marker><marker
+   id="mrkr4-354-3"
+   class="st8"
+   v:arrowType="4"
+   v:arrowSize="2"
+   v:setback="8.72"
+   refX="-8.7200003"
+   orient="auto"
+   markerUnits="strokeWidth"
+   overflow="visible">
+			<use
+   xlink:href="#lend4-8"
+   transform="scale(-4.36)"
+   id="use22562"
+   x="0"
+   y="0"
+   width="100%"
+   height="100%" />
+		</marker></defs>
+	
+<style
+   type="text/css"
+   id="style17377-3">
+	<![CDATA[
+		.st1 {fill:none;stroke:none;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
+		.st2 {fill:#000000;font-family:Times New Roman;font-size:1.16666em;font-weight:bold}
+		.st3 {fill:none;stroke:#000000;stroke-linecap:round;stroke-linejoin:round;stroke-width:1.5}
+		.st4 {stroke:#000000;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
+		.st5 {fill:#000000;font-family:Times New Roman;font-size:1.33333em;font-weight:bold}
+		.st6 {fill:#ffffff;stroke:#000000;stroke-linecap:round;stroke-linejoin:round;stroke-width:1}
+		.st7 {marker-start:url(#mrkr4-157);stroke:#000000;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
+		.st8 {fill:#000000;fill-opacity:1;stroke:#000000;stroke-opacity:1;stroke-width:0.22935779816514}
+		.st9 {stroke:#000000;stroke-linecap:round;stroke-linejoin:round;stroke-width:1.5}
+		.st10 {fill:#ffffff}
+		.st11 {font-size:1em}
+		.st12 {fill:#ff0000;font-family:Times New Roman;font-size:1.16666em;font-weight:bold}
+		.st13 {baseline-shift:-32.4943%;font-size:0.649886em}
+		.st14 {fill:#000000;font-family:Times New Roman;font-size:1.16666em}
+		.st15 {fill:#000000;font-family:Calibri;font-size:1.00001em}
+		.st16 {fill:#000000;stroke:#000000;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.24}
+		.st17 {marker-start:url(#mrkr4-157);stroke:#000000;stroke-linecap:butt;stroke-width:0.75}
+		.st18 {marker-end:url(#mrkr4-354);stroke:#000000;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
+		.st19 {fill:#000000;font-family:Times New Roman;font-size:0.833336em;font-weight:bold}
+		.st20 {fill:#00b050;font-family:Times New Roman;font-size:1.16666em;font-weight:bold}
+		.st21 {fill:#00b050;font-family:Calibri;font-size:1.00001em;font-weight:bold}
+		.st22 {fill:#ff0000;font-family:Calibri;font-size:1.00001em;font-weight:bold}
+		.st23 {fill:none;stroke:#000000;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
+		.st24 {fill:none;fill-rule:evenodd;font-size:12px;overflow:visible;stroke-linecap:square;stroke-miterlimit:3}
+	]]>
+	</style><style
+   type="text/css"
+   id="style22554">
+	<![CDATA[
+		.st1 {fill:none;stroke:none;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
+		.st2 {fill:#000000;font-family:Times New Roman;font-size:1.16666em;font-weight:bold}
+		.st3 {fill:none;stroke:#000000;stroke-linecap:round;stroke-linejoin:round;stroke-width:1.5}
+		.st4 {stroke:#000000;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
+		.st5 {fill:#000000;font-family:Times New Roman;font-size:1.33333em;font-weight:bold}
+		.st6 {fill:#ffffff;stroke:#000000;stroke-linecap:round;stroke-linejoin:round;stroke-width:1}
+		.st7 {marker-start:url(#mrkr4-157);stroke:#000000;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
+		.st8 {fill:#000000;fill-opacity:1;stroke:#000000;stroke-opacity:1;stroke-width:0.22935779816514}
+		.st9 {stroke:#000000;stroke-linecap:round;stroke-linejoin:round;stroke-width:1.5}
+		.st10 {fill:#ffffff}
+		.st11 {font-size:1em}
+		.st12 {fill:#ff0000;font-family:Times New Roman;font-size:1.16666em;font-weight:bold}
+		.st13 {baseline-shift:-32.4943%;font-size:0.649886em}
+		.st14 {fill:#000000;font-family:Times New Roman;font-size:1.16666em}
+		.st15 {fill:#000000;font-family:Calibri;font-size:1.00001em}
+		.st16 {fill:#000000;stroke:#000000;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.24}
+		.st17 {marker-start:url(#mrkr4-157);stroke:#000000;stroke-linecap:butt;stroke-width:0.75}
+		.st18 {marker-end:url(#mrkr4-354);stroke:#000000;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
+		.st19 {fill:#000000;font-family:Times New Roman;font-size:0.833336em;font-weight:bold}
+		.st20 {fill:#00b050;font-family:Times New Roman;font-size:1.16666em;font-weight:bold}
+		.st21 {fill:#00b050;font-family:Calibri;font-size:1.00001em;font-weight:bold}
+		.st22 {fill:#ff0000;font-family:Calibri;font-size:1.00001em;font-weight:bold}
+		.st23 {fill:none;stroke:#000000;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
+		.st24 {fill:none;fill-rule:evenodd;font-size:12px;overflow:visible;stroke-linecap:square;stroke-miterlimit:3}
+	]]>
+	</style><g
+   style="color-interpolation-filters:sRGB"
+   id="g24357"
+   transform="matrix(0.99999891,0,0,0.99999891,-104.88189,-70.865629)"><g
+     v:mID="0"
+     v:index="1"
+     v:groupContext="foregroundPage"
+     id="g23695">
+		<v:userDefs>
+			<v:ud
+   v:nameU="PEHideTags" />
+		</v:userDefs>
+		<title
+   id="title22566">Zeichenblatt-1</title>
+		<v:pageProperties
+   v:drawingScale="0.0393701"
+   v:pageScale="0.0393701"
+   v:drawingUnits="24"
+   v:shadowOffsetX="8.50394"
+   v:shadowOffsetY="-8.50394" />
+		<v:layer
+   v:name="Verbinder"
+   v:index="0" />
+		<v:layer
+   v:name="Ventil"
+   v:index="1" />
+		<g
+   id="shape1-1"
+   v:mID="1"
+   v:groupContext="shape"
+   transform="translate(366.414,-185.916)">
+			<title
+   id="title22568">Tabelle.1</title>
+			<desc
+   id="desc22570">Evaporator</desc>
+			<v:textBlock
+   v:margins="rect(4,4,4,4)"
+   v:tabSpace="42.5197" />
+			<v:textRect
+   cx="55.8447"
+   cy="581.935"
+   width="111.69"
+   height="26.682" />
+			<rect
+   x="0"
+   y="568.59399"
+   width="111.689"
+   height="26.681999"
+   class="st1"
+   id="rect22572" />
+			<text
+   x="21.24"
+   y="586.13"
+   class="st2"
+   v:langID="2055"
+   id="text22574"><v:paragraph
+   v:horizAlign="1" /><v:tabList />Evaporator</text>		</g>
+		<g
+   id="group2-4"
+   transform="translate(384.638,-139.124)"
+   v:mID="2"
+   v:groupContext="group">
+			<title
+   id="title22577">Tabelle.2</title>
+			<g
+   id="shape3-5"
+   v:mID="3"
+   v:groupContext="shape"
+   transform="rotate(180,39.30715,571.585)">
+				<title
+   id="title22579">Rechteck.170</title>
+				<v:userDefs>
+					<v:ud
+   v:nameU="visVersion"
+   v:val="VT0(15):26" />
+				</v:userDefs>
+				<rect
+   x="0"
+   y="547.89801"
+   width="76.488403"
+   height="47.377201"
+   class="st3"
+   id="rect22581" />
+			</g>
+			<g
+   id="shape4-7"
+   v:mID="4"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(33.2835,-16.5724)">
+				<title
+   id="title22584">Dynamischer Verbinder.191</title>
+			</g>
+			<g
+   id="shape5-8"
+   v:mID="5"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(66.945,-34.946)">
+				<title
+   id="title22587">Dynamischer Verbinder.214</title>
+				<path
+   d="m 2.5,602.36 h 9.17"
+   class="st4"
+   id="path22589" />
+			</g>
+			<g
+   id="shape6-11"
+   v:mID="6"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(15.5788,-39.9067)">
+				<title
+   id="title22592">Dynamischer Verbinder.228</title>
+				<path
+   d="m 3.56,597.4 7.06,9.92"
+   class="st4"
+   id="path22594" />
+			</g>
+			<g
+   id="shape7-14"
+   v:mID="7"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(43.937,-25.7334)">
+				<title
+   id="title22597">Dynamischer Verbinder.231</title>
+				<path
+   d="m -3.54,593.15 -7.09,-9.92"
+   class="st4"
+   id="path22599" />
+			</g>
+			<g
+   id="shape8-17"
+   v:mID="8"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(22.6654,-25.7334)">
+				<title
+   id="title22602">Dynamischer Verbinder.233</title>
+				<path
+   d="m 3.53,593.15 7.11,-9.92"
+   class="st4"
+   id="path22604" />
+			</g>
+			<g
+   id="shape9-20"
+   v:mID="9"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(50.7709,-40.069)">
+				<title
+   id="title22607">Dynamischer Verbinder.234</title>
+				<path
+   d="m -3.8,597.24 -6.58,10.25"
+   class="st4"
+   id="path22609" />
+			</g>
+			<g
+   id="shape10-23"
+   v:mID="10"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(43.6842,-40.069)">
+				<title
+   id="title22612">Dynamischer Verbinder.236</title>
+				<path
+   d="m 3.29,597.24 7.59,10.25"
+   class="st4"
+   id="path22614" />
+			</g>
+			<g
+   id="shape11-26"
+   v:mID="11"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(51.0236,-25.7334)">
+				<title
+   id="title22617">Dynamischer Verbinder.237</title>
+				<path
+   d="m 3.54,593.15 7.09,-9.92"
+   class="st4"
+   id="path22619" />
+			</g>
+			<g
+   id="shape12-29"
+   v:mID="12"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(72.6378,-25.7334)">
+				<title
+   id="title22622">Dynamischer Verbinder.238</title>
+				<path
+   d="m -3.19,593.15 -7.79,-9.92"
+   class="st4"
+   id="path22624" />
+			</g>
+			<g
+   id="shape13-32"
+   v:mID="13"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(48.496,-12.7945)">
+				<title
+   id="title22627">Dynamischer Verbinder.239</title>
+			</g>
+			<g
+   id="shape14-33"
+   v:mID="14"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(22.6359,-27.1404)">
+				<title
+   id="title22630">Dynamischer Verbinder.240</title>
+				<path
+   d="m -3.58,597.39 -7.01,9.94"
+   class="st4"
+   id="path22632" />
+			</g>
+			<g
+   id="shape15-36"
+   v:mID="15"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(72.9213,-12.9775)">
+				<title
+   id="title22635">Dynamischer Verbinder.243</title>
+				<path
+   d="m -3.56,593.15 -7.06,-9.92"
+   class="st4"
+   id="path22637" />
+			</g>
+			<g
+   id="shape16-39"
+   v:mID="16"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(44.563,-27.1508)">
+				<title
+   id="title22640">Dynamischer Verbinder.244</title>
+				<path
+   d="m 3.54,597.4 7.09,9.92"
+   class="st4"
+   id="path22642" />
+			</g>
+			<g
+   id="shape17-42"
+   v:mID="17"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(65.8347,-27.1508)">
+				<title
+   id="title22645">Dynamischer Verbinder.245</title>
+				<path
+   d="m -3.53,597.4 -7.11,9.92"
+   class="st4"
+   id="path22647" />
+			</g>
+			<g
+   id="shape18-45"
+   v:mID="18"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(37.7292,-12.8152)">
+				<title
+   id="title22650">Dynamischer Verbinder.246</title>
+				<path
+   d="m 3.8,593.31 6.58,-10.24"
+   class="st4"
+   id="path22652" />
+			</g>
+			<g
+   id="shape19-48"
+   v:mID="19"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(44.8158,-12.8152)">
+				<title
+   id="title22655">Dynamischer Verbinder.247</title>
+				<path
+   d="m -3.29,593.31 -7.59,-10.24"
+   class="st4"
+   id="path22657" />
+			</g>
+			<g
+   id="shape20-51"
+   v:mID="20"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(37.4764,-27.1508)">
+				<title
+   id="title22660">Dynamischer Verbinder.248</title>
+				<path
+   d="m -3.54,597.4 -7.09,9.92"
+   class="st4"
+   id="path22662" />
+			</g>
+			<g
+   id="shape21-54"
+   v:mID="21"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(15.8622,-27.1508)">
+				<title
+   id="title22665">Dynamischer Verbinder.249</title>
+				<path
+   d="m 3.19,597.4 7.79,9.92"
+   class="st4"
+   id="path22667" />
+			</g>
+			<g
+   id="shape22-57"
+   v:mID="22"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(22.6772,-39.9067)">
+				<title
+   id="title22670">Dynamischer Verbinder.254</title>
+				<path
+   d="m -3.54,597.4 -7.09,9.92"
+   class="st4"
+   id="path22672" />
+			</g>
+			<g
+   id="shape23-60"
+   v:mID="23"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(14.1732,-20.7728)">
+				<title
+   id="title22675">Dynamischer Verbinder.255</title>
+				<path
+   d="m -2.13,588.19 h -9.92"
+   class="st4"
+   id="path22677" />
+			</g>
+			<g
+   id="shape24-63"
+   v:mID="24"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(0,-22.1798)">
+				<title
+   id="title22680">Dynamischer Verbinder.257</title>
+				<path
+   d="m 2.13,602.35 9.92,0.02"
+   class="st4"
+   id="path22682" />
+			</g>
+			<g
+   id="shape25-66"
+   v:mID="25"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(66.9036,-8.0169)">
+				<title
+   id="title22685">Dynamischer Verbinder.258</title>
+				<path
+   d="m 2.46,588.19 h 9.25"
+   class="st4"
+   id="path22687" />
+			</g>
+		</g>
+		<g
+   id="shape29-69"
+   v:mID="29"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(463.252,-154.228)">
+			<title
+   id="title22691">Dynamischer Verbinder.438</title>
+			<path
+   d="m 0,595.28 h 32.81 v 21.57"
+   class="st4"
+   id="path22693" />
+		</g>
+		<g
+   id="shape30-72"
+   v:mID="30"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(386.764,-154.228)">
+			<title
+   id="title22696">Dynamischer Verbinder.439</title>
+			<path
+   d="m 0,595.28 h -32.43 v 24.68"
+   class="st4"
+   id="path22698" />
+		</g>
+		<g
+   id="shape33-75"
+   v:mID="33"
+   v:groupContext="shape"
+   transform="translate(368.99,-373.003)">
+			<title
+   id="title22701">Tabelle.33</title>
+			<desc
+   id="desc22703">Condenser</desc>
+			<v:textBlock
+   v:margins="rect(4,4,4,4)"
+   v:tabSpace="42.5197" />
+			<v:textRect
+   cx="55.8447"
+   cy="581.935"
+   width="111.69"
+   height="26.682" />
+			<rect
+   x="0"
+   y="568.59399"
+   width="111.689"
+   height="26.681999"
+   class="st1"
+   id="rect22705" />
+			<text
+   x="18.950001"
+   y="586.72998"
+   class="st5"
+   v:langID="2055"
+   id="text22707"><v:paragraph
+   v:horizAlign="1" /><v:tabList />Condenser</text>		</g>
+		<g
+   id="group34-78"
+   transform="translate(384.275,-396.85)"
+   v:mID="34"
+   v:groupContext="group">
+			<title
+   id="title22710">Tabelle.34</title>
+			<g
+   id="shape35-79"
+   v:mID="35"
+   v:groupContext="shape"
+   transform="rotate(180,39.30715,571.585)">
+				<title
+   id="title22712">Rechteck.170</title>
+				<v:userDefs>
+					<v:ud
+   v:nameU="visVersion"
+   v:val="VT0(15):26" />
+				</v:userDefs>
+				<rect
+   x="0"
+   y="547.89801"
+   width="76.488403"
+   height="47.377201"
+   class="st3"
+   id="rect22714" />
+			</g>
+			<g
+   id="shape36-81"
+   v:mID="36"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(33.2835,-16.5724)">
+				<title
+   id="title22717">Dynamischer Verbinder.191</title>
+			</g>
+			<g
+   id="shape37-82"
+   v:mID="37"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(66.945,-34.946)">
+				<title
+   id="title22720">Dynamischer Verbinder.214</title>
+				<path
+   d="m 2.5,602.36 h 9.17"
+   class="st4"
+   id="path22722" />
+			</g>
+			<g
+   id="shape38-85"
+   v:mID="38"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(15.5788,-39.9067)">
+				<title
+   id="title22725">Dynamischer Verbinder.228</title>
+				<path
+   d="m 3.56,597.4 7.06,9.92"
+   class="st4"
+   id="path22727" />
+			</g>
+			<g
+   id="shape39-88"
+   v:mID="39"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(43.937,-25.7334)">
+				<title
+   id="title22730">Dynamischer Verbinder.231</title>
+				<path
+   d="m -3.54,593.15 -7.09,-9.92"
+   class="st4"
+   id="path22732" />
+			</g>
+			<g
+   id="shape40-91"
+   v:mID="40"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(22.6654,-25.7334)">
+				<title
+   id="title22735">Dynamischer Verbinder.233</title>
+				<path
+   d="m 3.53,593.15 7.11,-9.92"
+   class="st4"
+   id="path22737" />
+			</g>
+			<g
+   id="shape41-94"
+   v:mID="41"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(50.7709,-40.069)">
+				<title
+   id="title22740">Dynamischer Verbinder.234</title>
+				<path
+   d="m -3.8,597.24 -6.58,10.25"
+   class="st4"
+   id="path22742" />
+			</g>
+			<g
+   id="shape42-97"
+   v:mID="42"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(43.6842,-40.069)">
+				<title
+   id="title22745">Dynamischer Verbinder.236</title>
+				<path
+   d="m 3.29,597.24 7.59,10.25"
+   class="st4"
+   id="path22747" />
+			</g>
+			<g
+   id="shape43-100"
+   v:mID="43"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(51.0236,-25.7334)">
+				<title
+   id="title22750">Dynamischer Verbinder.237</title>
+				<path
+   d="m 3.54,593.15 7.09,-9.92"
+   class="st4"
+   id="path22752" />
+			</g>
+			<g
+   id="shape44-103"
+   v:mID="44"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(72.6378,-25.7334)">
+				<title
+   id="title22755">Dynamischer Verbinder.238</title>
+				<path
+   d="m -3.19,593.15 -7.79,-9.92"
+   class="st4"
+   id="path22757" />
+			</g>
+			<g
+   id="shape45-106"
+   v:mID="45"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(48.496,-12.7945)">
+				<title
+   id="title22760">Dynamischer Verbinder.239</title>
+			</g>
+			<g
+   id="shape46-107"
+   v:mID="46"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(22.6359,-27.1404)">
+				<title
+   id="title22763">Dynamischer Verbinder.240</title>
+				<path
+   d="m -3.58,597.39 -7.01,9.94"
+   class="st4"
+   id="path22765" />
+			</g>
+			<g
+   id="shape47-110"
+   v:mID="47"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(72.9213,-12.9775)">
+				<title
+   id="title22768">Dynamischer Verbinder.243</title>
+				<path
+   d="m -3.56,593.15 -7.06,-9.92"
+   class="st4"
+   id="path22770" />
+			</g>
+			<g
+   id="shape48-113"
+   v:mID="48"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(44.563,-27.1508)">
+				<title
+   id="title22773">Dynamischer Verbinder.244</title>
+				<path
+   d="m 3.54,597.4 7.09,9.92"
+   class="st4"
+   id="path22775" />
+			</g>
+			<g
+   id="shape49-116"
+   v:mID="49"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(65.8347,-27.1508)">
+				<title
+   id="title22778">Dynamischer Verbinder.245</title>
+				<path
+   d="m -3.53,597.4 -7.11,9.92"
+   class="st4"
+   id="path22780" />
+			</g>
+			<g
+   id="shape50-119"
+   v:mID="50"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(37.7292,-12.8152)">
+				<title
+   id="title22783">Dynamischer Verbinder.246</title>
+				<path
+   d="m 3.8,593.31 6.58,-10.24"
+   class="st4"
+   id="path22785" />
+			</g>
+			<g
+   id="shape51-122"
+   v:mID="51"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(44.8158,-12.8152)">
+				<title
+   id="title22788">Dynamischer Verbinder.247</title>
+				<path
+   d="m -3.29,593.31 -7.59,-10.24"
+   class="st4"
+   id="path22790" />
+			</g>
+			<g
+   id="shape52-125"
+   v:mID="52"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(37.4764,-27.1508)">
+				<title
+   id="title22793">Dynamischer Verbinder.248</title>
+				<path
+   d="m -3.54,597.4 -7.09,9.92"
+   class="st4"
+   id="path22795" />
+			</g>
+			<g
+   id="shape53-128"
+   v:mID="53"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(15.8622,-27.1508)">
+				<title
+   id="title22798">Dynamischer Verbinder.249</title>
+				<path
+   d="m 3.19,597.4 7.79,9.92"
+   class="st4"
+   id="path22800" />
+			</g>
+			<g
+   id="shape54-131"
+   v:mID="54"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(22.6772,-39.9067)">
+				<title
+   id="title22803">Dynamischer Verbinder.254</title>
+				<path
+   d="m -3.54,597.4 -7.09,9.92"
+   class="st4"
+   id="path22805" />
+			</g>
+			<g
+   id="shape55-134"
+   v:mID="55"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(14.1732,-20.7728)">
+				<title
+   id="title22808">Dynamischer Verbinder.255</title>
+				<path
+   d="m -2.13,588.19 h -9.92"
+   class="st4"
+   id="path22810" />
+			</g>
+			<g
+   id="shape56-137"
+   v:mID="56"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(0,-22.1798)">
+				<title
+   id="title22813">Dynamischer Verbinder.257</title>
+				<path
+   d="m 2.13,602.35 9.92,0.02"
+   class="st4"
+   id="path22815" />
+			</g>
+			<g
+   id="shape57-140"
+   v:mID="57"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(66.9036,-8.0169)">
+				<title
+   id="title22818">Dynamischer Verbinder.258</title>
+				<path
+   d="m 2.46,588.19 h 9.25"
+   class="st4"
+   id="path22820" />
+			</g>
+		</g>
+		<g
+   id="shape58-143"
+   v:mID="58"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(379.315,-431.927)">
+			<title
+   id="title22824">Dynamischer Verbinder.394</title>
+			<path
+   d="m 7.09,602.23 v 0.26"
+   class="st4"
+   id="path22826" />
+		</g>
+		<g
+   id="shape59-146"
+   v:mID="59"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(568.646,-402.535)">
+			<title
+   id="title22829">Dynamischer Verbinder.395</title>
+			<path
+   d="m 7.09,595.28 v 38"
+   class="st4"
+   id="path22831" />
+		</g>
+		<g
+   id="shape60-149"
+   v:mID="60"
+   v:groupContext="shape"
+   transform="translate(566.394,-402.535)">
+			<title
+   id="title22834">Kreis, Ellipse.396</title>
+			<desc
+   id="desc22836">2</desc>
+			<v:userDefs>
+				<v:ud
+   v:nameU="visVersion"
+   v:val="VT0(15):26" />
+			</v:userDefs>
+			<v:textBlock
+   v:margins="rect(0,0,0,0)"
+   v:tabSpace="42.5197" />
+			<v:textRect
+   cx="9.33867"
+   cy="585.937"
+   width="18.68"
+   height="18.6773" />
+			<path
+   d="m 0,585.94 a 9.34,9.34 0 1 1 18.68,0 9.34,9.34 0 1 1 -18.68,0 z"
+   class="st6"
+   id="path22838" />
+			<text
+   x="5.8400002"
+   y="590.14001"
+   class="st2"
+   v:langID="2055"
+   id="text22840"><v:paragraph
+   v:horizAlign="1" /><v:tabList />2</text>		</g>
+		<g
+   id="shape61-152"
+   v:mID="61"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(462.89,-419.001)">
+			<title
+   id="title22843">Dynamischer Verbinder.398</title>
+			<path
+   d="m 6.18,602.33 h 0.36 l 46.48,0.07"
+   class="st7"
+   id="path22845"
+   style="marker-start:url(#mrkr4-157-43)" />
+		</g>
+		<g
+   id="group66-158"
+   transform="translate(538.583,-254.006)"
+   v:mID="66"
+   v:groupContext="group">
+			<title
+   id="title22848">Tabelle.66</title>
+			<g
+   id="shape67-159"
+   v:mID="67"
+   v:groupContext="shape">
+				<title
+   id="title22850">Kreis, Ellipse.47</title>
+				<v:userDefs>
+					<v:ud
+   v:nameU="visVersion"
+   v:val="VT0(15):26" />
+				</v:userDefs>
+				<path
+   d="m 0,558.02 a 37.2573,37.2573 0 0 1 74.51,0 37.2573,37.2573 0 1 1 -74.51,0 z"
+   class="st3"
+   id="path22852" />
+			</g>
+			<g
+   id="shape68-161"
+   v:mID="68"
+   v:groupContext="shape"
+   transform="rotate(102.691,41.308958,568.9979)">
+				<title
+   id="title22855">Linie mit Verläng.28</title>
+				<v:userDefs>
+					<v:ud
+   v:nameU="AntiScale"
+   v:val="VT0(1):26" />
+					<v:ud
+   v:nameU="visVersion"
+   v:val="VT0(15):26" />
+				</v:userDefs>
+				<path
+   d="m 0.33,595.28 h 62.2"
+   class="st9"
+   id="path22857" />
+			</g>
+			<g
+   id="shape69-164"
+   v:mID="69"
+   v:groupContext="shape"
+   transform="rotate(76.8672,70.553555,590.70202)">
+				<title
+   id="title22860">Linie mit Verläng.49</title>
+				<v:userDefs>
+					<v:ud
+   v:nameU="AntiScale"
+   v:val="VT0(1):26" />
+					<v:ud
+   v:nameU="visVersion"
+   v:val="VT0(15):26" />
+				</v:userDefs>
+				<path
+   d="M -0.08,595.28 H 62.47"
+   class="st9"
+   id="path22862" />
+			</g>
+		</g>
+		<g
+   id="shape70-167"
+   v:mID="70"
+   v:groupContext="shape"
+   transform="translate(452.295,-315.478)">
+			<title
+   id="title22866">Tabelle.70</title>
+			<desc
+   id="desc22868">Compressor</desc>
+			<v:textBlock
+   v:margins="rect(4,4,4,4)"
+   v:tabSpace="42.5197" />
+			<v:textRect
+   cx="62.5689"
+   cy="581.935"
+   width="125.14"
+   height="26.682" />
+			<rect
+   x="0"
+   y="568.59399"
+   width="125.138"
+   height="26.681999"
+   class="st1"
+   id="rect22870" />
+			<text
+   x="26.02"
+   y="586.13"
+   class="st2"
+   v:langID="2055"
+   id="text22872"><v:paragraph
+   v:horizAlign="1" /><v:tabList />Compressor</text>		</g>
+		<g
+   id="shape72-170"
+   v:mID="72"
+   v:groupContext="shape"
+   transform="translate(566.362,-157.638)">
+			<title
+   id="title22875">Kreis, Ellipse.72</title>
+			<desc
+   id="desc22877">1</desc>
+			<v:userDefs>
+				<v:ud
+   v:nameU="visVersion"
+   v:val="VT0(15):26" />
+			</v:userDefs>
+			<v:textBlock
+   v:margins="rect(0,0,0,0)"
+   v:tabSpace="42.5197" />
+			<v:textRect
+   cx="9.33867"
+   cy="585.937"
+   width="18.68"
+   height="18.6773" />
+			<path
+   d="m 0,585.94 a 9.34,9.34 0 1 1 18.68,0 9.34,9.34 0 1 1 -18.68,0 z"
+   class="st6"
+   id="path22879" />
+			<text
+   x="5.8400002"
+   y="590.14001"
+   class="st2"
+   v:langID="2055"
+   id="text22881"><v:paragraph
+   v:horizAlign="1" /><v:tabList />1</text>		</g>
+		<g
+   id="shape74-173"
+   v:mID="74"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(463.252,-174.063)">
+			<title
+   id="title22884">Dynamischer Verbinder</title>
+			<path
+   d="m 0,602.36 h 5.31 v 0.01 h 47.06"
+   class="st4"
+   id="path22886" />
+		</g>
+		<g
+   id="shape75-176"
+   v:mID="75"
+   v:groupContext="shape"
+   v:layerMember="1"
+   transform="rotate(-90,1.4175,313.2285)">
+			<title
+   id="title22889">Membranventil.350</title>
+			<v:custProps>
+				<v:cp
+   v:nameU="SubType"
+   v:lbl="Ventiltyp"
+   v:type="1"
+   v:format="Membranventil 1;Membranventil 2;Membranventil 3"
+   v:langID="1031"
+   v:val="VT4(Membranventil 1)" />
+				<v:cp
+   v:nameU="Description"
+   v:lbl="Beschreibung"
+   v:type="0"
+   v:sortKey="0"
+   v:langID="1031" />
+				<v:cp
+   v:nameU="LineSize"
+   v:lbl="Leitungsgröße"
+   v:type="0"
+   v:sortKey="1"
+   v:langID="1031" />
+				<v:cp
+   v:nameU="ValveClass"
+   v:lbl="Ventilklasse"
+   v:type="0"
+   v:sortKey="2"
+   v:langID="1031" />
+				<v:cp
+   v:nameU="Manufacturer"
+   v:lbl="Hersteller"
+   v:type="0"
+   v:sortKey="3"
+   v:langID="1031" />
+				<v:cp
+   v:nameU="Model"
+   v:lbl="Modell"
+   v:type="0"
+   v:sortKey="4"
+   v:langID="1031" />
+			</v:custProps>
+			<v:userDefs>
+				<v:ud
+   v:nameU="SubType"
+   v:val="VT0(0):26" />
+				<v:ud
+   v:nameU="visVersion"
+   v:val="VT0(15):26" />
+				<v:ud
+   v:nameU="TextCH"
+   v:prompt="Determines text control handle visibility."
+   v:val="VT0(5):26" />
+				<v:ud
+   v:nameU="SOLSH"
+   v:val="VT4({D7D7DB7E-3668-43e5-AF97-97F58AB229A5})" />
+				<v:ud
+   v:nameU="ShapeClass"
+   v:val="VT4(Ventil)" />
+				<v:ud
+   v:nameU="PETagFormat"
+   v:prompt="V-0"
+   v:val="VT4(Ventil)" />
+				<v:ud
+   v:nameU="PETagNumber" />
+				<v:ud
+   v:nameU="PEHideTag" />
+				<v:ud
+   v:nameU="PEPageHideTags"
+   v:val="VT0(0):26" />
+				<v:ud
+   v:nameU="PELayout"
+   v:val="VT0(31):26" />
+				<v:ud
+   v:nameU="CPMSetList"
+   v:prompt="Description,LineSize,ValveClass,Manufacturer,Model"
+   v:val="VT4(Ventil)" />
+				<v:ud
+   v:nameU="PEComponentTag"
+   v:val="VT4(V-0)" />
+			</v:userDefs>
+			<path
+   d="m 0,588.16 v -14.23 l 28.46,14.23 v -14.23 z m 8.54,-17.79 h 11.38 a 6.33252,6.33252 -180 0 0 -11.38,0 z"
+   class="st10"
+   id="path22891" />
+			<path
+   d="m 0,588.16 v -14.23 l 28.46,14.23 V 573.93 L 0,588.16"
+   class="st9"
+   id="path22893" />
+			<path
+   d="M 14.23,581.05 V 570.37"
+   class="st9"
+   id="path22895" />
+			<path
+   d="m 8.54,570.37 h 11.38 a 6.33252,6.33252 -180 0 0 -11.38,0"
+   class="st9"
+   id="path22897" />
+		</g>
+		<g
+   id="shape76-181"
+   v:mID="76"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(276.087,-362.835)">
+			<title
+   id="title22900">Dynamischer Verbinder.351</title>
+			<path
+   d="M -6.8,595.28 -7.38,556.43"
+   class="st4"
+   id="path22902" />
+		</g>
+		<g
+   id="shape77-184"
+   v:mID="77"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(278.047,-404.973)">
+			<title
+   id="title22905">Dynamischer Verbinder.362</title>
+			<path
+   d="m 0,588.3 53.32,-0.22"
+   class="st4"
+   id="path22907" />
+		</g>
+		<g
+   id="shape79-187"
+   v:mID="79"
+   v:groupContext="shape"
+   transform="translate(259.37,-401.685)">
+			<title
+   id="title22910">Kreis, Ellipse.79</title>
+			<desc
+   id="desc22912">3</desc>
+			<v:userDefs>
+				<v:ud
+   v:nameU="visVersion"
+   v:val="VT0(15):26" />
+			</v:userDefs>
+			<v:textBlock
+   v:margins="rect(0,0,0,0)"
+   v:tabSpace="42.5197" />
+			<v:textRect
+   cx="9.33867"
+   cy="585.937"
+   width="18.68"
+   height="18.6773" />
+			<path
+   d="m 0,585.94 a 9.34,9.34 0 1 1 18.68,0 9.34,9.34 0 1 1 -18.68,0 z"
+   class="st6"
+   id="path22914" />
+			<text
+   x="5.8400002"
+   y="590.14001"
+   class="st2"
+   v:langID="2055"
+   id="text22916"><v:paragraph
+   v:horizAlign="1" /><v:tabList />3</text>		</g>
+		<g
+   id="shape80-190"
+   v:mID="80"
+   v:groupContext="shape"
+   transform="translate(259.896,-157.323)">
+			<title
+   id="title22919">Kreis, Ellipse.80</title>
+			<desc
+   id="desc22921">4</desc>
+			<v:userDefs>
+				<v:ud
+   v:nameU="visVersion"
+   v:val="VT0(15):26" />
+			</v:userDefs>
+			<v:textBlock
+   v:margins="rect(0,0,0,0)"
+   v:tabSpace="42.5197" />
+			<v:textRect
+   cx="9.33867"
+   cy="585.937"
+   width="18.68"
+   height="18.6773" />
+			<path
+   d="m 0,585.94 a 9.34,9.34 0 1 1 18.68,0 9.34,9.34 0 1 1 -18.68,0 z"
+   class="st6"
+   id="path22923" />
+			<text
+   x="5.8400002"
+   y="590.14001"
+   class="st2"
+   v:langID="2055"
+   id="text22925"><v:paragraph
+   v:horizAlign="1" /><v:tabList />4</text>		</g>
+		<g
+   id="shape81-193"
+   v:mID="81"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(262.176,-280.63)">
+			<title
+   id="title22928">Dynamischer Verbinder.81</title>
+			<path
+   d="m 7.06,595.28 0.06,41.97"
+   class="st4"
+   id="path22930" />
+		</g>
+		<g
+   id="shape82-196"
+   v:mID="82"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(278.573,-173.748)">
+			<title
+   id="title22933">Dynamischer Verbinder.82</title>
+			<path
+   d="M 0,602.36 H 48.26"
+   class="st4"
+   id="path22935" />
+		</g>
+		<g
+   id="shape83-199"
+   v:mID="83"
+   v:groupContext="shape"
+   transform="translate(184.252,-305.086)">
+			<title
+   id="title22938">Tabelle.83</title>
+			<desc
+   id="desc22940">Expansion Valve</desc>
+			<v:textBlock
+   v:margins="rect(4,4,4,4)"
+   v:tabSpace="42.5197" />
+			<v:textRect
+   cx="46.063"
+   cy="581.935"
+   width="92.13"
+   height="26.682" />
+			<rect
+   x="0"
+   y="568.59399"
+   width="92.125999"
+   height="26.681999"
+   class="st1"
+   id="rect22942" />
+			<text
+   x="14.55"
+   y="577.72998"
+   class="st2"
+   v:langID="2055"
+   id="text22946"><v:paragraph
+   v:horizAlign="1" /><v:tabList />Expansion <tspan
+   x="28.959999"
+   dy="1.2em"
+   class="st11"
+   id="tspan22944">Valve</tspan></text>		</g>
+		<g
+   id="shape84-203"
+   v:mID="84"
+   v:groupContext="shape"
+   transform="translate(575.433,-219.685)">
+			<title
+   id="title22949">Tabelle.84</title>
+			<desc
+   id="desc22951">pi,co</desc>
+			<v:textBlock
+   v:margins="rect(4,4,4,4)"
+   v:tabSpace="42.5197" />
+			<v:textRect
+   cx="28.3465"
+   cy="581.935"
+   width="56.7"
+   height="26.682" />
+			<rect
+   x="0"
+   y="568.59399"
+   width="56.692902"
+   height="26.681999"
+   class="st1"
+   id="rect22953" />
+			<text
+   x="17.76"
+   y="586.13"
+   class="st12"
+   v:langID="2055"
+   id="text22957"><v:paragraph
+   v:horizAlign="1" /><v:tabList />p<tspan
+   dy="-0.27900001em"
+   class="st13"
+   v:baseFontSize="14"
+   id="tspan22955">i,co</tspan></text>		</g>
+		<g
+   id="shape85-207"
+   v:mID="85"
+   v:groupContext="shape"
+   transform="translate(575.433,-202.11)">
+			<title
+   id="title22960">Tabelle.85</title>
+			<desc
+   id="desc22962">hi,co</desc>
+			<v:textBlock
+   v:margins="rect(4,4,4,4)"
+   v:tabSpace="42.5197" />
+			<v:textRect
+   cx="28.3465"
+   cy="581.935"
+   width="56.7"
+   height="26.682" />
+			<rect
+   x="0"
+   y="568.59399"
+   width="56.692902"
+   height="26.681999"
+   class="st1"
+   id="rect22964" />
+			<text
+   x="17.76"
+   y="586.13"
+   class="st12"
+   v:langID="2055"
+   id="text22968"><v:paragraph
+   v:horizAlign="1" /><v:tabList />h<tspan
+   dy="-0.27900001em"
+   class="st13"
+   v:baseFontSize="14"
+   id="tspan22966">i,co</tspan></text>		</g>
+		<g
+   id="group88-211"
+   transform="translate(578.268,-186.502)"
+   v:mID="88"
+   v:groupContext="group">
+			<title
+   id="title22971">Tabelle.88</title>
+			<g
+   id="shape86-212"
+   v:mID="86"
+   v:groupContext="shape"
+   transform="translate(1.7054)">
+				<title
+   id="title22973">Tabelle.86</title>
+				<desc
+   id="desc22975">mi,co</desc>
+				<v:textBlock
+   v:margins="rect(4,4,4,4)"
+   v:tabSpace="42.5197" />
+				<v:textRect
+   cx="25.3678"
+   cy="581.935"
+   width="50.74"
+   height="26.682" />
+				<rect
+   x="0"
+   y="568.59399"
+   width="50.7356"
+   height="26.681999"
+   class="st1"
+   id="rect22977" />
+				<text
+   x="13.23"
+   y="586.13"
+   class="st14"
+   v:langID="2055"
+   id="text22981"><v:paragraph
+   v:horizAlign="1" /><v:tabList />m<tspan
+   dy="-0.27900001em"
+   class="st13"
+   v:baseFontSize="14"
+   id="tspan22979">i,co</tspan></text>			</g>
+			<g
+   id="shape87-216"
+   v:mID="87"
+   v:groupContext="shape"
+   transform="translate(2.33874,-9.74404)">
+				<title
+   id="title22984">Tabelle.87</title>
+				<desc
+   id="desc22986">·</desc>
+				<v:textBlock
+   v:margins="rect(4,4,4,4)"
+   v:tabSpace="42.5197" />
+				<v:textRect
+   cx="17.5038"
+   cy="588.189"
+   width="35.01"
+   height="14.1732" />
+				<rect
+   x="0"
+   y="581.10199"
+   width="35.0075"
+   height="14.1732"
+   class="st1"
+   id="rect22988" />
+				<text
+   x="15.99"
+   y="591.78998"
+   class="st15"
+   v:langID="2055"
+   id="text22990"><v:paragraph
+   v:horizAlign="1" /><v:tabList />· </text>			</g>
+		</g>
+		<g
+   id="shape89-219"
+   v:mID="89"
+   v:groupContext="shape"
+   transform="translate(575.433,-367.334)">
+			<title
+   id="title22994">Tabelle.89</title>
+			<desc
+   id="desc22996">po,co</desc>
+			<v:textBlock
+   v:margins="rect(4,4,4,4)"
+   v:tabSpace="42.5197" />
+			<v:textRect
+   cx="28.3465"
+   cy="581.935"
+   width="56.7"
+   height="26.682" />
+			<rect
+   x="0"
+   y="568.59399"
+   width="56.692902"
+   height="26.681999"
+   class="st1"
+   id="rect22998" />
+			<text
+   x="16.75"
+   y="586.13"
+   class="st12"
+   v:langID="2055"
+   id="text23002"><v:paragraph
+   v:horizAlign="1" /><v:tabList />p<tspan
+   dy="-0.27900001em"
+   class="st13"
+   v:baseFontSize="14"
+   id="tspan23000">o,co</tspan></text>		</g>
+		<g
+   id="shape90-223"
+   v:mID="90"
+   v:groupContext="shape"
+   transform="translate(575.15,-350.929)">
+			<title
+   id="title23005">Tabelle.90</title>
+			<desc
+   id="desc23007">ho,co</desc>
+			<v:textBlock
+   v:margins="rect(4,4,4,4)"
+   v:tabSpace="42.5197" />
+			<v:textRect
+   cx="28.3465"
+   cy="581.935"
+   width="56.7"
+   height="26.682" />
+			<rect
+   x="0"
+   y="568.59399"
+   width="56.692902"
+   height="26.681999"
+   class="st1"
+   id="rect23009" />
+			<text
+   x="17.139999"
+   y="586.13"
+   class="st14"
+   v:langID="2055"
+   id="text23013"><v:paragraph
+   v:horizAlign="1" /><v:tabList />h<tspan
+   dy="-0.27900001em"
+   class="st13"
+   v:baseFontSize="14"
+   id="tspan23011">o,co</tspan></text>		</g>
+		<g
+   id="group91-227"
+   transform="translate(577.774,-334.735)"
+   v:mID="91"
+   v:groupContext="group">
+			<title
+   id="title23016">Tabelle.91</title>
+			<g
+   id="shape92-228"
+   v:mID="92"
+   v:groupContext="shape"
+   transform="translate(-0.99672,-1.41732)">
+				<title
+   id="title23018">Tabelle.92</title>
+				<desc
+   id="desc23020">mo,co</desc>
+				<v:textBlock
+   v:margins="rect(4,4,4,4)"
+   v:tabSpace="42.5197" />
+				<v:textRect
+   cx="28.3465"
+   cy="581.935"
+   width="56.7"
+   height="26.682" />
+				<rect
+   x="0"
+   y="568.59399"
+   width="56.692902"
+   height="26.681999"
+   class="st1"
+   id="rect23022" />
+				<text
+   x="15.2"
+   y="586.13"
+   class="st14"
+   v:langID="2055"
+   id="text23026"><v:paragraph
+   v:horizAlign="1" /><v:tabList />m<tspan
+   dy="-0.27900001em"
+   class="st13"
+   v:baseFontSize="14"
+   id="tspan23024">o,co</tspan></text>			</g>
+			<g
+   id="shape93-232"
+   v:mID="93"
+   v:groupContext="shape"
+   transform="translate(-0.356625,-11.0914)">
+				<title
+   id="title23029">Tabelle.93</title>
+				<desc
+   id="desc23031">·</desc>
+				<v:textBlock
+   v:margins="rect(4,4,4,4)"
+   v:tabSpace="42.5197" />
+				<v:textRect
+   cx="19.5591"
+   cy="588.189"
+   width="39.12"
+   height="14.1732" />
+				<rect
+   x="0"
+   y="581.10199"
+   width="39.118099"
+   height="14.1732"
+   class="st1"
+   id="rect23033" />
+				<text
+   x="18.040001"
+   y="591.78998"
+   class="st15"
+   v:langID="2055"
+   id="text23035"><v:paragraph
+   v:horizAlign="1" /><v:tabList />· </text>			</g>
+		</g>
+		<g
+   id="shape97-235"
+   v:mID="97"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(582.937,-214.023)">
+			<title
+   id="title23039">Dynamischer Verbinder.97</title>
+			<path
+   d="m -6.94,595.28 -0.3,37.7"
+   class="st4"
+   id="path23041" />
+		</g>
+		<g
+   id="shape99-238"
+   v:mID="99"
+   v:groupContext="shape"
+   transform="translate(574.299,-214.023)">
+			<title
+   id="title23044">Kreis.99</title>
+			<v:userDefs>
+				<v:ud
+   v:nameU="visVersion"
+   v:val="VT0(15):26" />
+			</v:userDefs>
+			<path
+   d="m 0,593.58 a 1.70079,1.69204 0 1 1 3.4,0 1.70079,1.69204 0 1 1 -3.4,0 z"
+   class="st16"
+   id="path23046" />
+		</g>
+		<g
+   id="shape101-240"
+   v:mID="101"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(568.833,-254.006)">
+			<title
+   id="title23049">Dynamischer Verbinder.101</title>
+			<path
+   d="m 7.03,601.46 0.01,0.36 0.13,30.05"
+   class="st17"
+   id="path23051"
+   style="marker-start:url(#mrkr4-157-43)" />
+		</g>
+		<g
+   id="shape102-245"
+   v:mID="102"
+   v:groupContext="shape"
+   transform="translate(574.031,-361.143)">
+			<title
+   id="title23054">Kreis.102</title>
+			<v:userDefs>
+				<v:ud
+   v:nameU="visVersion"
+   v:val="VT0(15):26" />
+			</v:userDefs>
+			<path
+   d="m 0,593.58 a 1.70079,1.69204 0 1 1 3.4,0 1.70079,1.69204 0 1 1 -3.4,0 z"
+   class="st16"
+   id="path23056" />
+		</g>
+		<g
+   id="shape103-247"
+   v:mID="103"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(568.699,-361.143)">
+			<title
+   id="title23059">Dynamischer Verbinder.103</title>
+			<path
+   d="m 7.03,595.28 v 10.63 h 0.11 v 21.99"
+   class="st4"
+   id="path23061" />
+		</g>
+		<g
+   id="shape104-250"
+   v:mID="104"
+   v:groupContext="shape"
+   transform="translate(487.065,-393.528)">
+			<title
+   id="title23064">Tabelle.104</title>
+			<desc
+   id="desc23066">pi,c</desc>
+			<v:textBlock
+   v:margins="rect(4,4,4,4)"
+   v:tabSpace="42.5197" />
+			<v:textRect
+   cx="28.3465"
+   cy="583.8"
+   width="56.7"
+   height="22.9521" />
+			<rect
+   x="0"
+   y="572.32397"
+   width="56.692902"
+   height="22.952101"
+   class="st1"
+   id="rect23068" />
+			<text
+   x="20.43"
+   y="588"
+   class="st14"
+   v:langID="2055"
+   id="text23072"><v:paragraph
+   v:horizAlign="1" /><v:tabList />p<tspan
+   dy="-0.27900001em"
+   class="st13"
+   v:baseFontSize="14"
+   id="tspan23070">i,c</tspan></text>		</g>
+		<g
+   id="shape105-254"
+   v:mID="105"
+   v:groupContext="shape"
+   transform="translate(487.065,-377.087)">
+			<title
+   id="title23075">Tabelle.105</title>
+			<desc
+   id="desc23077">hi,c</desc>
+			<v:textBlock
+   v:margins="rect(4,4,4,4)"
+   v:tabSpace="42.5197" />
+			<v:textRect
+   cx="28.3465"
+   cy="583.8"
+   width="56.7"
+   height="22.9521" />
+			<rect
+   x="0"
+   y="572.32397"
+   width="56.692902"
+   height="22.952101"
+   class="st1"
+   id="rect23079" />
+			<text
+   x="20.43"
+   y="588"
+   class="st14"
+   v:langID="2055"
+   id="text23083"><v:paragraph
+   v:horizAlign="1" /><v:tabList />h<tspan
+   dy="-0.27900001em"
+   class="st13"
+   v:baseFontSize="14"
+   id="tspan23081">i,c</tspan></text>		</g>
+		<g
+   id="group106-258"
+   transform="translate(481.89,-361.426)"
+   v:mID="106"
+   v:groupContext="group">
+			<title
+   id="title23086">Tabelle.106</title>
+			<g
+   id="shape107-259"
+   v:mID="107"
+   v:groupContext="shape"
+   transform="translate(6.65685)">
+				<title
+   id="title23088">Tabelle.107</title>
+				<desc
+   id="desc23090">mi,c</desc>
+				<v:textBlock
+   v:margins="rect(4,4,4,4)"
+   v:tabSpace="42.5197" />
+				<v:textRect
+   cx="28.3465"
+   cy="583.8"
+   width="56.7"
+   height="22.9521" />
+				<rect
+   x="0"
+   y="572.32397"
+   width="56.692902"
+   height="22.952101"
+   class="st1"
+   id="rect23092" />
+				<text
+   x="18.48"
+   y="588"
+   class="st14"
+   v:langID="2055"
+   id="text23096"><v:paragraph
+   v:horizAlign="1" /><v:tabList />m<tspan
+   dy="-0.27900001em"
+   class="st13"
+   v:baseFontSize="14"
+   id="tspan23094">i,c</tspan></text>			</g>
+			<g
+   id="shape108-263"
+   v:mID="108"
+   v:groupContext="shape"
+   transform="translate(10.9088,-8.50096)">
+				<title
+   id="title23099">Tabelle.108</title>
+				<desc
+   id="desc23101">·</desc>
+				<v:textBlock
+   v:margins="rect(4,4,4,4)"
+   v:tabSpace="42.5197" />
+				<v:textRect
+   cx="19.5591"
+   cy="589.18"
+   width="39.12"
+   height="12.1919" />
+				<rect
+   x="0"
+   y="583.08398"
+   width="39.118099"
+   height="12.1919"
+   class="st1"
+   id="rect23103" />
+				<text
+   x="18.040001"
+   y="592.78003"
+   class="st15"
+   v:langID="2055"
+   id="text23105"><v:paragraph
+   v:horizAlign="1" /><v:tabList />· </text>			</g>
+		</g>
+		<g
+   id="shape110-266"
+   v:mID="110"
+   v:groupContext="shape"
+   transform="translate(515.906,-410.182)">
+			<title
+   id="title23109">Kreis.110</title>
+			<v:userDefs>
+				<v:ud
+   v:nameU="visVersion"
+   v:val="VT0(15):26" />
+			</v:userDefs>
+			<path
+   d="m 0,593.58 a 1.70079,1.69204 0 1 1 3.4,0 1.70079,1.69204 0 1 1 -3.4,0 z"
+   class="st16"
+   id="path23111" />
+		</g>
+		<g
+   id="shape111-268"
+   v:mID="111"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(519.307,-404.787)">
+			<title
+   id="title23114">Dynamischer Verbinder.111</title>
+			<path
+   d="M 0,588.19 H 47.09"
+   class="st4"
+   id="path23116" />
+		</g>
+		<g
+   id="shape112-271"
+   v:mID="112"
+   v:groupContext="shape"
+   transform="translate(303.307,-394.343)">
+			<title
+   id="title23119">Tabelle.112</title>
+			<desc
+   id="desc23121">po,c</desc>
+			<v:textBlock
+   v:margins="rect(4,4,4,4)"
+   v:tabSpace="42.5197" />
+			<v:textRect
+   cx="28.3465"
+   cy="583.8"
+   width="56.7"
+   height="22.9521" />
+			<rect
+   x="0"
+   y="572.32397"
+   width="56.692902"
+   height="22.952101"
+   class="st1"
+   id="rect23123" />
+			<text
+   x="19.42"
+   y="588"
+   class="st14"
+   v:langID="2055"
+   id="text23127"><v:paragraph
+   v:horizAlign="1" /><v:tabList />p<tspan
+   dy="-0.27900001em"
+   class="st13"
+   v:baseFontSize="14"
+   id="tspan23125">o,c</tspan></text>		</g>
+		<g
+   id="shape113-275"
+   v:mID="113"
+   v:groupContext="shape"
+   transform="translate(303.307,-377.867)">
+			<title
+   id="title23130">Tabelle.113</title>
+			<desc
+   id="desc23132">ho,c</desc>
+			<v:textBlock
+   v:margins="rect(4,4,4,4)"
+   v:tabSpace="42.5197" />
+			<v:textRect
+   cx="28.3465"
+   cy="583.8"
+   width="56.7"
+   height="22.9521" />
+			<rect
+   x="0"
+   y="572.32397"
+   width="56.692902"
+   height="22.952101"
+   class="st1"
+   id="rect23134" />
+			<text
+   x="19.42"
+   y="588"
+   class="st14"
+   v:langID="2055"
+   id="text23138"><v:paragraph
+   v:horizAlign="1" /><v:tabList />h<tspan
+   dy="-0.27900001em"
+   class="st13"
+   v:baseFontSize="14"
+   id="tspan23136">o,c</tspan></text>		</g>
+		<g
+   id="group114-279"
+   transform="translate(297.638,-362.233)"
+   v:mID="114"
+   v:groupContext="group">
+			<title
+   id="title23141">Tabelle.114</title>
+			<g
+   id="shape115-280"
+   v:mID="115"
+   v:groupContext="shape"
+   transform="translate(6.65685)">
+				<title
+   id="title23143">Tabelle.115</title>
+				<desc
+   id="desc23145">mo,c</desc>
+				<v:textBlock
+   v:margins="rect(4,4,4,4)"
+   v:tabSpace="42.5197" />
+				<v:textRect
+   cx="28.3465"
+   cy="583.8"
+   width="56.7"
+   height="22.9521" />
+				<rect
+   x="0"
+   y="572.32397"
+   width="56.692902"
+   height="22.952101"
+   class="st1"
+   id="rect23147" />
+				<text
+   x="17.469999"
+   y="588"
+   class="st14"
+   v:langID="2055"
+   id="text23151"><v:paragraph
+   v:horizAlign="1" /><v:tabList />m<tspan
+   dy="-0.27900001em"
+   class="st13"
+   v:baseFontSize="14"
+   id="tspan23149">o,c</tspan></text>			</g>
+			<g
+   id="shape116-284"
+   v:mID="116"
+   v:groupContext="shape"
+   transform="translate(9.35433,-8.38191)">
+				<title
+   id="title23154">Tabelle.116</title>
+				<desc
+   id="desc23156">·</desc>
+				<v:textBlock
+   v:margins="rect(4,4,4,4)"
+   v:tabSpace="42.5197" />
+				<v:textRect
+   cx="19.5591"
+   cy="589.18"
+   width="39.12"
+   height="12.1919" />
+				<rect
+   x="0"
+   y="583.08398"
+   width="39.118099"
+   height="12.1919"
+   class="st1"
+   id="rect23158" />
+				<text
+   x="18.040001"
+   y="592.78003"
+   class="st15"
+   v:langID="2055"
+   id="text23160"><v:paragraph
+   v:horizAlign="1" /><v:tabList />· </text>			</g>
+		</g>
+		<g
+   id="shape117-287"
+   v:mID="117"
+   v:groupContext="shape"
+   transform="translate(331.37,-410.474)">
+			<title
+   id="title23164">Kreis.117</title>
+			<v:userDefs>
+				<v:ud
+   v:nameU="visVersion"
+   v:val="VT0(15):26" />
+			</v:userDefs>
+			<path
+   d="m 0,593.58 a 1.70079,1.69204 0 1 1 3.4,0 1.70079,1.69204 0 1 1 -3.4,0 z"
+   class="st16"
+   id="path23166" />
+		</g>
+		<g
+   id="shape118-289"
+   v:mID="118"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(334.772,-419.147)">
+			<title
+   id="title23169">Dynamischer Verbinder.118</title>
+			<path
+   d="m 0,602.26 51.63,0.21"
+   class="st4"
+   id="path23171" />
+		</g>
+		<g
+   id="shape119-292"
+   v:mID="119"
+   v:groupContext="shape"
+   transform="translate(217.774,-371.339)">
+			<title
+   id="title23174">Tabelle.119</title>
+			<desc
+   id="desc23176">pi,ev</desc>
+			<v:textBlock
+   v:margins="rect(4,4,4,4)"
+   v:tabSpace="42.5197" />
+			<v:textRect
+   cx="28.3465"
+   cy="583.8"
+   width="56.7"
+   height="22.9521" />
+			<rect
+   x="0"
+   y="572.32397"
+   width="56.692902"
+   height="22.952101"
+   class="st1"
+   id="rect23178" />
+			<text
+   x="18.15"
+   y="588"
+   class="st14"
+   v:langID="2055"
+   id="text23182"><v:paragraph
+   v:horizAlign="1" /><v:tabList />p<tspan
+   dy="-0.27900001em"
+   class="st13"
+   v:baseFontSize="14"
+   id="tspan23180">i,ev</tspan></text>		</g>
+		<g
+   id="shape120-296"
+   v:mID="120"
+   v:groupContext="shape"
+   transform="translate(217.774,-354.898)">
+			<title
+   id="title23185">Tabelle.120</title>
+			<desc
+   id="desc23187">hi,ev</desc>
+			<v:textBlock
+   v:margins="rect(4,4,4,4)"
+   v:tabSpace="42.5197" />
+			<v:textRect
+   cx="28.3465"
+   cy="583.8"
+   width="56.7"
+   height="22.9521" />
+			<rect
+   x="0"
+   y="572.32397"
+   width="56.692902"
+   height="22.952101"
+   class="st1"
+   id="rect23189" />
+			<text
+   x="18.15"
+   y="588"
+   class="st14"
+   v:langID="2055"
+   id="text23193"><v:paragraph
+   v:horizAlign="1" /><v:tabList />h<tspan
+   dy="-0.27900001em"
+   class="st13"
+   v:baseFontSize="14"
+   id="tspan23191">i,ev</tspan></text>		</g>
+		<g
+   id="group121-300"
+   transform="translate(212.745,-340.157)"
+   v:mID="121"
+   v:groupContext="group">
+			<title
+   id="title23196">Tabelle.121</title>
+			<g
+   id="shape122-301"
+   v:mID="122"
+   v:groupContext="shape"
+   transform="translate(6.9403)">
+				<title
+   id="title23198">Tabelle.122</title>
+				<desc
+   id="desc23200">mi,ev</desc>
+				<v:textBlock
+   v:margins="rect(4,4,4,4)"
+   v:tabSpace="42.5197" />
+				<v:textRect
+   cx="28.3465"
+   cy="583.8"
+   width="56.7"
+   height="22.9521" />
+				<rect
+   x="0"
+   y="572.32397"
+   width="56.692902"
+   height="22.952101"
+   class="st1"
+   id="rect23202" />
+				<text
+   x="16.209999"
+   y="588"
+   class="st14"
+   v:langID="2055"
+   id="text23206"><v:paragraph
+   v:horizAlign="1" /><v:tabList />m<tspan
+   dy="-0.27900001em"
+   class="st13"
+   v:baseFontSize="14"
+   id="tspan23204">i,ev</tspan></text>			</g>
+			<g
+   id="shape123-305"
+   v:mID="123"
+   v:groupContext="shape"
+   transform="translate(8.35762,-8.50393)">
+				<title
+   id="title23209">Tabelle.123</title>
+				<desc
+   id="desc23211">·</desc>
+				<v:textBlock
+   v:margins="rect(4,4,4,4)"
+   v:tabSpace="42.5197" />
+				<v:textRect
+   cx="19.5591"
+   cy="589.18"
+   width="39.12"
+   height="12.1919" />
+				<rect
+   x="0"
+   y="583.08398"
+   width="39.118099"
+   height="12.1919"
+   class="st1"
+   id="rect23213" />
+				<text
+   x="18.040001"
+   y="592.78003"
+   class="st15"
+   v:langID="2055"
+   id="text23215"><v:paragraph
+   v:horizAlign="1" /><v:tabList />· </text>			</g>
+		</g>
+		<g
+   id="shape124-308"
+   v:mID="124"
+   v:groupContext="shape"
+   transform="translate(267.591,-359.451)">
+			<title
+   id="title23219">Kreis.124</title>
+			<v:userDefs>
+				<v:ud
+   v:nameU="visVersion"
+   v:val="VT0(15):26" />
+			</v:userDefs>
+			<path
+   d="m 0,593.58 a 1.70079,1.69204 0 1 1 3.4,0 1.70079,1.69204 0 1 1 -3.4,0 z"
+   class="st16"
+   id="path23221" />
+		</g>
+		<g
+   id="shape125-310"
+   v:mID="125"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(262.176,-309.091)">
+			<title
+   id="title23224">Dynamischer Verbinder.125</title>
+			<path
+   d="m 7.07,589.1 v -0.36 l 0.05,-43.82"
+   class="st7"
+   id="path23226"
+   style="marker-start:url(#mrkr4-157-43)" />
+		</g>
+		<g
+   id="shape126-315"
+   v:mID="126"
+   v:groupContext="shape"
+   transform="translate(219.758,-246.339)">
+			<title
+   id="title23229">Tabelle.126</title>
+			<desc
+   id="desc23231">po,ev</desc>
+			<v:textBlock
+   v:margins="rect(4,4,4,4)"
+   v:tabSpace="42.5197" />
+			<v:textRect
+   cx="28.3465"
+   cy="583.8"
+   width="56.7"
+   height="22.9521" />
+			<rect
+   x="0"
+   y="572.32397"
+   width="56.692902"
+   height="22.952101"
+   class="st1"
+   id="rect23233" />
+			<text
+   x="16.75"
+   y="588"
+   class="st12"
+   v:langID="2055"
+   id="text23237"><v:paragraph
+   v:horizAlign="1" /><v:tabList />p<tspan
+   dy="-0.27900001em"
+   class="st13"
+   v:baseFontSize="14"
+   id="tspan23235">o,ev</tspan></text>		</g>
+		<g
+   id="shape127-319"
+   v:mID="127"
+   v:groupContext="shape"
+   transform="translate(219.758,-229.898)">
+			<title
+   id="title23240">Tabelle.127</title>
+			<desc
+   id="desc23242">ho,ev</desc>
+			<v:textBlock
+   v:margins="rect(4,4,4,4)"
+   v:tabSpace="42.5197" />
+			<v:textRect
+   cx="28.3465"
+   cy="583.8"
+   width="56.7"
+   height="22.9521" />
+			<rect
+   x="0"
+   y="572.32397"
+   width="56.692902"
+   height="22.952101"
+   class="st1"
+   id="rect23244" />
+			<text
+   x="17.139999"
+   y="588"
+   class="st14"
+   v:langID="2055"
+   id="text23248"><v:paragraph
+   v:horizAlign="1" /><v:tabList />h<tspan
+   dy="-0.27900001em"
+   class="st13"
+   v:baseFontSize="14"
+   id="tspan23246">o,ev</tspan></text>		</g>
+		<g
+   id="shape128-323"
+   v:mID="128"
+   v:groupContext="shape"
+   transform="translate(221.669,-214.229)">
+			<title
+   id="title23251">Tabelle.128</title>
+			<desc
+   id="desc23253">mo,ev</desc>
+			<v:textBlock
+   v:margins="rect(4,4,4,4)"
+   v:tabSpace="42.5197" />
+			<v:textRect
+   cx="28.3465"
+   cy="583.8"
+   width="56.7"
+   height="22.9521" />
+			<rect
+   x="0"
+   y="572.32397"
+   width="56.692902"
+   height="22.952101"
+   class="st1"
+   id="rect23255" />
+			<text
+   x="15.2"
+   y="588"
+   class="st14"
+   v:langID="2055"
+   id="text23259"><v:paragraph
+   v:horizAlign="1" /><v:tabList />m<tspan
+   dy="-0.27900001em"
+   class="st13"
+   v:baseFontSize="14"
+   id="tspan23257">o,ev</tspan></text>		</g>
+		<g
+   id="shape129-327"
+   v:mID="129"
+   v:groupContext="shape"
+   transform="translate(267.591,-235.276)">
+			<title
+   id="title23262">Kreis.129</title>
+			<v:userDefs>
+				<v:ud
+   v:nameU="visVersion"
+   v:val="VT0(15):26" />
+			</v:userDefs>
+			<path
+   d="m 0,593.58 a 1.70079,1.69204 0 1 1 3.4,0 1.70079,1.69204 0 1 1 -3.4,0 z"
+   class="st16"
+   id="path23264" />
+		</g>
+		<g
+   id="shape130-329"
+   v:mID="130"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(276.349,-235.276)">
+			<title
+   id="title23267">Dynamischer Verbinder.130</title>
+			<path
+   d="m -7.06,595.28 v 10.63 h -0.06 v 48.64"
+   class="st4"
+   id="path23269" />
+		</g>
+		<g
+   id="shape131-332"
+   v:mID="131"
+   v:groupContext="shape"
+   transform="translate(222.236,-223.084)">
+			<title
+   id="title23272">Tabelle.131</title>
+			<desc
+   id="desc23274">·</desc>
+			<v:textBlock
+   v:margins="rect(4,4,4,4)"
+   v:tabSpace="42.5197" />
+			<v:textRect
+   cx="19.5591"
+   cy="589.18"
+   width="39.12"
+   height="12.1919" />
+			<rect
+   x="0"
+   y="583.08398"
+   width="39.118099"
+   height="12.1919"
+   class="st1"
+   id="rect23276" />
+			<text
+   x="18.040001"
+   y="592.78003"
+   class="st15"
+   v:langID="2055"
+   id="text23278"><v:paragraph
+   v:horizAlign="1" /><v:tabList />· </text>		</g>
+		<g
+   id="shape135-335"
+   v:mID="135"
+   v:groupContext="shape"
+   transform="translate(301.323,-203.82)">
+			<title
+   id="title23281">Tabelle.135</title>
+			<desc
+   id="desc23283">pi,v</desc>
+			<v:textBlock
+   v:margins="rect(4,4,4,4)"
+   v:tabSpace="42.5197" />
+			<v:textRect
+   cx="28.3465"
+   cy="583.8"
+   width="56.7"
+   height="22.9521" />
+			<rect
+   x="0"
+   y="572.32397"
+   width="56.692902"
+   height="22.952101"
+   class="st1"
+   id="rect23285" />
+			<text
+   x="20.17"
+   y="588"
+   class="st14"
+   v:langID="2055"
+   id="text23289"><v:paragraph
+   v:horizAlign="1" /><v:tabList />p<tspan
+   dy="-0.27900001em"
+   class="st13"
+   v:baseFontSize="14"
+   id="tspan23287">i,v</tspan></text>		</g>
+		<g
+   id="shape136-339"
+   v:mID="136"
+   v:groupContext="shape"
+   transform="translate(301.323,-187.379)">
+			<title
+   id="title23292">Tabelle.136</title>
+			<desc
+   id="desc23294">hi,v</desc>
+			<v:textBlock
+   v:margins="rect(4,4,4,4)"
+   v:tabSpace="42.5197" />
+			<v:textRect
+   cx="28.3465"
+   cy="583.8"
+   width="56.7"
+   height="22.9521" />
+			<rect
+   x="0"
+   y="572.32397"
+   width="56.692902"
+   height="22.952101"
+   class="st1"
+   id="rect23296" />
+			<text
+   x="20.17"
+   y="588"
+   class="st14"
+   v:langID="2055"
+   id="text23300"><v:paragraph
+   v:horizAlign="1" /><v:tabList />h<tspan
+   dy="-0.27900001em"
+   class="st13"
+   v:baseFontSize="14"
+   id="tspan23298">i,v</tspan></text>		</g>
+		<g
+   id="shape137-343"
+   v:mID="137"
+   v:groupContext="shape"
+   transform="translate(303.307,-171.709)">
+			<title
+   id="title23303">Tabelle.137</title>
+			<desc
+   id="desc23305">mi,v</desc>
+			<v:textBlock
+   v:margins="rect(4,4,4,4)"
+   v:tabSpace="42.5197" />
+			<v:textRect
+   cx="28.3465"
+   cy="583.8"
+   width="56.7"
+   height="22.9521" />
+			<rect
+   x="0"
+   y="572.32397"
+   width="56.692902"
+   height="22.952101"
+   class="st1"
+   id="rect23307" />
+			<text
+   x="18.23"
+   y="588"
+   class="st14"
+   v:langID="2055"
+   id="text23311"><v:paragraph
+   v:horizAlign="1" /><v:tabList />m<tspan
+   dy="-0.27900001em"
+   class="st13"
+   v:baseFontSize="14"
+   id="tspan23309">i,v</tspan></text>		</g>
+		<g
+   id="shape138-347"
+   v:mID="138"
+   v:groupContext="shape"
+   transform="translate(326.835,-164.969)">
+			<title
+   id="title23314">Kreis.138</title>
+			<v:userDefs>
+				<v:ud
+   v:nameU="visVersion"
+   v:val="VT0(15):26" />
+			</v:userDefs>
+			<path
+   d="m 0,593.58 a 1.70079,1.69204 0 1 1 3.4,0 1.70079,1.69204 0 1 1 -3.4,0 z"
+   class="st16"
+   id="path23316" />
+		</g>
+		<g
+   id="shape139-349"
+   v:mID="139"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(330.236,-159.736)">
+			<title
+   id="title23319">Dynamischer Verbinder.139</title>
+			<path
+   d="m 0,588.35 49.99,-0.28"
+   class="st18"
+   id="path23321"
+   style="marker-end:url(#mrkr4-354-3)" />
+		</g>
+		<g
+   id="shape140-355"
+   v:mID="140"
+   v:groupContext="shape"
+   transform="translate(306.709,-180.564)">
+			<title
+   id="title23324">Tabelle.140</title>
+			<desc
+   id="desc23326">·</desc>
+			<v:textBlock
+   v:margins="rect(4,4,4,4)"
+   v:tabSpace="42.5197" />
+			<v:textRect
+   cx="19.5591"
+   cy="589.18"
+   width="39.12"
+   height="12.1919" />
+			<rect
+   x="0"
+   y="583.08398"
+   width="39.118099"
+   height="12.1919"
+   class="st1"
+   id="rect23328" />
+			<text
+   x="18.040001"
+   y="592.78003"
+   class="st15"
+   v:langID="2055"
+   id="text23330"><v:paragraph
+   v:horizAlign="1" /><v:tabList />· </text>		</g>
+		<g
+   id="shape141-358"
+   v:mID="141"
+   v:groupContext="shape"
+   transform="translate(489.333,-203.82)">
+			<title
+   id="title23333">Tabelle.141</title>
+			<desc
+   id="desc23335">po,v</desc>
+			<v:textBlock
+   v:margins="rect(4,4,4,4)"
+   v:tabSpace="42.5197" />
+			<v:textRect
+   cx="28.3465"
+   cy="583.8"
+   width="56.7"
+   height="22.9521" />
+			<rect
+   x="0"
+   y="572.32397"
+   width="56.692902"
+   height="22.952101"
+   class="st1"
+   id="rect23337" />
+			<text
+   x="19.16"
+   y="588"
+   class="st14"
+   v:langID="2055"
+   id="text23341"><v:paragraph
+   v:horizAlign="1" /><v:tabList />p<tspan
+   dy="-0.27900001em"
+   class="st13"
+   v:baseFontSize="14"
+   id="tspan23339">o,v</tspan></text>		</g>
+		<g
+   id="shape142-362"
+   v:mID="142"
+   v:groupContext="shape"
+   transform="translate(489.333,-187.379)">
+			<title
+   id="title23344">Tabelle.142</title>
+			<desc
+   id="desc23346">ho,v</desc>
+			<v:textBlock
+   v:margins="rect(4,4,4,4)"
+   v:tabSpace="42.5197" />
+			<v:textRect
+   cx="28.3465"
+   cy="583.8"
+   width="56.7"
+   height="22.9521" />
+			<rect
+   x="0"
+   y="572.32397"
+   width="56.692902"
+   height="22.952101"
+   class="st1"
+   id="rect23348" />
+			<text
+   x="19.16"
+   y="588"
+   class="st14"
+   v:langID="2055"
+   id="text23352"><v:paragraph
+   v:horizAlign="1" /><v:tabList />h<tspan
+   dy="-0.27900001em"
+   class="st13"
+   v:baseFontSize="14"
+   id="tspan23350">o,v</tspan></text>		</g>
+		<g
+   id="shape143-366"
+   v:mID="143"
+   v:groupContext="shape"
+   transform="translate(491.244,-171.709)">
+			<title
+   id="title23355">Tabelle.143</title>
+			<desc
+   id="desc23357">mo,v</desc>
+			<v:textBlock
+   v:margins="rect(4,4,4,4)"
+   v:tabSpace="42.5197" />
+			<v:textRect
+   cx="28.3465"
+   cy="583.8"
+   width="56.7"
+   height="22.9521" />
+			<rect
+   x="0"
+   y="572.32397"
+   width="56.692902"
+   height="22.952101"
+   class="st1"
+   id="rect23359" />
+			<text
+   x="17.219999"
+   y="588"
+   class="st14"
+   v:langID="2055"
+   id="text23363"><v:paragraph
+   v:horizAlign="1" /><v:tabList />m<tspan
+   dy="-0.27900001em"
+   class="st13"
+   v:baseFontSize="14"
+   id="tspan23361">o,v</tspan></text>		</g>
+		<g
+   id="shape144-370"
+   v:mID="144"
+   v:groupContext="shape"
+   transform="translate(493.512,-180.564)">
+			<title
+   id="title23366">Tabelle.144</title>
+			<desc
+   id="desc23368">·</desc>
+			<v:textBlock
+   v:margins="rect(4,4,4,4)"
+   v:tabSpace="42.5197" />
+			<v:textRect
+   cx="19.5591"
+   cy="589.18"
+   width="39.12"
+   height="12.1919" />
+			<rect
+   x="0"
+   y="583.08398"
+   width="39.118099"
+   height="12.1919"
+   class="st1"
+   id="rect23370" />
+			<text
+   x="18.040001"
+   y="592.78003"
+   class="st15"
+   v:langID="2055"
+   id="text23372"><v:paragraph
+   v:horizAlign="1" /><v:tabList />· </text>		</g>
+		<g
+   id="shape145-373"
+   v:mID="145"
+   v:groupContext="shape"
+   transform="translate(515.622,-165.277)">
+			<title
+   id="title23375">Kreis.145</title>
+			<v:userDefs>
+				<v:ud
+   v:nameU="visVersion"
+   v:val="VT0(15):26" />
+			</v:userDefs>
+			<path
+   d="m 0,593.58 a 1.70079,1.69204 0 1 1 3.4,0 1.70079,1.69204 0 1 1 -3.4,0 z"
+   class="st16"
+   id="path23377" />
+		</g>
+		<g
+   id="shape146-375"
+   v:mID="146"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(519.024,-159.886)">
+			<title
+   id="title23380">Dynamischer Verbinder.146</title>
+			<path
+   d="M 0,588.19 H 47.34"
+   class="st4"
+   id="path23382" />
+		</g>
+		<g
+   id="shape165-378"
+   v:mID="165"
+   v:groupContext="shape"
+   transform="rotate(-90,-45.866,170.61)">
+			<title
+   id="title23385">Kreis, Ellipse.721</title>
+			<desc
+   id="desc23387">Source</desc>
+			<v:userDefs>
+				<v:ud
+   v:nameU="visVersion"
+   v:val="VT0(15):26" />
+			</v:userDefs>
+			<v:textBlock
+   v:margins="rect(0,0,0,0)"
+   v:tabSpace="42.5197" />
+			<v:textRect
+   cx="17.0174"
+   cy="572.269"
+   width="34.04"
+   height="46.0123"
+   transform="rotate(90)" />
+			<path
+   d="m 0,572.27 a 17.0174,23.0062 0 0 1 34.03,0 17.0174,23.0062 0 1 1 -34.03,0 z"
+   class="st6"
+   id="path23389" />
+			<text
+   x="557.54999"
+   y="-14.02"
+   transform="rotate(90)"
+   class="st19"
+   v:langID="2055"
+   id="text23391"><v:paragraph
+   v:horizAlign="1" /><v:tabList />Source</text>		</g>
+		<g
+   id="shape167-381"
+   v:mID="167"
+   v:groupContext="shape"
+   transform="translate(354.331,-446.182)">
+			<title
+   id="title23394">Kreis.167</title>
+			<v:userDefs>
+				<v:ud
+   v:nameU="visVersion"
+   v:val="VT0(15):26" />
+			</v:userDefs>
+			<path
+   d="m 0,593.58 a 1.70079,1.69204 0 1 1 3.4,0 1.70079,1.69204 0 1 1 -3.4,0 z"
+   class="st16"
+   id="path23396" />
+		</g>
+		<g
+   id="shape168-383"
+   v:mID="168"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(362.999,-449.566)">
+			<title
+   id="title23399">Dynamischer Verbinder.168</title>
+			<path
+   d="M -6.97,595.28 -7.21,574.31"
+   class="st4"
+   id="path23401" />
+		</g>
+		<g
+   id="shape169-386"
+   v:mID="169"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(386.401,-424.71)">
+			<title
+   id="title23404">Dynamischer Verbinder.169</title>
+			<path
+   d="M 0,595.28 H -30.37 V 573.8"
+   class="st4"
+   id="path23406" />
+		</g>
+		<g
+   id="group170-389"
+   transform="translate(269.291,-425.746)"
+   v:mID="170"
+   v:groupContext="group">
+			<title
+   id="title23409">Tabelle.170</title>
+			<g
+   id="shape65-390"
+   v:mID="65"
+   v:groupContext="shape"
+   transform="translate(0,-12.7196)">
+				<title
+   id="title23411">Tabelle.65</title>
+				<desc
+   id="desc23413">hi,c,so</desc>
+				<v:textBlock
+   v:margins="rect(4,4,4,4)"
+   v:tabSpace="42.5197" />
+				<v:textRect
+   cx="62.5689"
+   cy="581.935"
+   width="125.14"
+   height="26.682" />
+				<rect
+   x="0"
+   y="568.59399"
+   width="125.138"
+   height="26.681999"
+   class="st1"
+   id="rect23415" />
+				<text
+   x="49.07"
+   y="586.13"
+   class="st20"
+   v:langID="2055"
+   id="text23419"><v:paragraph
+   v:horizAlign="1" /><v:tabList />h<tspan
+   dy="-0.27900001em"
+   class="st13"
+   v:baseFontSize="14"
+   id="tspan23417">i,c,so</tspan></text>			</g>
+			<g
+   id="shape159-394"
+   v:mID="159"
+   v:groupContext="shape"
+   transform="translate(31.0042)">
+				<title
+   id="title23422">Tabelle.159</title>
+				<desc
+   id="desc23424">mi,c,so</desc>
+				<v:textBlock
+   v:margins="rect(4,4,4,4)"
+   v:tabSpace="42.5197" />
+				<v:textRect
+   cx="33.3423"
+   cy="583.8"
+   width="66.69"
+   height="22.9521" />
+				<rect
+   x="0"
+   y="572.32397"
+   width="66.684502"
+   height="22.952101"
+   class="st1"
+   id="rect23426" />
+				<text
+   x="17.91"
+   y="588"
+   class="st20"
+   v:langID="2055"
+   id="text23430"><v:paragraph
+   v:horizAlign="1" /><v:tabList />m<tspan
+   dy="-0.27900001em"
+   class="st13"
+   v:baseFontSize="14"
+   id="tspan23428">i,c,so</tspan></text>			</g>
+			<g
+   id="shape160-398"
+   v:mID="160"
+   v:groupContext="shape"
+   transform="translate(31.4502,-8.7844)">
+				<title
+   id="title23433">Tabelle.160</title>
+				<desc
+   id="desc23435">·</desc>
+				<v:textBlock
+   v:margins="rect(4,4,4,4)"
+   v:tabSpace="42.5197" />
+				<v:textRect
+   cx="23.0062"
+   cy="589.18"
+   width="46.02"
+   height="12.1919" />
+				<rect
+   x="0"
+   y="583.08398"
+   width="46.012299"
+   height="12.1919"
+   class="st1"
+   id="rect23437" />
+				<text
+   x="21.4"
+   y="592.78003"
+   class="st21"
+   v:langID="2055"
+   id="text23439"><v:paragraph
+   v:horizAlign="1" /><v:tabList />· </text>			</g>
+			<g
+   id="shape166-401"
+   v:mID="166"
+   v:groupContext="shape"
+   transform="translate(0.153466,-28.9134)">
+				<title
+   id="title23442">Tabelle.166</title>
+				<desc
+   id="desc23444">pi,c,so</desc>
+				<v:textBlock
+   v:margins="rect(4,4,4,4)"
+   v:tabSpace="42.5197" />
+				<v:textRect
+   cx="62.5689"
+   cy="581.935"
+   width="125.14"
+   height="26.682" />
+				<rect
+   x="0"
+   y="568.59399"
+   width="125.138"
+   height="26.681999"
+   class="st1"
+   id="rect23446" />
+				<text
+   x="49.07"
+   y="586.13"
+   class="st20"
+   v:langID="2055"
+   id="text23450"><v:paragraph
+   v:horizAlign="1" /><v:tabList />p<tspan
+   dy="-0.27900001em"
+   class="st13"
+   v:baseFontSize="14"
+   id="tspan23448">i,c,so</tspan></text>			</g>
+		</g>
+		<g
+   id="shape171-405"
+   v:mID="171"
+   v:groupContext="shape"
+   transform="rotate(-90,24.92105,99.82295)">
+			<title
+   id="title23454">Kreis, Ellipse.720</title>
+			<desc
+   id="desc23456">Sink</desc>
+			<v:userDefs>
+				<v:ud
+   v:nameU="visVersion"
+   v:val="VT0(15):26" />
+			</v:userDefs>
+			<v:textBlock
+   v:margins="rect(0,0,0,0)"
+   v:tabSpace="42.5197" />
+			<v:textRect
+   cx="17.0174"
+   cy="570.965"
+   width="34.04"
+   height="48.6214"
+   transform="rotate(90)" />
+			<path
+   d="m 0,570.96 a 17.0174,24.3107 0 0 1 34.03,0 17.0174,24.3107 0 1 1 -34.03,0 z"
+   class="st6"
+   id="path23458" />
+			<text
+   x="561.22998"
+   y="-14.02"
+   transform="rotate(90)"
+   class="st19"
+   v:langID="2055"
+   id="text23460"><v:paragraph
+   v:horizAlign="1" /><v:tabList />Sink</text>		</g>
+		<g
+   id="shape173-408"
+   v:mID="173"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(462.89,-424.71)">
+			<title
+   id="title23463">Dynamischer Verbinder.173</title>
+			<path
+   d="M 0,595.28 H 33.17 V 573.8"
+   class="st4"
+   id="path23465" />
+		</g>
+		<g
+   id="group174-411"
+   transform="translate(460.63,-420.076)"
+   v:mID="174"
+   v:groupContext="group">
+			<title
+   id="title23468">Tabelle.174</title>
+			<g
+   id="shape175-412"
+   v:mID="175"
+   v:groupContext="shape"
+   transform="translate(0,-12.7196)">
+				<title
+   id="title23470">Tabelle.175</title>
+				<desc
+   id="desc23472">ho,c,si</desc>
+				<v:textBlock
+   v:margins="rect(4,4,4,4)"
+   v:tabSpace="42.5197" />
+				<v:textRect
+   cx="62.5689"
+   cy="581.935"
+   width="125.14"
+   height="26.682" />
+				<rect
+   x="0"
+   y="568.59399"
+   width="125.138"
+   height="26.681999"
+   class="st1"
+   id="rect23474" />
+				<text
+   x="49.470001"
+   y="586.13"
+   class="st14"
+   v:langID="2055"
+   id="text23478"><v:paragraph
+   v:horizAlign="1" /><v:tabList />h<tspan
+   dy="-0.27900001em"
+   class="st13"
+   v:baseFontSize="14"
+   id="tspan23476">o,c,si</tspan></text>			</g>
+			<g
+   id="shape176-416"
+   v:mID="176"
+   v:groupContext="shape"
+   transform="translate(31.0042)">
+				<title
+   id="title23481">Tabelle.176</title>
+				<desc
+   id="desc23483">mo,c,si</desc>
+				<v:textBlock
+   v:margins="rect(4,4,4,4)"
+   v:tabSpace="42.5197" />
+				<v:textRect
+   cx="33.3423"
+   cy="583.8"
+   width="66.69"
+   height="22.9521" />
+				<rect
+   x="0"
+   y="572.32397"
+   width="66.684502"
+   height="22.952101"
+   class="st1"
+   id="rect23485" />
+				<text
+   x="18.290001"
+   y="588"
+   class="st14"
+   v:langID="2055"
+   id="text23489"><v:paragraph
+   v:horizAlign="1" /><v:tabList />m<tspan
+   dy="-0.27900001em"
+   class="st13"
+   v:baseFontSize="14"
+   id="tspan23487">o,c,si</tspan></text>			</g>
+			<g
+   id="shape177-420"
+   v:mID="177"
+   v:groupContext="shape"
+   transform="translate(31.1811,-8.7844)">
+				<title
+   id="title23492">Tabelle.177</title>
+				<desc
+   id="desc23494">·</desc>
+				<v:textBlock
+   v:margins="rect(4,4,4,4)"
+   v:tabSpace="42.5197" />
+				<v:textRect
+   cx="23.0062"
+   cy="589.18"
+   width="46.02"
+   height="12.1919" />
+				<rect
+   x="0"
+   y="583.08398"
+   width="46.012299"
+   height="12.1919"
+   class="st1"
+   id="rect23496" />
+				<text
+   x="21.49"
+   y="592.78003"
+   class="st15"
+   v:langID="2055"
+   id="text23498"><v:paragraph
+   v:horizAlign="1" /><v:tabList />· </text>			</g>
+			<g
+   id="shape178-423"
+   v:mID="178"
+   v:groupContext="shape"
+   transform="translate(0.153466,-28.9134)">
+				<title
+   id="title23501">Tabelle.178</title>
+				<desc
+   id="desc23503">po,c,si</desc>
+				<v:textBlock
+   v:margins="rect(4,4,4,4)"
+   v:tabSpace="42.5197" />
+				<v:textRect
+   cx="62.5689"
+   cy="581.935"
+   width="125.14"
+   height="26.682" />
+				<rect
+   x="0"
+   y="568.59399"
+   width="125.138"
+   height="26.681999"
+   class="st1"
+   id="rect23505" />
+				<text
+   x="49.470001"
+   y="586.13"
+   class="st14"
+   v:langID="2055"
+   id="text23509"><v:paragraph
+   v:horizAlign="1" /><v:tabList />p<tspan
+   dy="-0.27900001em"
+   class="st13"
+   v:baseFontSize="14"
+   id="tspan23507">o,c,si</tspan></text>			</g>
+		</g>
+		<g
+   id="shape194-427"
+   v:mID="194"
+   v:groupContext="shape"
+   transform="translate(494.362,-446.182)">
+			<title
+   id="title23513">Kreis.194</title>
+			<v:userDefs>
+				<v:ud
+   v:nameU="visVersion"
+   v:val="VT0(15):26" />
+			</v:userDefs>
+			<path
+   d="m 0,593.58 a 1.70079,1.69204 0 1 1 3.4,0 1.70079,1.69204 0 1 1 -3.4,0 z"
+   class="st16"
+   id="path23515" />
+		</g>
+		<g
+   id="shape195-429"
+   v:mID="195"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(488.976,-449.566)">
+			<title
+   id="title23518">Dynamischer Verbinder.195</title>
+			<path
+   d="M 7.09,595.28 V 580.85"
+   class="st18"
+   id="path23520"
+   style="marker-end:url(#mrkr4-354-3)" />
+		</g>
+		<g
+   id="shape196-434"
+   v:mID="196"
+   v:groupContext="shape"
+   transform="rotate(-90,224.1013,300.3077)">
+			<title
+   id="title23523">Kreis, Ellipse.196</title>
+			<desc
+   id="desc23525">Source</desc>
+			<v:userDefs>
+				<v:ud
+   v:nameU="visVersion"
+   v:val="VT0(15):26" />
+			</v:userDefs>
+			<v:textBlock
+   v:margins="rect(0,0,0,0)"
+   v:tabSpace="42.5197" />
+			<v:textRect
+   cx="17.0174"
+   cy="572.269"
+   width="34.04"
+   height="46.0123"
+   transform="rotate(90)" />
+			<path
+   d="m 0,572.27 a 17.0174,23.0062 0 0 1 34.03,0 17.0174,23.0062 0 1 1 -34.03,0 z"
+   class="st6"
+   id="path23527" />
+			<text
+   x="557.54999"
+   y="-14.02"
+   transform="rotate(90)"
+   class="st19"
+   v:langID="2055"
+   id="text23529"><v:paragraph
+   v:horizAlign="1" /><v:tabList />Source</text>		</g>
+		<g
+   id="group199-437"
+   transform="translate(459.573,-108.85)"
+   v:mID="199"
+   v:groupContext="group">
+			<title
+   id="title23532">Tabelle.199</title>
+			<g
+   id="group197-438"
+   transform="translate(0,1.69652)"
+   v:mID="197"
+   v:groupContext="group">
+				<title
+   id="title23534">Tabelle.197</title>
+				<g
+   id="shape31-439"
+   v:mID="31"
+   v:groupContext="shape"
+   transform="translate(0.134337,-11.8607)">
+					<title
+   id="title23536">Tabelle.31</title>
+					<desc
+   id="desc23538">hi,v,so</desc>
+					<v:textBlock
+   v:margins="rect(4,4,4,4)"
+   v:tabSpace="42.5197" />
+					<v:textRect
+   cx="62.5689"
+   cy="581.935"
+   width="125.14"
+   height="26.682" />
+					<rect
+   x="0"
+   y="568.59399"
+   width="125.138"
+   height="26.681999"
+   class="st1"
+   id="rect23540" />
+					<text
+   x="48.82"
+   y="586.13"
+   class="st20"
+   v:langID="2055"
+   id="text23544"><v:paragraph
+   v:horizAlign="1" /><v:tabList />h<tspan
+   dy="-0.27900001em"
+   class="st13"
+   v:baseFontSize="14"
+   id="tspan23542">i,v,so</tspan></text>				</g>
+				<g
+   id="shape157-443"
+   v:mID="157"
+   v:groupContext="shape"
+   transform="translate(30.9552)">
+					<title
+   id="title23547">Tabelle.157</title>
+					<desc
+   id="desc23549">mi,v,so</desc>
+					<v:textBlock
+   v:margins="rect(4,4,4,4)"
+   v:tabSpace="42.5197" />
+					<v:textRect
+   cx="33.3423"
+   cy="583.8"
+   width="66.69"
+   height="22.9521" />
+					<rect
+   x="0"
+   y="572.32397"
+   width="66.684502"
+   height="22.952101"
+   class="st1"
+   id="rect23551" />
+					<text
+   x="17.65"
+   y="588"
+   class="st20"
+   v:langID="2055"
+   id="text23555"><v:paragraph
+   v:horizAlign="1" /><v:tabList />m<tspan
+   dy="-0.27900001em"
+   class="st13"
+   v:baseFontSize="14"
+   id="tspan23553">i,v,so</tspan></text>				</g>
+				<g
+   id="shape158-447"
+   v:mID="158"
+   v:groupContext="shape"
+   transform="translate(30.8642,-8.21471)">
+					<title
+   id="title23558">Tabelle.158</title>
+					<desc
+   id="desc23560">·</desc>
+					<v:textBlock
+   v:margins="rect(4,4,4,4)"
+   v:tabSpace="42.5197" />
+					<v:textRect
+   cx="23.0062"
+   cy="589.18"
+   width="46.02"
+   height="12.1919" />
+					<rect
+   x="0"
+   y="583.08398"
+   width="46.012299"
+   height="12.1919"
+   class="st1"
+   id="rect23562" />
+					<text
+   x="21.4"
+   y="592.78003"
+   class="st21"
+   v:langID="2055"
+   id="text23564"><v:paragraph
+   v:horizAlign="1" /><v:tabList />· </text>				</g>
+			</g>
+			<g
+   id="shape198-450"
+   v:mID="198"
+   v:groupContext="shape"
+   transform="translate(0,-25.1878)">
+				<title
+   id="title23568">Tabelle.198</title>
+				<desc
+   id="desc23570">pi,v,so</desc>
+				<v:textBlock
+   v:margins="rect(4,4,4,4)"
+   v:tabSpace="42.5197" />
+				<v:textRect
+   cx="62.5689"
+   cy="581.935"
+   width="125.14"
+   height="26.682" />
+				<rect
+   x="0"
+   y="568.59399"
+   width="125.138"
+   height="26.681999"
+   class="st1"
+   id="rect23572" />
+				<text
+   x="48.82"
+   y="586.13"
+   class="st20"
+   v:langID="2055"
+   id="text23576"><v:paragraph
+   v:horizAlign="1" /><v:tabList />p<tspan
+   dy="-0.27900001em"
+   class="st13"
+   v:baseFontSize="14"
+   id="tspan23574">i,v,so</tspan></text>			</g>
+		</g>
+		<g
+   id="shape200-454"
+   v:mID="200"
+   v:groupContext="shape"
+   transform="translate(494.362,-129.269)">
+			<title
+   id="title23580">Kreis.200</title>
+			<v:userDefs>
+				<v:ud
+   v:nameU="visVersion"
+   v:val="VT0(15):26" />
+			</v:userDefs>
+			<path
+   d="m 0,593.58 a 1.70079,1.69204 0 1 1 3.4,0 1.70079,1.69204 0 1 1 -3.4,0 z"
+   class="st16"
+   id="path23582" />
+		</g>
+		<g
+   id="shape201-456"
+   v:mID="201"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(488.976,-129.269)">
+			<title
+   id="title23585">Dynamischer Verbinder.201</title>
+			<path
+   d="m 7.09,595.28 v 24.36"
+   class="st4"
+   id="path23587" />
+		</g>
+		<g
+   id="group202-459"
+   transform="translate(266.25,-110.128)"
+   v:mID="202"
+   v:groupContext="group">
+			<title
+   id="title23590">Tabelle.202</title>
+			<g
+   id="group203-460"
+   transform="translate(0,1.69652)"
+   v:mID="203"
+   v:groupContext="group">
+				<title
+   id="title23592">Tabelle.203</title>
+				<g
+   id="shape204-461"
+   v:mID="204"
+   v:groupContext="shape"
+   transform="translate(0.134337,-11.8607)">
+					<title
+   id="title23594">Tabelle.204</title>
+					<desc
+   id="desc23596">hi,v,so</desc>
+					<v:textBlock
+   v:margins="rect(4,4,4,4)"
+   v:tabSpace="42.5197" />
+					<v:textRect
+   cx="62.5689"
+   cy="581.935"
+   width="125.14"
+   height="26.682" />
+					<rect
+   x="0"
+   y="568.59399"
+   width="125.138"
+   height="26.681999"
+   class="st1"
+   id="rect23598" />
+					<text
+   x="49.209999"
+   y="586.13"
+   class="st14"
+   v:langID="2055"
+   id="text23602"><v:paragraph
+   v:horizAlign="1" /><v:tabList />h<tspan
+   dy="-0.27900001em"
+   class="st13"
+   v:baseFontSize="14"
+   id="tspan23600">i,v,so</tspan></text>				</g>
+				<g
+   id="shape205-465"
+   v:mID="205"
+   v:groupContext="shape"
+   transform="translate(30.9552)">
+					<title
+   id="title23605">Tabelle.205</title>
+					<desc
+   id="desc23607">mi,v,so</desc>
+					<v:textBlock
+   v:margins="rect(4,4,4,4)"
+   v:tabSpace="42.5197" />
+					<v:textRect
+   cx="33.3423"
+   cy="583.8"
+   width="66.69"
+   height="22.9521" />
+					<rect
+   x="0"
+   y="572.32397"
+   width="66.684502"
+   height="22.952101"
+   class="st1"
+   id="rect23609" />
+					<text
+   x="18.040001"
+   y="588"
+   class="st14"
+   v:langID="2055"
+   id="text23613"><v:paragraph
+   v:horizAlign="1" /><v:tabList />m<tspan
+   dy="-0.27900001em"
+   class="st13"
+   v:baseFontSize="14"
+   id="tspan23611">i,v,so</tspan></text>				</g>
+				<g
+   id="shape206-469"
+   v:mID="206"
+   v:groupContext="shape"
+   transform="translate(30.8642,-8.21471)">
+					<title
+   id="title23616">Tabelle.206</title>
+					<desc
+   id="desc23618">·</desc>
+					<v:textBlock
+   v:margins="rect(4,4,4,4)"
+   v:tabSpace="42.5197" />
+					<v:textRect
+   cx="23.0062"
+   cy="589.18"
+   width="46.02"
+   height="12.1919" />
+					<rect
+   x="0"
+   y="583.08398"
+   width="46.012299"
+   height="12.1919"
+   class="st1"
+   id="rect23620" />
+					<text
+   x="21.49"
+   y="592.78003"
+   class="st15"
+   v:langID="2055"
+   id="text23622"><v:paragraph
+   v:horizAlign="1" /><v:tabList />· </text>				</g>
+			</g>
+			<g
+   id="shape207-472"
+   v:mID="207"
+   v:groupContext="shape"
+   transform="translate(0,-25.1878)">
+				<title
+   id="title23626">Tabelle.207</title>
+				<desc
+   id="desc23628">pi,v,so</desc>
+				<v:textBlock
+   v:margins="rect(4,4,4,4)"
+   v:tabSpace="42.5197" />
+				<v:textRect
+   cx="62.5689"
+   cy="581.935"
+   width="125.14"
+   height="26.682" />
+				<rect
+   x="0"
+   y="568.59399"
+   width="125.138"
+   height="26.681999"
+   class="st1"
+   id="rect23630" />
+				<text
+   x="49.209999"
+   y="586.13"
+   class="st14"
+   v:langID="2055"
+   id="text23634"><v:paragraph
+   v:horizAlign="1" /><v:tabList />p<tspan
+   dy="-0.27900001em"
+   class="st13"
+   v:baseFontSize="14"
+   id="tspan23632">i,v,so</tspan></text>			</g>
+		</g>
+		<g
+   id="shape208-476"
+   v:mID="208"
+   v:groupContext="shape"
+   transform="rotate(-90,153.8875,370.5215)">
+			<title
+   id="title23638">Kreis, Ellipse.208</title>
+			<desc
+   id="desc23640">Sink</desc>
+			<v:userDefs>
+				<v:ud
+   v:nameU="visVersion"
+   v:val="VT0(15):26" />
+			</v:userDefs>
+			<v:textBlock
+   v:margins="rect(0,0,0,0)"
+   v:tabSpace="42.5197" />
+			<v:textRect
+   cx="17.0174"
+   cy="570.965"
+   width="34.04"
+   height="48.6214"
+   transform="rotate(90)" />
+			<path
+   d="m 0,570.96 a 17.0174,24.3107 0 0 1 34.03,0 17.0174,24.3107 0 1 1 -34.03,0 z"
+   class="st6"
+   id="path23642" />
+			<text
+   x="561.22998"
+   y="-14.02"
+   transform="rotate(90)"
+   class="st19"
+   v:langID="2055"
+   id="text23644"><v:paragraph
+   v:horizAlign="1" /><v:tabList />Sink</text>		</g>
+		<g
+   id="shape209-479"
+   v:mID="209"
+   v:groupContext="shape"
+   transform="translate(352.63,-126.161)">
+			<title
+   id="title23647">Kreis.209</title>
+			<v:userDefs>
+				<v:ud
+   v:nameU="visVersion"
+   v:val="VT0(15):26" />
+			</v:userDefs>
+			<path
+   d="m 0,593.58 a 1.70079,1.69204 0 1 1 3.4,0 1.70079,1.69204 0 1 1 -3.4,0 z"
+   class="st16"
+   id="path23649" />
+		</g>
+		<g
+   id="shape210-481"
+   v:mID="210"
+   v:groupContext="shape"
+   v:layerMember="0"
+   transform="translate(347.244,-126.161)">
+			<title
+   id="title23652">Dynamischer Verbinder.210</title>
+			<path
+   d="M 7.09,595.28 V 610"
+   class="st18"
+   id="path23654"
+   style="marker-end:url(#mrkr4-354-3)" />
+		</g>
+		<g
+   id="group211-486"
+   transform="translate(104.882,-425.197)"
+   v:mID="211"
+   v:groupContext="group">
+			<title
+   id="title23657">Tabelle.211</title>
+			<g
+   id="group212-487"
+   v:mID="212"
+   v:groupContext="group">
+				<title
+   id="title23659">Tabelle.212</title>
+				<g
+   id="shape213-488"
+   v:mID="213"
+   v:groupContext="shape"
+   transform="translate(0.508511,-49.6063)">
+					<title
+   id="title23661">Tabelle.213</title>
+					<desc
+   id="desc23663">Tearing Variables</desc>
+					<v:textBlock
+   v:margins="rect(4,4,4,4)"
+   v:tabSpace="42.5197" />
+					<v:textRect
+   cx="78.8136"
+   cy="570.472"
+   width="157.63"
+   height="49.6063" />
+					<rect
+   x="0"
+   y="545.66901"
+   width="157.627"
+   height="49.6063"
+   class="st1"
+   id="rect23665" />
+					<text
+   x="35.650002"
+   y="574.07001"
+   class="st22"
+   v:langID="2055"
+   id="text23667"><v:paragraph
+   v:horizAlign="1" /><v:tabList />Tearing Variables</text>				</g>
+				<g
+   id="shape214-491"
+   v:mID="214"
+   v:groupContext="shape"
+   transform="translate(31.1811,-24.8031)">
+					<title
+   id="title23670">Tabelle.214</title>
+					<desc
+   id="desc23672">Boundary condition variables</desc>
+					<v:textBlock
+   v:margins="rect(4,4,4,4)"
+   v:tabSpace="42.5197" />
+					<v:textRect
+   cx="78.8136"
+   cy="570.472"
+   width="157.63"
+   height="49.6063" />
+					<rect
+   x="0"
+   y="545.66901"
+   width="157.627"
+   height="49.6063"
+   class="st1"
+   id="rect23674" />
+					<text
+   x="5.79"
+   y="574.07001"
+   class="st21"
+   v:langID="2055"
+   id="text23676"><v:paragraph
+   v:horizAlign="1" /><v:tabList />Boundary condition variables</text>				</g>
+				<g
+   id="shape215-494"
+   v:mID="215"
+   v:groupContext="shape">
+					<title
+   id="title23679">Tabelle.215</title>
+					<desc
+   id="desc23681">System Variables</desc>
+					<v:textBlock
+   v:margins="rect(4,4,4,4)"
+   v:tabSpace="42.5197" />
+					<v:textRect
+   cx="78.8136"
+   cy="570.472"
+   width="157.63"
+   height="49.6063" />
+					<rect
+   x="0"
+   y="545.66901"
+   width="157.627"
+   height="49.6063"
+   class="st1"
+   id="rect23683" />
+					<text
+   x="37.369999"
+   y="574.07001"
+   class="st15"
+   v:langID="2055"
+   id="text23685"><v:paragraph
+   v:horizAlign="1" /><v:tabList />System Variables</text>				</g>
+			</g>
+			<g
+   id="shape216-497"
+   v:mID="216"
+   v:groupContext="shape"
+   transform="translate(31.1811,-14.1733)">
+				<title
+   id="title23689">Tabelle.216</title>
+				<rect
+   x="0"
+   y="524.409"
+   width="155.90601"
+   height="70.866096"
+   class="st23"
+   id="rect23691" />
+			</g>
+		</g>
+	</g></g></svg>

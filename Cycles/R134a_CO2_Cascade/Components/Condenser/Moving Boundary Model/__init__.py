@@ -452,7 +452,7 @@ def solver(component: [Component]):
 
     try:
 
-        A = 2.39
+        A = component.parameter['A']
 
         for port in component.ports:
             if port.port_id[2] == psd['c']:
@@ -520,29 +520,22 @@ def solver(component: [Component]):
                     port.h.set_value(h_out_h)
                     port.m.set_value(m_out_h)
 
-    except (RuntimeError, ValueError):
+    except:
         print(component.name + ' failed!')
         component.status = 0
 
-    # A = [0]
-    # for i, element in enumerate(HX.Areq):
-    #     A.append(A[-1] + element)
-    # A = A / sum(HX.Areq)
-    #
-    # fig, ax = plt.subplots()
-    # fig.suptitle('Condenser', fontsize=16)
-    # ax.plot(np.flip(HX.hvec_c), np.flip(HX.Tvec_c) - 273.15, 'b-')
-    # ax.plot(HX.hvec_h, HX.Tvec_h - 273.15, 'r-')
-    # ax.set_xlabel('Enthalpy [kJ/kg]')
-    # ax.set_ylabel('Temperature [°C]')
-    # ax.grid(True)
-    # plt.show()
-    #
-    # fig, ax = plt.subplots()
-    # fig.suptitle('Condenser', fontsize=16)
-    # ax.plot(A, HX.Tvec_c - 273.15, 'b-')
-    # ax.plot(A, HX.Tvec_h - 273.15, 'r-')
-    # ax.set_xlabel('Enthalpy [kJ/kg]')
-    # ax.set_ylabel('Temperature [°C]')
-    # ax.grid(True)
-    # plt.show()
+    if component.diagramm_plot:
+
+        A = [0]
+        for i, element in enumerate(HX.Areq):
+            A.append(A[-1] + element)
+        A = A / sum(HX.Areq)
+
+        fig, ax = plt.subplots()
+        fig.suptitle('Condenser', fontsize=16)
+        ax.plot(A, HX.Tvec_c - 273.15, 'b-')
+        ax.plot(A, HX.Tvec_h - 273.15, 'r-')
+        ax.set_xlabel('$$A/A_{ges} [-]$$')
+        ax.set_ylabel('Temperature [°C]')
+        ax.grid(True)
+        plt.show()

@@ -9,57 +9,72 @@ M. Ganz (2023) Numerical Modeling and Analysis of an Adaptive Refrigeration Cycl
 """
 
 import csv
-from CoolProp.CoolProp import PropsSI
-import numpy as np
+import multiprocessing
+from copy import deepcopy
+import pickle
 from functools import partial
-from labellines import labelLines
-import matplotlib.pyplot as plt
 from typing import List
+import matplotlib.pyplot as plt
+import numpy as np
+import scipy.optimize
+from CoolProp.CoolProp import PropsSI, PhaseSI
+from labellines import labelLines
+import time
+
+# from pyoptsparse import OPT, Optimization
 
 
 # dictionary to convert junction port connectivity matrix string values to integer values
+from scipy.optimize import NonlinearConstraint, BFGS, minimize, Bounds
+
 psd = {'0': 0,
        'p': 1, '-p': -1,
        'h': 2, '-h': -2,
        'c': 3, '-c': -3,
-       'g': 4, '-g': -4,
-       'l': -5, '-l': -5,
-       'm1': 6, '-m1': -6,
-       'm2': 7, '-m2': -7
+       'tp': 4, '-tp': -4,
+       'g': 5, '-g': -5,
+       'l': 6, '-l': -6,
+       'A': 7, 'B': 8, '-C': -9
        }
 
 
 class Variable:
-
     """
     Represents a variable in the system.
 
     Attributes:
         name (str): Name of the variable.
-        port_typ (str): Port type.
+        port_type (str): Port type.
         port_id (list): Port ID.
         var_typ (str): Variable type.
         value (float): Value of the variable.
         known (bool): Indicates if the variable value is known.
+        bounds (tuple): Bounds for the parameter (default: (-inf, inf)).
     """
 
-    def __init__(self, name: str, port_typ: str, port_id: list, var_typ: str, initial_value: float):
+    def __init__(self, name: str, port_type: str, port_id: list, var_type: str, scale_factor: float, value=None,
+                 known=False, is_input=False, bounds=(-np.inf, np.inf)):
         """
         Initialize a Variable object.
 
         Args:
             name: Name of the variable.
-            port_typ: Port type.
+            port_type: Port type.
             port_id: Port ID.
-            var_typ: Variable type.
-            initial_value: Initial value of the variable.
+            var_type: Variable type.
+            value: Value of the variable.
+            bounds (tuple): Bounds for the parameter (default: (-inf, inf)).
         """
         self.name = name
-        self.port_typ = port_typ
+        self.port_type = port_type
         self.port_id = port_id
-        self.var_typ = var_typ
-        self.value = initial_value
-        self.known = False
+        self.var_type = var_type
+        self.value = value
+        self.initial_value = value
+        self.known = known
+        self.is_input = is_input
+        self.scale_factor = scale_factor
+        self.bounds = bounds
 
     def set_value(self, value: float):
         """
@@ -79,8 +94,81 @@ class Variable:
         self.value = None
 
 
-class Port:
+class SlackVariable:
+    """
+    Represents a Slack Variable used for relaxing the optimization problem for inverse modeling.
 
+    Attributes:
+        value: Current value of the slack variable.
+        scale_factor (float): Scaling factor for the slack variable.
+        bounds (tuple): Bounds for the slack variable.
+    """
+
+    def __init__(self, value: float, initial_value=0.0, scale_factor=1.0, bounds=(-np.inf, np.inf)):
+        """
+        Initialize a Parameter object.
+
+        Args:
+            value (float):Current value of the slack variable.
+            scale_factor (float): Scaling factor for the slack variable.
+            bounds (tuple): Bounds for the parameter (default: (-inf, inf)).
+        """
+
+        self.value = value
+        self.initial_value = initial_value
+        self.scale_factor = scale_factor
+        self.bounds = bounds
+
+    def set_value(self, value: float):
+        self.value = value
+
+
+class Parameter:
+    """
+    Represents a Parameter of a Thermal-Hydraulic Circuit Component.
+
+    Attributes:
+        name (str): Name of the parameter.
+        value: Current value of the parameter.
+        scale_factor (float): Scaling factor for the parameter.
+        is_input (bool): Indicates if the parameter is an input.
+        bounds (tuple): Bounds for the parameter (default: (-inf, inf)).
+    """
+
+    def __init__(self, name: str, value: float, scale_factor=1.0, is_input=False, bounds=(-np.inf, np.inf)):
+        """
+        Initialize a Parameter object.
+
+        Args:
+            name (str): Name of the input.
+            value (optional): Initial value of the input.
+            scale_factor (float): Scaling factor of the input.
+            is_input (bool): Whether the parameter is an input.
+            bounds (tuple): Bounds for the parameter (default: (-inf, inf)).
+        """
+
+        self.name = name
+        self.value = value
+        self.initial_value = value
+        self.scale_factor = scale_factor
+        self.is_input = is_input
+        self.bounds = bounds
+
+    def set_value(self, value: float):
+        self.value = value
+
+
+class Output:
+
+    def __init__(self, name: str):
+        self.name = name
+        self.value = None
+
+    def set_value(self, value: float):
+        self.value = value
+
+
+class Port:
     """
     Represents a port of a component.
 
@@ -93,98 +181,92 @@ class Port:
         m (Variable): Mass flow variable of the port.
     """
 
-    def __init__(self, port_id: list, port_typ: str):
+    def __init__(self, port_id: list, port_type: str):
         """
         Initialize a Port object.
 
         Args:
             port_id: Port ID.
-            port_typ: Port type.
+            port_type: Port type.
         """
         self.port_id = port_id
-        self.port_typ = port_typ
+        self.port_type = port_type
         self.fluid = None
-        self.p = Variable(f"p({self.port_typ})", self.port_typ, self.port_id, "p", 1)
-        self.h = Variable(f"h({self.port_typ})", self.port_typ, self.port_id, "h", 1)
-        self.m = Variable(f"m({self.port_typ})", self.port_typ, self.port_id, "m", 1)
+        self.p = Variable(f"p({self.port_type})", self.port_type, self.port_id, "p", 1e-5)
+        self.h = Variable(f"h({self.port_type})", self.port_type, self.port_id, "h", 1e-5)
+        self.m = Variable(f"m({self.port_type})", self.port_type, self.port_id, "m", 1e1)
 
 
 class Component:
-
     """
-    A base class representing a component in a system.
+    A base class representing a component in a thermal hydraulic system.
 
     Attributes:
-        boundary_typ (str): The boundary type of the component. Default value is "undefined".
+        modeling_type (str): The modeling type of the component. Default value is "undefined".
         number (int): The component number.
-        component_typ (str): The component type.
+        component_type (str): The component type.
         name (str): The component name.
         source_component (bool): Indicates if the component is a source component.
-        fluid_loop_list (list): The list of fluid loops associated with the component.
+        fluid_loop_list (list): list of fluids for which at least one component port is connected.
         executed (bool): Indicates if the component has been executed.
         ports (list): The list of ports associated with the component.
-        specifications (list): The list of specifications for the component.
-        parameter (list): The list of parameters for the component.
-        inputs (list): The inputs of the component.
-        outputs (list): The outputs of the component.
+        specifications (dict): A dictionary of specifications for the component.
+        parameters (dict): A dictionary of parameters for the component.
+        inputs (dict): A dictionary of inputs of the component.
+        outputs (dict): A dictionary of outputs of the component.
         solver_path (str): The path to the solver for the component.
-        status (int): The status of the component.
-        lamda (float): The lambda value of the component.
-        linearized(bool): Indicates if the linearized component is used in solver
-        J (list): The J values of the component.
-        F0 (list): The F0 values of the component.
-        x0 (list): The x0 values of the component.
+        status (int): The status of the component (1: solving component successful, 0: solving component unsuccessful).
+        lamda (float): Homotopy parameter of the solver
+        linearized(bool): Indicates if linearization of the component is used in solver
+        x0 (list): The values at which the component is linearized.
+        J (list): The Jacobian at x0 of the component.
+        F0 (list): The output values at the input values x0 of the component.
         no_in_ports (int): The number of input ports.
         no_out_ports (int): The number of output ports.
     """
 
-    boundary_typ = "undefined"
+    modeling_type = "undefined"
 
-    def __init__(self, number: int, component_typ: str, name: str, jpcm: list):
+    def __init__(self, number: int, component_type: str, name: str, jpcm: list):
         """
         Initialize a Component object.
 
         Args:
             number: Component number.
-            component_typ: Component type.
+            component_typ: Component type (Compressor, Pump, Heat Exchanger, Expansion Valve, Mixing Valve, Separator).
             name: Component name.
             jpcm: List of jpcm values.
         """
         self.number = number
-        self.component_typ = component_typ
+        self.component_type = component_type
         self.name = name
-        self.source_component = False
-        self.fluid_loop_list = set()
         self.executed = False
         self.solved = False
-        self.ports = []
-        self.specifications = []
-        self.parameter = []
-        self.inputs = ["", None]
-        self.outputs = ["", None]
+        self.diagramm_plot = False
+        self.ports = {}
+        self.specifications = {}
+        self.parameter = {}
+        self.inputs = {}
+        self.outputs = {}
         self.solver_path = ""
         self.status = 1
         self.lamda = 1.0
         self.linearized = False
+        self.x0 = []
         self.J = []
         self.F0 = []
-        self.x0 = []
         self.no_in_ports = 0
         self.no_out_ports = 0
 
         for j, line in enumerate(jpcm):
             if line[self.number - 1] > 0:
-                self.fluid_loop_list.add(line[-2])
-                self.ports.append(Port([j + 1, self.number, line[self.number - 1], line[-2], line[-1]], "in"))
-                if line[-1] == 1:
-                    self.source_component = True
-                else:
-                    self.no_in_ports += 1
+                self.ports[line[self.number - 1]] = Port(
+                    [j + 1, self.number, line[self.number - 1], line[-2], line[-1]], "in")
+                self.no_in_ports += 1
             elif line[self.number - 1] < 0:
-                self.ports.append(Port([j + 1, self.number, line[self.number - 1], line[-2], line[-1]], "out"))
+                self.ports[line[self.number - 1]] = Port(
+                    [j + 1, self.number, line[self.number - 1], line[-2], line[-1]], "out")
                 self.no_out_ports += 1
-
-        self.fluid_loop_list = list(self.fluid_loop_list)
 
     def reset(self):
         """
@@ -192,15 +274,24 @@ class Component:
         """
         self.executed = False
         self.status = 1
-        for port in self.ports:
-            if port.port_id[-1] != 1:
-                port.p.reset()
-                port.h.reset()
-                port.m.reset()
+        for key in self.ports:
+            self.ports[key].p.reset()
+            self.ports[key].h.reset()
+            self.ports[key].m.reset()
+
+    def solve(self):
+        pass
+
+    def add_component_parameter(self, name: str, value: float, scale_factor=1.0,
+                                is_input=False, bounds=(-np.inf, np.inf)):
+        self.parameter[name] = Parameter(name, value, scale_factor, is_input, bounds)
+
+    def add_component_output(self, name: str):
+        self.outputs[name] = Output(name)
 
 
 class PressureBasedComponent(Component):
-    boundary_typ = "Pressure Based"
+    modeling_type = "Pressure Based"
 
     def solve(self):
         """
@@ -217,11 +308,9 @@ class PressureBasedComponent(Component):
         """
         Calculate the Jacobian matrix for the component.
 
-        This method calculates the Jacobian matrix of the mass flow based component using finite differences.
+        This method calculates the Jacobian matrix of the pressure based component using finite differences.
         The Jacobian matrix represents the partial derivatives of the component's output variables
         with respect to its input variables.
-
-        This method updates the `J` attribute of the component.
 
         Returns:
             None
@@ -229,124 +318,73 @@ class PressureBasedComponent(Component):
         i = 0
         self.J = np.zeros([2 * self.no_out_ports + self.no_in_ports, 2 * self.no_in_ports + self.no_out_ports])
         self.F0 = np.zeros([2 * self.no_out_ports + self.no_in_ports])
-        for port in self.ports:
-            if port.port_typ == 'in' and port.port_id[-1] == 0:
-                port.p.set_value(self.x0[i])
-                port.h.set_value(self.x0[i+1])
+        for key in self.ports:
+            if self.ports[key].port_type == 'in':
+                self.ports[key].p.set_value(self.x0[i])
+                self.ports[key].h.set_value(self.x0[i + 1])
                 i += 2
-            elif port.port_typ == 'out' and port.port_id[-1] == 0:
-                port.h.set_value(self.x0[i])
+            elif self.ports[key].port_type == 'out':
+                self.ports[key].h.set_value(self.x0[i])
                 i += 1
         self.solve()
         i = 0
-        for port in self.ports:
-            if port.port_typ == 'in' and not port.port_id[-1] == 1:
-                self.F0[i] = port.m.value
+        for key in self.ports:
+            if self.ports[key].port_type == 'in':
+                self.F0[i] = self.ports[key].m.value
                 i += 1
-            elif port.port_typ == 'out' and not port.port_id[-1] == 1:
-                self.F0[i] = port.h.value
-                self.F0[i+1] = port.m.value
+            elif self.ports[key].port_type == 'out':
+                self.F0[i] = self.ports[key].h.value
+                self.F0[i + 1] = self.ports[key].m.value
                 i += 2
 
         i = 0
-        for port in self.ports:
-            if port.port_typ == 'in' and not port.port_id[-1] == 1:
+        for key in self.ports:
+            if self.ports[key].port_type == 'in':
                 j = 0
-                port.p.set_value(self.x0[i] + 1e-6 * max(abs(self.x0[i]), 0.01))
+                self.ports[key].p.set_value(self.x0[i] + 1e-6 * max(abs(self.x0[i]), 0.01))
                 self.solve()
-                for port_inside in self.ports:
-                    if port_inside.port_typ == 'in' and not port_inside.port_id[-1] == 1:
-                        self.J[j, i] = (port_inside.m.value - self.F0[i]) / (1e-6 * max(abs(self.x0[i]), 0.01))
-                        j += 1
-                    elif port_inside.port_typ == 'out' and not port_inside.port_id[-1] == 1:
-                        self.J[j, i] = (port_inside.h.value - self.F0[j]) / (1e-6 * max(abs(self.x0[i]), 0.01))
-                        self.J[j+1, i] = (port_inside.m.value - self.F0[j+1]) / (1e-6 * max(abs(self.x0[i]), 0.01))
-                        j += 2
-                port.p.set_value(self.x0[i])
+                if port_inside.port_type == 'in':
+                    self.J[j, i] = (port_inside.m.value - self.F0[i]) / (1e-6 * max(abs(self.x0[i]), 0.01))
+                    j += 1
+                elif port_inside.port_type == 'out' and not port_inside.port_id[-1] == 1:
+                    self.J[j, i] = (port_inside.h.value - self.F0[j]) / (1e-6 * max(abs(self.x0[i]), 0.01))
+                    self.J[j + 1, i] = (port_inside.m.value - self.F0[j + 1]) / (1e-6 * max(abs(self.x0[i]), 0.01))
+                    j += 2
+                self.ports[key].p.set_value(self.x0[i])
                 i += 1
 
                 j = 0
-                port.h.set_value(self.x0[i] + 1e-6 * max(abs(self.x0[i]), 0.01))
+                self.ports[key].h.set_value(self.x0[i] + 1e-6 * max(abs(self.x0[i]), 0.01))
                 self.solve()
-                for port_inside in self.ports:
-                    if port_inside.port_typ == 'in' and not port_inside.port_id[-1] == 1:
-                        self.J[j, i] = (port_inside.m.value - self.F0[j]) / (1e-6 * max(abs(self.x0[i]), 0.01))
-                        j += 1
-                    elif port_inside.port_typ == 'out' and not port_inside.port_id[-1] == 1:
-                        self.J[j, i] = (port_inside.h.value - self.F0[j]) / (1e-6 * max(abs(self.x0[i]), 0.01))
-                        self.J[j+1, i] = (port_inside.m.value - self.F0[j+1]) / (1e-6 * max(abs(self.x0[i]), 0.01))
-                        j += 2
-                port.h.set_value(self.x0[i])
+                if port_inside.port_type == 'in':
+                    self.J[j, i] = (port_inside.m.value - self.F0[j]) / (1e-6 * max(abs(self.x0[i]), 0.01))
+                    j += 1
+                elif port_inside.port_type == 'out':
+                    self.J[j, i] = (port_inside.h.value - self.F0[j]) / (1e-6 * max(abs(self.x0[i]), 0.01))
+                    self.J[j + 1, i] = (port_inside.m.value - self.F0[j + 1]) / (1e-6 * max(abs(self.x0[i]), 0.01))
+                    j += 2
+                self.ports[key].h.set_value(self.x0[i])
                 i += 1
 
-            if port.port_typ == 'out' and not port.port_id[-1] == 1:
+            if self.ports[key].port_type == 'out':
                 j = 0
-                port.p.set_value(self.x0[i] + 1e-6 * max(abs(self.x0[i]), 0.01))
+                self.ports[key].p.set_value(self.x0[i] + 1e-6 * max(abs(self.x0[i]), 0.01))
                 self.solve()
-                for port_inside in self.ports:
-                    if port_inside.port_typ == 'in' and not port_inside.port_id[-1] == 1:
-                        self.J[j, i] = (port_inside.m.value - self.F0[j]) / (1e-6 * max(abs(self.x0[i]), 0.01))
-                        j += 1
-                    elif port_inside.port_typ == 'out' and not port_inside.port_id[-1] == 1:
-                        self.J[j, i] = (port_inside.h.value - self.F0[j]) / (1e-6 * max(abs(self.x0[i]), 0.01))
-                        self.J[j+1, i] = (port_inside.m.value - self.F0[j+1]) / (1e-6 * max(abs(self.x0[i]), 0.01))
-                        j += 2
-                port.p.set_value(self.x0[i])
+                if port_inside.port_type == 'in':
+                    self.J[j, i] = (port_inside.m.value - self.F0[j]) / (1e-6 * max(abs(self.x0[i]), 0.01))
+                    j += 1
+                elif port_inside.port_type == 'out' and not port_inside.port_id[-1] == 1:
+                    self.J[j, i] = (port_inside.h.value - self.F0[j]) / (1e-6 * max(abs(self.x0[i]), 0.01))
+                    self.J[j + 1, i] = (port_inside.m.value - self.F0[j + 1]) / (1e-6 * max(abs(self.x0[i]), 0.01))
+                    j += 2
+                self.ports[key].p.set_value(self.x0[i])
                 i += 1
 
         self.reset()
 
-    def count_input_unknowns(self) -> int:
-
-        """
-        Count the number of unknown variables in the input ports of the component.
-
-        This method counts the number of unknown variables (not known or specified) in the input ports
-        of the component. It is used to determine the number of equations required to solve the component.
-
-        Returns:
-            int: The number of unknown variables in the input ports.
-        """
-
-        n_unknown = 0
-        for port in self.ports:
-            if port.port_typ == "in":
-                if not port.p.known:
-                    n_unknown += 1
-                if not port.h.known:
-                    n_unknown += 1
-            elif port.port_typ == "out":
-                if not port.p.known:
-                    n_unknown += 1
-        return n_unknown
-
-    def is_executable(self) -> bool:
-        """
-        Check if the component is ready for execution.
-
-        This method checks if all the input ports of the component have known values, i.e., they are known or specified.
-        It also checks if all the output ports have known values for the pressure variable.
-
-        Returns:
-            bool: True if the component is ready for execution, False otherwise.
-        """
-        return all((port.p.known and port.h.known)
-                   for port in self.ports if port.port_typ == "in") and \
-               all(port.p.known for port in self.ports if port.port_typ == "out")
-
 
 class MassFlowBasedComponent(Component):
-    boundary_typ = "Mass Flow Based"
-
-    def execute(self):
-        if not self.is_executable():
-            raise RuntimeError(f"Tried to solve Component:  {self.component_typ}, but it is not executable yet!")
-        self.executed = True
-        for port in self.ports:
-            if port.port_typ == "out":
-                port.p.known = True
-                port.h.known = True
-                port.m.known = True
+    modeling_type = "Mass Flow Based"
 
     def solve(self):
         MODULE_PATH = self.solver_path + "/__init__.py"
@@ -365,8 +403,6 @@ class MassFlowBasedComponent(Component):
         The Jacobian matrix represents the partial derivatives of the component's output variables
         with respect to its input variables.
 
-        This method updates the `J` attribute of the component.
-
         Returns:
             None
         """
@@ -375,31 +411,31 @@ class MassFlowBasedComponent(Component):
         self.J = np.zeros([3 * self.no_out_ports, 3 * self.no_in_ports])
         self.F0 = np.zeros([3 * self.no_out_ports])
         for port in self.ports:
-            if port.port_typ == 'in' and port.port_id[-1] == 0:
+            if port.port_type == 'in' and port.port_id[-1] == 0:
                 port.p.set_value(self.x0[i])
-                port.h.set_value(self.x0[i+1])
-                port.m.set_value(self.x0[i+2])
+                port.h.set_value(self.x0[i + 1])
+                port.m.set_value(self.x0[i + 2])
                 i += 3
         self.solve()
         i = 0
         for port in self.ports:
-            if port.port_typ == 'out' and not port.port_id[-1] == 1:
+            if port.port_type == 'out' and not port.port_id[-1] == 1:
                 self.F0[i] = port.p.value
-                self.F0[i+1] = port.h.value
-                self.F0[i+2] = port.m.value
+                self.F0[i + 1] = port.h.value
+                self.F0[i + 2] = port.m.value
                 i += 3
 
         i = 0
         for port in self.ports:
-            if port.port_typ == 'in' and port.port_id[-1] == 0:
+            if port.port_type == 'in' and port.port_id[-1] == 0:
                 j = 0
                 port.p.set_value(self.x0[i] + 1e-6 * max(abs(self.x0[i]), 0.01))
                 self.solve()
                 for port_inside in self.ports:
-                    if port_inside.port_typ == 'out' and not port_inside.port_id[-1] == 1:
+                    if port_inside.port_type == 'out' and not port_inside.port_id[-1] == 1:
                         self.J[j, i] = (port_inside.p.value - self.F0[j]) / (1e-6 * max(abs(self.x0[i]), 0.01))
-                        self.J[j+1, i] = (port_inside.h.value - self.F0[j+1]) / (1e-6 * max(abs(self.x0[i]), 0.01))
-                        self.J[j+2, i] = (port_inside.m.value - self.F0[j+2]) / (1e-6 * max(abs(self.x0[i]), 0.01))
+                        self.J[j + 1, i] = (port_inside.h.value - self.F0[j + 1]) / (1e-6 * max(abs(self.x0[i]), 0.01))
+                        self.J[j + 2, i] = (port_inside.m.value - self.F0[j + 2]) / (1e-6 * max(abs(self.x0[i]), 0.01))
                         j += 3
                 port.p.set_value(self.x0[i])
                 i += 1
@@ -408,10 +444,10 @@ class MassFlowBasedComponent(Component):
                 port.h.set_value(self.x0[i] + 1e-6 * max(abs(self.x0[i]), 0.01))
                 self.solve()
                 for port_inside in self.ports:
-                    if port_inside.port_typ == 'out' and not port_inside.port_id[-1] == 1:
+                    if port_inside.port_type == 'out' and not port_inside.port_id[-1] == 1:
                         self.J[j, i] = (port_inside.p.value - self.F0[j]) / (1e-6 * max(abs(self.x0[i]), 0.01))
-                        self.J[j+1, i] = (port_inside.h.value - self.F0[j+1]) / (1e-6 * max(abs(self.x0[i]), 0.01))
-                        self.J[j+2, i] = (port_inside.m.value - self.F0[j+2]) / (1e-6 * max(abs(self.x0[i]), 0.01))
+                        self.J[j + 1, i] = (port_inside.h.value - self.F0[j + 1]) / (1e-6 * max(abs(self.x0[i]), 0.01))
+                        self.J[j + 2, i] = (port_inside.m.value - self.F0[j + 2]) / (1e-6 * max(abs(self.x0[i]), 0.01))
                         j += 3
                 port.h.set_value(self.x0[i])
                 i += 1
@@ -420,57 +456,51 @@ class MassFlowBasedComponent(Component):
                 port.m.set_value(self.x0[i] + 1e-6 * max(abs(self.x0[i]), 0.01))
                 self.solve()
                 for port_inside in self.ports:
-                    if port_inside.port_typ == 'out' and not port_inside.port_id[-1] == 1:
+                    if port_inside.port_type == 'out' and not port_inside.port_id[-1] == 1:
                         self.J[j, i] = (port_inside.p.value - self.F0[j]) / (1e-6 * max(abs(self.x0[i]), 0.01))
-                        self.J[j+1, i] = (port_inside.h.value - self.F0[j+1]) / (1e-6 * max(abs(self.x0[i]), 0.01))
-                        self.J[j+2, i] = (port_inside.m.value - self.F0[j+2]) / (1e-6 * max(abs(self.x0[i]), 0.01))
+                        self.J[j + 1, i] = (port_inside.h.value - self.F0[j + 1]) / (1e-6 * max(abs(self.x0[i]), 0.01))
+                        self.J[j + 2, i] = (port_inside.m.value - self.F0[j + 2]) / (1e-6 * max(abs(self.x0[i]), 0.01))
                         j += 3
                 port.m.set_value(self.x0[i])
                 i += 1
 
         self.reset()
 
-    def count_input_unknowns(self):
-        """
-        Count the number of unknown variables in the input ports of the component.
 
-        This method counts the number of unknown variables (not known or specified) in the input ports
-        of the component. It is used to determine the number of equations required to solve the component.
+class SeparatorComponent(Component):
+    modeling_type = "Separator"
 
-        Returns:
-            int: The number of unknown variables in the input ports.
-        """
-        count = 0
-        for port in self.ports:
-            if port.port_typ == 'in':
-                if not port.p.known:
-                    count += 1
-                if not port.h.known:
-                    count += 1
-                if not port.m.known:
-                    count += 1
-        return count
+    def __init__(self, number: int, component_type: str, name: str, jpcm: list):
+        super().__init__(number, component_type, name, jpcm)
 
-    def is_executable(self) -> bool:
-        """
-        Check if the component is ready for execution.
+        self.add_component_parameter('hLP', value=0.0, scale_factor=1e-5, is_input=True)
 
-        This method checks if all the input ports of the component have known values, i.e., they are known or specified.
-        It verifies that all the variables (p, h, and m) in the input ports are known.
+    def solve(self):
 
-        Returns:
-            bool: True if the component is ready for execution, False otherwise.
-        """
-        return all(port.p.known and port.h.known and port.m.known for port in self.ports if port.port_typ == 'in')
+        p_in = self.ports[psd['tp']].p.value
+        h_in = self.ports[psd['tp']].h.value
+        m_in = self.ports[psd['tp']].m.value
+        fluid = self.ports[psd['tp']].fluid
+
+        p_out = p_in
+        phase = PhaseSI('H', h_in, 'P', p_in, fluid)
+        if phase == 'twophase':
+            h_out = PropsSI('H', 'P', p_in, 'Q', 0.0, fluid) + self.parameter['hLP'].value
+        else:
+            h_out = h_in + self.parameter['hLP'].value
+        m_out = m_in
+
+        self.ports[psd['-l']].p.set_value(p_out)
+        self.ports[psd['-l']].h.set_value(h_out)
+        self.ports[psd['-l']].m.set_value(m_out)
 
 
 class BypassComponent(Component):
-
     """
     Represents a Bypass Component.
     """
 
-    boundary_typ = "Bypass"
+    modeling_type = "Bypass"
 
     def solve(self):
         """
@@ -478,51 +508,75 @@ class BypassComponent(Component):
 
         This method solves the bypass component by executing the solver function specified in the solver path.
         """
-        MODULE_PATH = self.solver_path + "/__init__.py"
-        with open(MODULE_PATH) as f:
-            code = compile(f.read(), MODULE_PATH, 'exec')
-        namespace = {}
-        exec(code, namespace)
-        namespace['solver'](self)
+        # MODULE_PATH = self.solver_path + "/__init__.py"
+        # with open(MODULE_PATH) as f:
+        #     code = compile(f.read(), MODULE_PATH, 'exec')
+        # namespace = {}
+        # exec(code, namespace)
+        # namespace['solver'](self)
 
-    def count_input_unknowns(self):
+        h_in = self.ports[psd['p']].h.value
+        m_in = self.ports[psd['p']].m.value
+
+        self.ports[psd['-p']].h.set_value(h_in)
+        self.ports[psd['-p']].m.set_value(m_in)
+
+
+class Source(Component):
+    """
+    Represents a Source Component.
+    """
+
+    modeling_type = "Source"
+
+    def __init__(self, number: int, component_type: str, name: str, jpcm: list):
+        super().__init__(number, component_type, name, jpcm)
+
+        self.add_component_parameter('p_source', value=np.nan, scale_factor=1e-5)
+        self.add_component_parameter('T_source', value=np.nan, scale_factor=1e-2)
+        self.add_component_parameter('m_source', value=np.nan, scale_factor=1e1)
+
+    def solve(self):
         """
-        Count the number of unknowns in the input ports.
+        Solve the source component.
 
-        Returns:
-            int: The count of unknown variables in the input ports.
+        This method solves the source component.
         """
-        count = 0
-        for port in self.ports:
-            if port.port_typ == 'in':
-                if not port.p.known:
-                    count += 1
-                if not port.h.known:
-                    count += 1
-                if not port.m.known:
-                    count += 1
-            else:
-                if not port.p.known:
-                    count += 1
-        return count
+        self.ports[psd['-p']].p.set_value(self.parameter['p_source'].value)
+        self.ports[psd['-p']].h.set_value(
+            PropsSI('H', 'P', self.parameter['p_source'].value, 'T', self.parameter['T_source'].value,
+                    self.ports[psd['-p']].fluid))
+        self.ports[psd['-p']].m.set_value(self.parameter['m_source'].value)
 
-    def is_executable(self) -> bool:
+
+class Sink(Component):
+    """
+    Represents a Source Component.
+    """
+
+    modeling_type = "Source"
+
+    def __init__(self, number: int, component_type: str, name: str, jpcm: list):
+        super().__init__(number, component_type, name, jpcm)
+
+        self.add_component_parameter('p_sink', value=np.nan, scale_factor=1e-5)
+        self.add_component_parameter('T_sink', value=np.nan, scale_factor=1e-2)
+        self.add_component_parameter('m_sink', value=np.nan, scale_factor=1e1)
+
+    def solve(self):
         """
-        Check if the component is ready for execution.
+        Solve the source component.
 
-        This method checks if all the input ports of the component have known values, i.e., they are known or specified.
-        It verifies that all the variables (p, h, and m) in the input ports are known.
-
-        Returns:
-            bool: True if the component is ready for execution, False otherwise.
+        This method solves the source component.
         """
-        return all((port.p.known and port.h.known and port.m.known)
-                   for port in self.ports if port.port_typ == "in") and \
-               all(port.p.known for port in self.ports if port.port_typ == "out")
+        self.parameter['p_sink'].set_value(self.ports[psd['p']].p.value)
+        self.parameter['T_sink'].set_value(
+            PropsSI('T', 'P', self.ports[psd['p']].p.value, 'H', self.ports[psd['p']].h.value,
+                    self.ports[psd['p']].fluid))
+        self.parameter['m_sink'].set_value(self.ports[psd['p']].m.value)
 
 
 class BalanceEquation:
-
     """
     Represents a balance equation.
 
@@ -558,7 +612,6 @@ class BalanceEquation:
 
 
 class MassFlowBalance(BalanceEquation):
-
     """
     Represents a mass flow balance equation.
 
@@ -570,6 +623,7 @@ class MassFlowBalance(BalanceEquation):
     """
 
     name = "Mass Flow Balance"
+    scale_factor = 1e1
 
     def solve(self):
         """
@@ -581,9 +635,9 @@ class MassFlowBalance(BalanceEquation):
         unknown_variable = None
         for variable in self.variables:
             if variable.known:
-                if variable.port_typ == 'out':
+                if variable.port_type == 'out':
                     m_total += variable.value
-                elif variable.port_typ == 'in':
+                elif variable.port_type == 'in':
                     m_total -= variable.value
             else:
                 unknown_variable = variable
@@ -601,9 +655,9 @@ class MassFlowBalance(BalanceEquation):
         Returns:
             float: Residual value of the equation.
         """
-        res = sum(variable.value for variable in self.variables if variable.port_typ == "out") \
-              - sum(variable.value for variable in self.variables if variable.port_typ == "in")
-        return res * 10
+        res = sum(variable.value for variable in self.variables if variable.port_type == "out") \
+              - sum(variable.value for variable in self.variables if variable.port_type == "in")
+        return res * self.scale_factor
 
 
 class PressureEquality(BalanceEquation):
@@ -618,6 +672,7 @@ class PressureEquality(BalanceEquation):
     """
 
     name = "Pressure Equality"
+    scale_factor = 1e-5
 
     def solve(self):
         """
@@ -646,11 +701,10 @@ class PressureEquality(BalanceEquation):
         Returns:
             float: Residual value of the equation.
         """
-        return (self.variables[0].value - self.variables[1].value) * 1e-5
+        return (self.variables[0].value - self.variables[1].value) * self.scale_factor
 
 
 class EnthalpyEquality(BalanceEquation):
-
     """
     Represents an enthalpy equality equation.
 
@@ -662,6 +716,7 @@ class EnthalpyEquality(BalanceEquation):
     """
 
     name = "Enthalpy Equality"
+    scale_factor = 1e-5
 
     def solve(self):
         """
@@ -693,11 +748,10 @@ class EnthalpyEquality(BalanceEquation):
         Returns:
             float: Residual value of the equation.
         """
-        return (self.variables[0].value - self.variables[1].value) * 1e-5
+        return (self.variables[0].value - self.variables[1].value) * self.scale_factor
 
 
 class EnthalpyFlowBalance:
-
     """
     Represents an enthalpy flow balance equation.
 
@@ -711,6 +765,7 @@ class EnthalpyFlowBalance:
     """
 
     name = "Enthalpy Flow Balance"
+    scale_factor = 1e-4
     port_typ_multiplier = {"out": 1, "in": -1}
 
     def __init__(self, variables: List[List[Variable]], fluid_loop: int):
@@ -744,7 +799,7 @@ class EnthalpyFlowBalance:
         if not self.is_solvable():
             raise RuntimeError("Tried to solve equation: " + self.name + ", but it is not solvable yet.")
 
-        H_total = sum(variable[0].value * variable[1].value * self.port_typ_multiplier[variable[0].port_typ]
+        H_total = sum(variable[0].value * variable[1].value * self.port_typ_multiplier[variable[0].port_type]
                       for variable in self.variables if variable[0].known and variable[1].known)
 
         for variable in self.variables:
@@ -760,9 +815,20 @@ class EnthalpyFlowBalance:
         Returns:
             float: Residual value of the equation.
         """
-        res = sum(variable[0].value * variable[1].value * self.port_typ_multiplier[variable[0].port_typ]
+        res = sum(variable[0].value * variable[1].value * self.port_typ_multiplier[variable[0].port_type]
                   for variable in self.variables)
-        return res * 1e-5 * 10
+        return res * self.scale_factor
+
+
+class LoopBreakerEquation:
+
+    def __init__(self, component: Component, parameter_name: str):
+        self.component = component
+        self.parameter_name = parameter_name
+
+    def solve(self):
+        return self.component.parameter[self.parameter_name].value * self.component.parameter[
+            self.parameter_name].scale_factor
 
 
 class DesignEquation:
@@ -772,24 +838,21 @@ class DesignEquation:
     Args:
         component (Component): The component associated with the equation.
         DC_value (float): The design condition value.
+        relaxed (boolean): defines if design equation is treated as relaxed in the optimization
 
     Attributes:
         component (Component): The component associated with the equation.
         DC_value (float): The design condition value.
+        relaxed (boolean): defines if design equation is treated as relaxed in the optimization
         res (float): The calculated result of the equation.
     """
 
-    def __init__(self, component: Component, DC_value: float, port_type: str, var_type: str, port_id: int):
+    def __init__(self, component: Component, DC_value: float, relaxed=False):
         self.component = component
         self.DC_value = DC_value
-        self.DC_port_type = port_type
-        self.DC_var_type = var_type
-        self.port_id = port_id
+        self.relaxed = relaxed
         self.res = float()
-        self.J = []
-        self.x0 = []
-        self.F0 = []
-        self.linearized = False
+        self.S = SlackVariable
 
 
 class SuperheatEquation(DesignEquation):
@@ -805,6 +868,16 @@ class SuperheatEquation(DesignEquation):
         DC_value (float): The design condition value.
         res (float): The calculated result of the equation.
     """
+    name = 'Superheat Equation'
+    scale_factor = 1e-5
+
+    def __init__(self, component: Component, DC_value: float, port_type: str, var_type: str, port_id: int, relaxed=False):
+
+        super().__init__(component, DC_value, relaxed)
+
+        self.DC_port_type = port_type
+        self.DC_var_type = var_type
+        self.port_id = port_id
 
     def solve(self):
         """
@@ -813,43 +886,32 @@ class SuperheatEquation(DesignEquation):
         Returns:
             float: The residual value of the equation.
         """
-        for port in self.component.ports:
-            x = np.array([port.p.value, port.h.value])
-            if port.port_id[2] == psd['-c']:
-                T_sat = PropsSI("T", "P", port.p.value, "Q", 1.0, port.fluid)
-                if self.DC_value < 1e-4:
-                    h_SH = PropsSI("H", "P", port.p.value, "Q", 1.0, port.fluid)
-                else:
-                    h_SH = PropsSI("H", "P", port.p.value, "T", T_sat + self.DC_value, port.fluid)
-                self.res = (port.h.value - h_SH) * 1e-5
-                break
-        if self.linearized:
-            return self.component.lamda * self.res + (1 - self.component.lamda) * (np.dot(self.J, x - self.x0) + self.F0)
+        T_sat = PropsSI("T", "P", self.component.ports[psd['-c']].p.value, "Q", 1.0,
+                        self.component.ports[psd['-c']].fluid)
+        if self.DC_value < 1e-4:
+            h_SH = PropsSI("H", "P", self.component.ports[psd['-c']].p.value, "Q", 1.0,
+                           self.component.ports[psd['-c']].fluid)
         else:
-            return self.res
-    
-    def jacobian(self):
-        self.J = np.zeros([2])
-        for port in self.component.ports:
-            if port.port_id[2] == psd['-c']:
-                port.p.set_value(self.x0[0])
-                port.h.set_value(self.x0[1])
-                self.F0 = self.solve()
-                port.p.set_value(self.x0[0] + (1e-6 * max(abs(self.x0[0]), 0.01)))
-                self.J[0] = (self.solve() - self.F0) / (1e-6 * max(abs(self.x0[0]), 0.01))
-                port.p.set_value(self.x0[0])
-                port.h.set_value(self.x0[1] + (1e-6 * max(abs(self.x0[1]), 0.01)))
-                self.J[1] = (self.solve() - self.F0) / (1e-6 * max(abs(self.x0[1]), 0.01))
-                port.p.reset()
-                port.h.reset()
-                break
+            h_SH = PropsSI("H", "P", self.component.ports[psd['-c']].p.value, "T", T_sat + self.DC_value,
+                           self.component.ports[psd['-c']].fluid)
+        self.res = (self.component.ports[psd['-c']].h.value - h_SH)
+        return self.res
 
 
 class SubcoolingEquation(DesignEquation):
-
     """
     Represents a subcooling equation for a component.
     """
+    name = 'Subcooling Equation'
+    scale_factor = 1e-5
+
+    def __init__(self, component: Component, DC_value: float, port_type: str, var_type: str, port_id: int, relaxed=False):
+
+        super().__init__(component, DC_value, relaxed)
+
+        self.DC_port_type = port_type
+        self.DC_var_type = var_type
+        self.port_id = port_id
 
     def solve(self):
         """
@@ -859,20 +921,19 @@ class SubcoolingEquation(DesignEquation):
             float: The residual value of the equation.
         """
 
-        for port in self.component.ports:
-            if port.port_id[2] == psd['-h']:
-                T_sat = PropsSI("T", "P", port.p.value, "Q", 0.0, port.fluid)
-                if self.DC_value < 1e-4:
-                    h_SC = PropsSI("H", "P", port.p.value, 'Q', 0.0, port.fluid)
-                else:
-                    h_SC = PropsSI("H", "P", port.p.value, "T", T_sat - self.DC_value, port.fluid)
-                self.res = (port.h.value - h_SC) * 1e-5
-                break
+        T_sat = PropsSI("T", "P", self.component.ports[psd['-h']].p.value, "Q", 0.0,
+                        self.component.ports[psd['-h']].fluid)
+        if self.DC_value < 1e-4:
+            h_SH = PropsSI("H", "P", self.component.ports[psd['-h']].p.value, "Q", 0.0,
+                           self.component.ports[psd['-h']].fluid)
+        else:
+            h_SH = PropsSI("H", "P", self.component.ports[psd['-h']].p.value, "T", T_sat - self.DC_value,
+                           self.component.ports[psd['-h']].fluid)
+        self.res = (self.component.ports[psd['-h']].h.value - h_SH)
         return self.res
 
 
 class DesignParameterEquation(DesignEquation):
-
     """
     Represents a design parameter equation.
 
@@ -881,6 +942,23 @@ class DesignParameterEquation(DesignEquation):
         DC_port_typ (str): The port type string.
         res (float): The equation residual.
     """
+    name = 'Design Parameter Equation'
+
+    def __init__(self, component: Component, DC_value: float, port_type: str, var_type: str, port_id: int, relaxed=False):
+
+        super().__init__(component, DC_value, relaxed)
+
+        self.DC_port_type = port_type
+        self.DC_var_type = var_type
+        self.port_id = port_id
+        if var_type in ['p', 'h']:
+            self.scale_factor = 1e-5
+        elif var_type == 'T':
+            self.scale_factor = 1e-2
+        elif var_type == 'm':
+            self.scale_factor = 1e1
+        else:
+            RuntimeError(f'Design equation for variable type "{var_type}" is not defined!')
 
     def solve(self):
         """
@@ -889,15 +967,42 @@ class DesignParameterEquation(DesignEquation):
         Returns:
             float: The residual value of the equation.
         """
-        for port in self.component.ports:
-            if port.p.var_typ == self.DC_var_type and port.p.port_typ == self.DC_port_type:
-                self.res = (port.p.value - self.DC_value) * 1e-9
+
+        for key in self.component.ports:
+            if self.component.ports[key].p.var_type == self.DC_var_type and self.component.ports[
+                key].p.port_type == self.DC_port_type:
+                self.res = (self.component.ports[key].p.value - self.DC_value)
                 break
+            elif self.component.ports[key].h.var_type == self.DC_var_type and self.component.ports[key].h.port_id[
+                2] == self.port_id:
+                self.res = (self.component.ports[key].h.value - self.DC_value)
+                break
+            elif self.DC_var_type == 'T' and self.component.ports[key].port_id[2] == self.port_id:
+                T = PropsSI('T', 'H', self.component.ports[key].h.value, 'P', self.component.ports[key].p.value,
+                            self.component.ports[key].fluid)
+                self.res = (T - self.DC_value)
         return self.res
 
 
-class Junction:
+class OutputDesignEquation(DesignEquation):
 
+    def __init__(self, component: Component, DC_value: float, output_name: str, scale_factor: float, relaxed=False):
+        super().__init__(component, DC_value, relaxed)
+
+        self.output_name = output_name
+        self.scale_factor = scale_factor
+        self.component = component
+
+        if not output_name in [key for key in component.outputs]:
+            RuntimeError(f'Output name "{output_name}" not in components output dictionary!')
+        else:
+            pass
+
+    def solve(self):
+        return (self.component.outputs[self.output_name].value - self.DC_value) * self.scale_factor
+
+
+class Junction:
     """
     Represents a junction.
 
@@ -929,21 +1034,21 @@ class Junction:
         mass_flow_variables = []
         enthalpy_flow_variables = []
         for ic in self.in_comp:
-            for port in ic.ports:
-                if port.port_typ == 'out' and port.port_id[0] == self.number:
-                    pressure_variables.append(port.p)
-                    mass_flow_variables.append(port.m)
+            for key in ic.ports:
+                if ic.ports[key].port_type == 'out' and ic.ports[key].port_id[0] == self.number:
+                    pressure_variables.append(ic.ports[key].p)
+                    mass_flow_variables.append(ic.ports[key].m)
                     if len(self.in_comp) == 1:
-                        enthalpy_variables.append(port.h)
-                    enthalpy_flow_variables.append([port.m, port.h])
+                        enthalpy_variables.append(ic.ports[key].h)
+                    enthalpy_flow_variables.append([ic.ports[key].m, ic.ports[key].h])
 
         for oc in self.out_comp:
-            for port in oc.ports:
-                if port.port_typ == 'in' and port.port_id[0] == self.number:
-                    pressure_variables.append(port.p)
-                    mass_flow_variables.append(port.m)
-                    enthalpy_variables.append(port.h)
-                    enthalpy_flow_variables.append([port.m, port.h])
+            for key in oc.ports:
+                if oc.ports[key].port_type == 'in' and oc.ports[key].port_id[0] == self.number:
+                    pressure_variables.append(oc.ports[key].p)
+                    mass_flow_variables.append(oc.ports[key].m)
+                    enthalpy_variables.append(oc.ports[key].h)
+                    enthalpy_flow_variables.append([oc.ports[key].m, oc.ports[key].h])
 
         pressure_equations = []
         for pressure_variable in pressure_variables[1:]:
@@ -970,7 +1075,6 @@ class Junction:
 
 
 class TripartiteGraph:
-
     """
     Represents a tripartite graph.
 
@@ -991,11 +1095,9 @@ class TripartiteGraph:
         for j, line in enumerate(jpcm):
             input_comp = [components[c] for c, i in enumerate(line[:-2]) if i < 0]
             output_comp = [components[c] for c, i in enumerate(line[:-2]) if i > 0]
-
-            if line[-1] == 0:
-                junction = Junction(j + 1, input_comp, output_comp, line[-2])
-                junctions.append(junction)
-                equation_list.append(junction.create_equations())
+            junction = Junction(j + 1, input_comp, output_comp, line[-2])
+            junctions.append(junction)
+            equation_list.append(junction.create_equations())
 
         self.V = []
         for junction in junctions:
@@ -1014,28 +1116,219 @@ class TripartiteGraph:
         index_set = set()
         for i, equation in enumerate(self.U):
             if equation.fluid_loop not in index_set and isinstance(equation, MassFlowBalance):
-                self.U.pop(i)
-                index_set.add(equation.fluid_loop)
+                for var in equation.variables:
+                    if components[var.port_id[1] - 1].component_type in ['Compressor', 'Pump']:
+                        self.U.pop(i)
+                        index_set.add(equation.fluid_loop)
+                        break
+                    else:
+                        pass
 
         self.C = components
         self.E = [(v, u) for v in self.V for u in self.U if v in u.variables]
         self.Ed = [(v, c) for c in self.C for v in self.V
-                   if v.port_id[1] == c.number and ((isinstance(c, PressureBasedComponent)
-                                                     and ((v.port_typ == 'in' and v.var_typ in ['p', 'h'])
-                                                          or (v.port_typ == 'out' and v.var_typ == 'p')))
-                                                    or (isinstance(c, MassFlowBasedComponent) and v.port_typ == 'in')
+                   if v.port_id[1] == c.number and ((isinstance(c, PressureBasedComponent) and (
+                        (v.port_type == 'in' and v.var_type in ['p', 'h']) or (
+                            v.port_type == 'out' and v.var_type == 'p')))
+                                                    or ((isinstance(c, MassFlowBasedComponent) or isinstance(c,
+                                                                                                             SeparatorComponent)) and v.port_type == 'in')
                                                     or (isinstance(c, BypassComponent) and (
-                            (v.port_typ == 'in' and v.var_typ in ['p', 'h', 'm'])
-                            or (v.port_typ == 'out' and v.var_typ == 'p'))))]
+                                (v.port_type == 'in' and v.var_type in ['p', 'h', 'm']) or (
+                                    v.port_type == 'out' and v.var_type == 'p')))
+                                                    or (isinstance(c, Sink) and v.port_type == 'in'))]
         self.Ed.extend([(c, v) for c in self.C for v in self.V
-                        if v.port_id[1] == c.number and (isinstance(c, PressureBasedComponent)
-                                                         and (v.var_typ == 'm' or (
-                            v.var_typ == 'h' and v.port_typ == 'out'))
-                                                         or isinstance(c,
-                                                                       MassFlowBasedComponent) and v.port_typ == 'out'
-                                                         or isinstance(c,
-                                                                       BypassComponent) and v.port_typ == 'out' and v.var_typ in [
-                                                             'h', 'm'])])
+                        if v.port_id[1] == c.number and ((isinstance(c, PressureBasedComponent) and (
+                        v.var_type == 'm' or (v.var_type == 'h' and v.port_type == 'out')))
+                                                         or ((isinstance(c, MassFlowBasedComponent) or isinstance(c,
+                                                                                                                  SeparatorComponent)) and v.port_type == 'out')
+                                                         or (isinstance(c, BypassComponent) and (
+                                v.port_type == 'out' and v.var_type in ['h', 'm']))
+                                                         or (isinstance(c, Source) and (
+                                v.port_type == 'out' and v.var_type in ['p', 'h', 'm'])))])
+
+
+class Circuit:
+
+    def __init__(self, jpcm, component_type_list: list, component_name_list: list, component_modeling_type_list: list,
+                 solver_path_list: list, fluid_list: list):
+
+        self.jpcm = jpcm
+        self.component_type_list = component_type_list
+        self.component_name_list = component_name_list
+        self.component_modeling_type_list = component_modeling_type_list
+        self.solver_path_list = solver_path_list
+        self.fluid_list = fluid_list
+        self.design_equa = []
+        self.loop_breaker_equa = []
+        self.U = []
+        self.S = []
+
+        # generates components and sets corresponding fluid to each port
+        component_list = []
+        for i, item in enumerate(self.component_type_list):
+            if component_modeling_type_list[i] == 'PressureBasedComponent':
+                component_list.append(PressureBasedComponent(i + 1, item, self.component_name_list[i], jpcm))
+            elif component_modeling_type_list[i] == 'MassFlowBasedComponent':
+                component_list.append(MassFlowBasedComponent(i + 1, item, self.component_name_list[i], jpcm))
+            elif component_modeling_type_list[i] == 'BypassComponent':
+                component_list.append(BypassComponent(i + 1, item, self.component_name_list[i], jpcm))
+            elif component_modeling_type_list[i] == 'SeparatorComponent':
+                component_list.append(SeparatorComponent(i + 1, item, self.component_name_list[i], jpcm))
+            elif component_modeling_type_list[i] == 'Source':
+                component_list.append(Source(i + 1, item, self.component_name_list[i], jpcm))
+            elif component_modeling_type_list[i] == 'Sink':
+                component_list.append(Sink(i + 1, item, self.component_name_list[i], jpcm))
+            else:
+                RuntimeError(
+                    f'Component Modeling Type of Component {item.name} not defined as PressureBasedComponent, MassFlowBasedComponent, BypassComponent or SourceComponent')
+            for key in component_list[i].ports:
+                component_list[i].ports[key].fluid = self.fluid_list[component_list[i].ports[key].port_id[-2] - 1]
+            component_list[i].solver_path = solver_path_list[i]
+
+        self.components = {}
+        for comp in component_list:
+            self.components[comp.name] = comp
+            if isinstance(comp, SeparatorComponent):
+                self.add_loop_breaker_equa(LoopBreakerEquation(comp, 'hLP'))
+
+        # generates the systems Tripartite Graph from JPCM
+        self.tpg = TripartiteGraph(self.jpcm, component_list)
+
+        # runs tearing algorithm to identify tearing variable, execution list, residual equation and the necessity and number of
+        # design equations
+        self.Vt, self.exec_list, self.res_equa, self.no_design_equa = tearing_alg(self.tpg)
+
+        print(f'Thermal-Hydraulic Circuit has been successfully initialized \n')
+        print('Tearing Variables:')
+        for var in self.Vt:
+            print(
+                f'{var.var_type} at Junction {var.port_id[0]} and Component {component_list[var.port_id[1] - 1].name}')
+        print(f'\n'
+              f'Residual Equations:')
+        for equa in self.res_equa:
+            if isinstance(equa.variables[0], list):
+                junction_no = equa.variables[0][0].port_id[0]
+            else:
+                junction_no = equa.variables[0].port_id[0]
+            print(f'{equa.name} at Junction {junction_no}')
+        print(f'\n'
+              f'Number of design equations necessary to close equation system: {self.no_design_equa[1]}')
+
+    def add_design_equa(self, design_equa):
+        self.design_equa += [design_equa]
+        if design_equa.relaxed:
+            self.S += [SlackVariable(value=0.0, scale_factor=design_equa.scale_factor)]
+            design_equa.S = self.S[-1]
+        else:
+            pass
+
+    def add_loop_breaker_equa(self, loop_breaker_equa):
+        self.loop_breaker_equa += [loop_breaker_equa]
+
+    def add_inputs(self):
+        for comp in self.components:
+            for port in self.components[comp].ports:
+                if self.components[comp].ports[port].p.is_input:
+                    self.U += [port.p]
+                elif self.components[comp].ports[port].h.is_input:
+                    self.U += [port.h]
+                elif self.components[comp].ports[port].m.is_input:
+                    self.U += [port.m]
+                else:
+                    pass
+            for param in self.components[comp].parameter:
+                if self.components[comp].parameter[param].is_input:
+                    self.U += [self.components[comp].parameter[param]]
+                else:
+                    pass
+
+    def econ(self, x):
+
+        i = 0
+        # sets current iteration value to tearing variables
+        for var in self.Vt:
+            var.set_value(x[i] / var.scale_factor)
+            i += 1
+
+        # sets current iteration values to input variables
+        for var in self.U:
+            var.set_value(x[i] / var.scale_factor)
+            i += 1
+
+        # sets current iteration values to slack variables
+        for var in self.S:
+            var.set_value(x[i] / var.scale_factor)
+            i += 1
+
+        # solves and executes equations and components to solve the circuit
+        for item in self.exec_list:
+            if isinstance(item, BalanceEquation) or isinstance(item, EnthalpyFlowBalance):
+                item.solve()
+            elif isinstance(item, Component):
+                item.lamda = 1.0
+                item.solve()
+
+        # evaluates the resiudals at the current iteration
+        res = [equa.residual() for equa in self.res_equa]
+        res += [equa.solve() for equa in self.loop_breaker_equa]
+        res += [((equa.solve() + equa.S.value) * equa.S.scale_factor)
+                if equa.relaxed
+                else (equa.solve() * equa.scale_factor)
+                for i, equa in enumerate(self.design_equa)]
+
+        # resets all components
+        [self.components[key].reset() for key in self.components]
+        # print(f'Max Norm Residuals: {max(res)}')
+        return np.array(res)
+
+    def iecon(self, x):
+
+        i = 0
+        # sets current iteration value to tearing variables
+        for var in self.Vt:
+            var.set_value(x[i] / var.scale_factor)
+            i += 1
+
+        # sets current iteration values to input variables
+        for var in self.U:
+            var.set_value(x[i] / var.scale_factor)
+            i += 1
+
+        # sets current iteration values to slack variables
+        for var in self.S:
+            var.set_value(x[i] / var.scale_factor)
+            i += 1
+
+        # solves and executes equations and components to solve the circuit
+        for item in self.exec_list:
+            if isinstance(item, BalanceEquation) or isinstance(item, EnthalpyFlowBalance):
+                item.solve()
+            elif isinstance(item, Component):
+                item.lamda = 1.0
+                item.solve()
+
+        con = [self.components[key].ports[port].m.value for key in self.components for port in
+               self.components[key].ports]
+
+        [self.components[key].reset() for key in self.components]
+
+        return np.array(con)
+
+    def solve(self, x):
+        i = 0
+        # sets current iteration value to tearing variables
+        for var in self.Vt:
+            var.set_value(x[i] / var.scale_factor)
+            i += 1
+
+        # solves and executes equations and components to solve the circuit
+        for item in self.exec_list:
+            if isinstance(item, BalanceEquation) or isinstance(item, EnthalpyFlowBalance):
+                item.solve()
+            elif isinstance(item, Component):
+                item.lamda = 1.0
+                item.diagramm_plot = True
+                item.solve()
 
 
 def tearing_alg(tpg: TripartiteGraph):
@@ -1059,10 +1352,17 @@ def tearing_alg(tpg: TripartiteGraph):
     exec_list = []
     res_equa = []
 
+    for comp in tpg.C:
+        if isinstance(comp, Source):
+            comp_exec += [comp]
+            exec_list += [comp]
+            for key in comp.ports:
+                V += [comp.ports[key].p, comp.ports[key].h, comp.ports[key].m]
+
     while len(comp_exec) != len(tpg.C):
-        if any(c.component_typ == 'Compressor' for c in comp_not_exec):
+        if any(c.component_type in ['Compressor', 'Pump'] for c in comp_not_exec):
             indices = [i for i, c in enumerate(comp_not_exec)
-                       if c.component_typ == 'Compressor']
+                       if c.component_type in ['Compressor', 'Pump']]
             for i, index in enumerate(indices):
                 c = comp_not_exec[index]
                 if i == 0:
@@ -1070,27 +1370,33 @@ def tearing_alg(tpg: TripartiteGraph):
                     n = len([e[0] for e in tpg.Ed if e[1] == c and e[0] not in V])
                 else:
                     if len([e[0] for e in tpg.Ed if e[1] == c and e[0] not in V]) < n:
-                            id = index
-                            n = len([e[0] for e in tpg.Ed if e[1] == c and e[0] not in V])
+                        id = index
+                        n = len([e[0] for e in tpg.Ed if e[1] == c and e[0] not in V])
         else:
             for i, c in enumerate(comp_not_exec):
-                n_new = len([e[0] for e in tpg.Ed if e[1] == c and e[0] not in V])
-                if i == 0:
-                    c_old = c
-                    n = n_new
-                    id = i
-                else:
-                    if n_new < n:
+                if not isinstance(c, Sink):
+                    n_new = len([e[0] for e in tpg.Ed if e[1] == c and e[0] not in V])
+                    if i == 0:
                         c_old = c
                         n = n_new
                         id = i
-                    elif n_new == n:
-                        if isinstance(c, PressureBasedComponent) and isinstance(c_old, MassFlowBasedComponent):
+                    else:
+                        if n_new < n:
                             c_old = c
                             n = n_new
                             id = i
-        Vt.extend([e[0] for e in tpg.Ed if e[1] == comp_not_exec[id] and e[0] not in V])
-        V.extend([e[0] for e in tpg.Ed if e[1] == comp_not_exec[id] and e[0] not in V])
+                        elif n_new == n:
+                            if isinstance(c, PressureBasedComponent) and isinstance(c_old, MassFlowBasedComponent):
+                                c_old = c
+                                n = n_new
+                                id = i
+                            else:
+                                pass
+                else:
+                    pass
+
+        Vt += [e[0] for e in tpg.Ed if e[1] == comp_not_exec[id] and e[0] not in V]
+        V += [e[0] for e in tpg.Ed if e[1] == comp_not_exec[id] and e[0] not in V]
         n_solved = len(equa_solved)
         n_executed = len(comp_exec)
         while True:
@@ -1103,7 +1409,8 @@ def tearing_alg(tpg: TripartiteGraph):
                         exec_list.append(u)
                         V.extend(list(set([item for sublist in u.variables
                                            for item in sublist]).difference(set([item for sublist in u.variables
-                                                                                 for item in sublist]).intersection(set(V))).difference(set(V))))
+                                                                                 for item in sublist]).intersection(
+                            set(V))).difference(set(V))))
                 else:
                     if len(set(u.variables).difference(set(u.variables).intersection(set(V)))) == 1:
                         equa_solved.append(u)
@@ -1123,8 +1430,8 @@ def tearing_alg(tpg: TripartiteGraph):
                     else:
                         v_list.append(variable)
                 if any(v in V and v in Vnew for v in v_list) or (any(v in Vnew for v in v_list)
-                                                           and all(v in V or v in Vnew for v in v_list)
-                                                           and any(v in Vt for v in v_list)):
+                                                                 and all(v in V or v in Vnew for v in v_list)
+                                                                 and any(v in Vt for v in v_list)):
                     res_equa.append(u)
 
             V.extend(Vnew)
@@ -1145,7 +1452,6 @@ def tearing_alg(tpg: TripartiteGraph):
 
 
 def source_search(junc_no: int, var: Variable, jpcm, components: List[Component]):
-
     """
     Search for sources in the junction matrix based on specified conditions.
 
@@ -1167,7 +1473,7 @@ def source_search(junc_no: int, var: Variable, jpcm, components: List[Component]
     for c in comp_list:
         if jpcm[junc_no - 1, -1] == 1:
             return c + 1
-        elif components[c].component_typ not in ['Compressor', 'Pump', 'Expansion Valve']:
+        elif components[c].component_type not in ['Compressor', 'Pump', 'Expansion Valve']:
             for j, value in enumerate(jpcm[:, c]):
                 if value != 0 and jpcm[junc_no - 1, c] * value < 0 and jpcm[junc_no - 1, -2] == jpcm[j, -2]:
                     if components[c].source_component:
@@ -1177,17 +1483,19 @@ def source_search(junc_no: int, var: Variable, jpcm, components: List[Component]
     return []
 
 
-def system_solver(x0: list, Vt: list, component_list: list, exec_list: list, residual_equations: list,
-                  design_equations: list, scale_factors: list):
+def circuit_econ(clone, x):
+    return clone.econ(x)
+
+
+def circuit_iecon(clone, x):
+    return clone.iecon(x)
+
+
+def system_solver(circuit: Circuit):
     """
     solves thermal hydraulic cycles using broydens-method and newton-homotopy pseudo-arc-length continuation
     :param x0:                  iteration start variables
-    :param Vt:                  tearing variables
-    :param component_list:      list of system components
-    :param exec_list:           list of system components to be executed in the induced order
-    :param residual_equations:  list of system residual equations
-    :param design_equations:    list of design equations
-    :param scale_factors:       list of tearing variables scale factors
+    :param circuit:             Circuit object
     :return:                    solution of the system
     
     """
@@ -1200,152 +1508,77 @@ def system_solver(x0: list, Vt: list, component_list: list, exec_list: list, res
         :return:  residuals
         """
 
-        for i, variable in enumerate(Vt):
-            if variable.var_typ == 'p':
-                variable.set_value(x[i] / scale_factors[0])
-            elif variable.var_typ == 'h':
-                variable.set_value(x[i] / scale_factors[1])
-            elif variable.var_typ == 'm':
-                variable.set_value(x[i] / scale_factors[2])
+        # sets current iteration value to tearing variables
+        i = 0
+        for i, var in enumerate(circuit.Vt):
+            var.set_value(x[i] / var.scale_factor)
+            i += 1
 
-        for item in exec_list:
+        for var in circuit.U:
+            var.set_value(x[i] / var.scale_factor)
+            i += 1
+
+        for item in circuit.exec_list:
             if isinstance(item, BalanceEquation) or isinstance(item, EnthalpyFlowBalance):
                 item.solve()
             elif isinstance(item, Component):
                 item.lamda = 1.0
                 item.solve()
                 if item.status == 0:
-                    for component in component_list:
-                        component.reset()
+                    [circuit.components[key].reset() for key in circuit.components]
                     return [[], 0]
 
-        res = [residual_equation.residual() for residual_equation in residual_equations]
+        res = [equa.residual() for equa in circuit.res_equa]
+        res += [equa.solve() for equa in circuit.loop_breaker_equa]
         try:
-            res.extend([design_equation.solve() for design_equation in design_equations])
+            res += [equa.solve() for equa in circuit.design_equa]
         except:
-            [component.reset() for component in component_list]
+            [circuit.components[key].reset() for key in circuit.components]
             return [[], 0]
 
-        [component.reset() for component in component_list]
+        [circuit.components[key].reset() for key in circuit.components]
 
         return [np.array(res), 1]
 
     def linear_fun(x):
 
         """
-        Calculate the residuals of the linearized system equations
+        Calculate the residuals of the linearized system
         :param x: iteration variables
         :return: [residuals, convergence_flag]
         """
 
-        for i, variable in enumerate(Vt):
-            if variable.var_typ == 'p':
-                variable.set_value(x[i] / scale_factors[0])
-            elif variable.var_typ == 'h':
-                variable.set_value(x[i] / scale_factors[1])
-            elif variable.var_typ == 'm':
-                variable.set_value(x[i] / scale_factors[2])
+        # sets current iteration value to tearing variables
+        i = 0
+        for i, var in enumerate(circuit.Vt):
+            var.set_value(x[i] / var.scale_factor)
+            i += 1
 
-        for item in exec_list:
+        for var in circuit.U:
+            var.set_value(x[i] / var.scale_factor)
+            i += 1
+
+        for item in circuit.exec_list:
             if isinstance(item, BalanceEquation) or isinstance(item, EnthalpyFlowBalance):
                 item.solve()
             elif isinstance(item, Component):
                 item.lamda = 0.0
                 item.solve()
                 if item.status == 0:
-                    for component in component_list:
-                        component.reset()
+                    [circuit.components[key].reset() for key in circuit.components]
                     return [[], 0]
 
-        res = [residual_equation.residual() for residual_equation in residual_equations]
+        res = [equa.residual() for equa in circuit.res_equa]
+        res += [equa.solve() for equa in circuit.loop_breaker_equa]
         try:
-            res.extend([design_equation.solve() for design_equation in design_equations])
+            res += [equa.solve() for equa in circuit.design_equa]
         except:
-            [component.reset() for component in component_list]
+            [circuit.components[key].reset() for key in circuit.components]
             return [[], 0]
 
-        # Resets all System Components, Variables and Equations
-        [component.reset() for component in component_list]
+        [circuit.components[key].reset() for key in circuit.components]
 
         return [np.array(res), 1]
-
-    def probability_one_homotopy_fun(a, x):
-
-        """
-        Calculate the residuals of the Newton homotopy system equations
-        :param res_0: residuals at initial values
-        :param x: iteration variables
-        :return: [residuals, convergence_flag]
-        """
-
-        for i, variable in enumerate(Vt):
-            if variable.var_typ == 'm':
-                variable.set_value(x[i] / scale_factors[2])
-            elif variable.var_typ == 'p':
-                variable.set_value(x[i] / scale_factors[0])
-            elif variable.var_typ == 'h':
-                variable.set_value(x[i] / scale_factors[1])
-
-        for item in exec_list:
-            if isinstance(item, BalanceEquation) or isinstance(item, EnthalpyFlowBalance):
-                item.solve()
-            elif isinstance(item, Component):
-                item.lamda = x[-1]
-                item.solve()
-                if item.status == 0:
-                    for component in component_list:
-                        component.reset()
-                    return [[], 0]
-
-        res = [residual_equation.residual() for residual_equation in residual_equations]
-        try:
-            res.extend([design_equation.solve() for design_equation in design_equations])
-        except:
-            [component.reset() for component in component_list]
-            return [[], 0]
-
-        [component.reset() for component in component_list]
-
-        return [np.array(np.array(res) - (1 - x[-1]) * (x[0:-1] - a)), 1]
-
-    def linear_newton_homotopy_fun(res_0, x):
-
-        """
-        Calculate the residuals of the Newton homotopy system equations
-        :param res_0: residuals at initial values
-        :param x: iteration variables
-        :return: [residuals, convergence_flag]
-        """
-
-        for i, variable in enumerate(Vt):
-            if variable.var_typ == 'm':
-                variable.set_value(x[i] / scale_factors[2])
-            elif variable.var_typ == 'p':
-                variable.set_value(x[i] / scale_factors[0])
-            elif variable.var_typ == 'h':
-                variable.set_value(x[i] / scale_factors[1])
-
-        for item in exec_list:
-            if isinstance(item, BalanceEquation) or isinstance(item, EnthalpyFlowBalance):
-                item.solve()
-            elif isinstance(item, Component):
-                item.lamda = x[-1]
-                item.solve()
-                if item.status == 0:
-                    for component in component_list:
-                        component.reset()
-                    return [[], 0]
-
-        res = [residual_equation.residual() for residual_equation in residual_equations]
-        try:
-            res.extend([design_equation.solve() for design_equation in design_equations])
-        except:
-            [component.reset() for component in component_list]
-            return [[], 0]
-
-        [component.reset() for component in component_list]
-
-        return [np.array(np.array(res) - (1 - x[-1]) * np.array(res_0)), 1]
 
     def linear_homotopy_fun(x):
         """
@@ -1358,35 +1591,72 @@ def system_solver(x0: list, Vt: list, component_list: list, exec_list: list, res
             A list containing residuals and convergence flag.
 
         """
-        for i, variable in enumerate(Vt):
-            if variable.var_typ == 'p':
-                variable.set_value(x[i] / scale_factors[0])
-            elif variable.var_typ == 'h':
-                variable.set_value(x[i] / scale_factors[1])
-            elif variable.var_typ == 'm':
-                variable.set_value(x[i] / scale_factors[2])
 
-        for item in exec_list:
+        # sets current iteration value to tearing variables
+        i = 0
+        for i, var in enumerate(circuit.Vt):
+            var.set_value(x[i] / var.scale_factor)
+            i += 1
+
+        for var in circuit.U:
+            var.set_value(x[i] / var.scale_factor)
+            i += 1
+
+        for item in circuit.exec_list:
             if isinstance(item, BalanceEquation) or isinstance(item, EnthalpyFlowBalance):
                 item.solve()
             elif isinstance(item, Component):
-                item.lamda = x[-1]
+                item.lamda = 0.0
                 item.solve()
                 if item.status == 0:
-                    for component in component_list:
-                        component.reset()
+                    [circuit.components[key].reset() for key in circuit.components]
                     return [[], 0]
 
-        res = [residual_equation.residual() for residual_equation in residual_equations]
+        res = [equa.residual() for equa in circuit.res_equa]
+        res += [equa.solve() for equa in circuit.loop_breaker_equa]
         try:
-            res.extend([design_equation.solve() for design_equation in design_equations])
+            res += [equa.solve() for equa in circuit.design_equa]
         except:
-            [component.reset() for component in component_list]
+            [circuit.components[key].reset() for key in circuit.components]
             return [[], 0]
 
-        [component.reset() for component in component_list]
+        [circuit.components[key].reset() for key in circuit.components]
 
         return [np.array(res), 1]
+
+    def newton_homotopy_fun(res_0, x):
+
+        # sets current iteration value to tearing variables
+        i = 0
+        for i, var in enumerate(circuit.Vt):
+            var.set_value(x[i] / var.scale_factor)
+            i += 1
+
+        for var in circuit.U:
+            var.set_value(x[i] / var.scale_factor)
+            i += 1
+
+        for item in circuit.exec_list:
+            if isinstance(item, BalanceEquation) or isinstance(item, EnthalpyFlowBalance):
+                item.solve()
+            elif isinstance(item, Component):
+                item.lamda = 1.0
+                item.solve()
+                if item.status == 0:
+                    [circuit.components[key].reset() for key in circuit.components]
+                    return [[], 0]
+
+        res = [equa.residual() for equa in circuit.res_equa]
+        res += [equa.solve() for equa in circuit.loop_breaker_equa]
+        try:
+            res += [equa.solve() for equa in circuit.design_equa]
+        except:
+            [circuit.components[key].reset() for key in circuit.components]
+            return [[], 0]
+
+        [circuit.components[key].reset() for key in circuit.components]
+
+        return [np.array(np.array(res) - (1 - x[-1]) * np.array(res_0)), 1]
 
     def augmented_system(fun, x0, tau, ds, x):
         """
@@ -1463,6 +1733,31 @@ def system_solver(x0: list, Vt: list, component_list: list, exec_list: list, res
 
         return [J, 1]
 
+    def obj_fun(x):
+        y = 0.5 * sum((x[len(circuit.Vt) + len(circuit.U):]) ** 2)
+        return y
+
+    def grad_obj(x):
+        grad = np.zeros(len(x))
+        grad[len(circuit.Vt) + len(circuit.U):] = x[len(circuit.Vt) + len(circuit.U):]
+        return grad
+
+    def grad_econ(pool, circuit_clones, x):
+        f_0 = circuit_clones[0].econ(x)
+        x_new = x + 1e-5 * np.identity(len(x))
+        items = [(circuit_clones[j], x_new[j]) for j in range(len(x_new))]
+        f_fw = pool.starmap(circuit_econ, items)
+        J = np.transpose(f_fw - f_0) / np.diag(x_new - x)
+        return J
+
+    def grad_iecon(pool, circuit_clones, x):
+        f_0 = circuit_clones[0].iecon(x)
+        x_new = x + 1e-5 * np.identity(len(x))
+        items = [(circuit_clones[j], x_new[j]) for j in range(len(x_new))]
+        f_fw = pool.starmap(circuit_iecon, items)
+        J = np.transpose(f_fw - f_0) / np.diag(x_new - x)
+        return J
+
     def broyden_method(fun, J, max_iter, epsilon, print_convergence, x0):
 
         """
@@ -1500,10 +1795,13 @@ def system_solver(x0: list, Vt: list, component_list: list, exec_list: list, res
             λ = 1.0
             try:
                 dx = np.linalg.solve(J, -F)
+                x_new = x[it] + λ * dx
             except:
                 return {'x': x[-1], 'f': F, 'n_it': it + 1, 'converged': False, 'message': 'singular jacobian!'}
-            while (any(x[it] + λ * dx < 0) or any(np.abs(dx * λ / x[it]) > 5e-1)) and λ > λmin:
-                λ *= 1/2
+            while any([(x_new[i] < var.bounds[0] * var.scale_factor or x_new[i] > var.bounds[1] * var.scale_factor) for
+                       i, var in enumerate(circuit.Vt)]) and λ > λmin:
+                λ *= 1 / 2
+                x_new = x[it] + λ * dx
             x.append(x[it] + λ * dx)
             newF, convergence_flag = fun(x[-1])
 
@@ -1530,48 +1828,43 @@ def system_solver(x0: list, Vt: list, component_list: list, exec_list: list, res
             print('Broyden Solver converged!')
             return {'x': x[-1], 'f': F, 'n_it': it + 1, 'converged': True, 'message': 'solver converged'}
 
-    def system_linearization():
+    def system_linearization(x):
 
         print('linearizing system components...')
 
-        for j, variable in enumerate(Vt):
-            if variable.var_typ == 'p':
-                variable.set_value(x0[j])
-            elif variable.var_typ == 'h':
-                variable.set_value(x0[j])
-            elif variable.var_typ == 'm':
-                variable.set_value(x0[j])
+        # sets current iteration value to tearing variables
+        for i, var in enumerate(circuit.Vt):
+            var.set_value(x[i] / var.scale_factor)
 
-        for item in exec_list:
+        for item in circuit.exec_list:
             if isinstance(item, BalanceEquation) or isinstance(item, EnthalpyFlowBalance):
                 item.solve()
             elif isinstance(item, Component):
                 item.solve()
 
-        for c in component_list:
-            c.x0 = []
-            for port in c.ports:
-                if isinstance(c, PressureBasedComponent):
-                    if port.port_typ == 'in' and port.port_id[-1] == 0:
-                        c.x0.append(port.p.value)
-                        c.x0.append(port.h.value)
-                    elif port.port_typ == 'out' and port.port_id[-1] == 0:
-                        c.x0.append(port.p.value)
-                elif isinstance(c, MassFlowBasedComponent):
-                    if port.port_typ == 'in' and port.port_id[-1] == 0:
-                        c.x0.append(port.p.value)
-                        c.x0.append(port.h.value)
-                        c.x0.append(port.m.value)
-        for equa in design_equations:
-            if isinstance(equa, SuperheatEquation):
-                for port in equa.component.ports:
-                    equa.x0.append(port.p.value)
-                    equa.x0.append(port.h.value)
-                    break
+        for key in circuit.components:
+            circuit.components[key].x0 = []
+            for port in circuit.components[key].ports:
+                if isinstance(circuit.components[key], PressureBasedComponent):
+                    if port.port_type == 'in':
+                        circuit.components[key].x0.append(port.p.value)
+                        circuit.components[key].x0.append(port.h.value)
+                    elif port.port_type == 'out':
+                        circuit.components[key].x0.append(port.p.value)
+                elif isinstance(circuit.components[key], MassFlowBasedComponent):
+                    if port.port_type == 'in':
+                        circuit.components[key].x0.append(port.p.value)
+                        circuit.components[key].x0.append(port.h.value)
+                        circuit.components[key].x0.append(port.m.value)
+                else:
+                    pass
 
-        [(c.jacobian(), setattr(c, 'linearized', True)) for c in component_list if not isinstance(c, BypassComponent)]
-        # [(equa.jacobian(), setattr(equa, 'linearized', True)) for equa in design_equations if isinstance(equa, SuperheatEquation)]
-        [c.reset() for c in component_list]
+        [(circuit.components[key].jacobian(),
+          setattr(circuit.components[key], 'linearized', True)) for key in circuit.components
+         if not (isinstance(circuit.components[key], BypassComponent)
+                 and isinstance(circuit.components[key], Source)
+                 and isinstance(circuit.components[key], Sink))]
+        [circuit.components[key].reset() for key in circuit.components]
 
     def pseudo_arc_length_continuation(x0, type):
         """
@@ -1601,27 +1894,21 @@ def system_solver(x0: list, Vt: list, component_list: list, exec_list: list, res
         dlamda_ds_max = 0.5  # Value at which rescaling is invoked
 
         if type == 'linear homotopy':
-            system_linearization()
+            system_linearization(x0)
             J, convergence_flag = jacobian_forward(linear_fun, x0[0:-1])
             if convergence_flag == 0:
                 return {'x': x0, 'converged': False, 'message': 'model execution error'}
             print('Executes Broyden Solver to solve linearized system...')
             sol = broyden_method(linear_fun, J, max_iter, epsilon, False, x0[0:-1])
-            if not sol['converged']:
-                return {'x': x0, 'converged': False, 'message': 'failed to solve linearized system'}
             x = [np.append(sol['x'], 0.0)]
-
-        elif type == 'linear newton-homotopy':
-            system_linearization()
-            res_0, convergence_flag = fun(x0[0:-1])
-            if convergence_flag == 0:
-                return {'x': x0, 'converged': False, 'message': 'failed to solve newton-homotopy system at initial values'}
-            x = [x0]
-
-        elif type == 'probability-one homotopy':
-            system_linearization()
-            a_random = x0[0:-1].copy()
-            x = [x0]
+        elif type == 'newton homotopy':
+            res_0 = fun(x0[0:-1])  # residuals of system at initial values
+            if res_0[1] == 0:
+                print('Broyden-Solver stopped due to failure in model execution!')
+                return {'x': x0, 'converged': False, 'message': ' model execution error'}
+            else:
+                res_0 = res_0[0]
+            x = [x0.copy()]
 
         it = 0
         while abs(x[it][-1] - 1) > tol:
@@ -1631,10 +1918,8 @@ def system_solver(x0: list, Vt: list, component_list: list, exec_list: list, res
             print('computing Jacobian...')
             if type == 'linear homotopy':
                 J, convergence_flag = jacobian_forward(linear_homotopy_fun, x[it])
-            elif type == 'linear newton-homotopy':
-                J, convergence_flag = jacobian_forward(partial(linear_newton_homotopy_fun, res_0), x[it])
-            elif type == 'probability-one homotopy':
-                J, convergence_flag = jacobian_forward(partial(probability_one_homotopy_fun, a_random), x[it])
+            elif type == 'newton homotopy':
+                J, convergence_flag = jacobian_forward(partial(newton_homotopy_fun, res_0), x[it])
             if convergence_flag == 0:
                 return {'x': x[-1], 'converged': False, 'message': 'model execution error'}
 
@@ -1661,11 +1946,10 @@ def system_solver(x0: list, Vt: list, component_list: list, exec_list: list, res
             while True:
                 if type == 'linear homotopy':
                     partial_system = partial(augmented_system, linear_homotopy_fun, x[it], tau, ds[it])
-                elif type == 'linear newton-homotopy':
-                    partial_system = partial(augmented_system, partial(linear_newton_homotopy_fun, res_0), x[it], tau, ds[it])
-                elif type == 'probability-one homotopy':
-                    partial_system = partial(augmented_system, partial(probability_one_homotopy_fun, a_random), x[it], tau, ds[it])
-                J_arc_length_eq, convergence_flag = jacobian_forward(partial(arc_length_equa, x[it], tau, ds[it]), x[it])
+                elif type == 'newton homotopy':
+                    partial_system = partial(augmented_system, partial(newton_homotopy_fun, res_0), x[it], tau, ds[it])
+                J_arc_length_eq, convergence_flag = jacobian_forward(partial(arc_length_equa, x[it], tau, ds[it]),
+                                                                     x[it])
                 if convergence_flag == 0:
                     return {'x': x[-1], 'converged': False, 'message': 'model execution error'}
                 J_augmented = np.vstack((J, J_arc_length_eq))
@@ -1733,7 +2017,7 @@ def system_solver(x0: list, Vt: list, component_list: list, exec_list: list, res
         print('Successful tracking of solution curve!')
 
         if type in ['linear homotopy', 'linear newton-homotopy']:
-            [setattr(c, 'linearized', False) for c in component_list]
+            [setattr(circuit.components[key], 'linearized', False) for key in circuit.components]
 
         print('computing Jacobian... ')
         J, convergence_flag = jacobian_forward(fun, x[-1][0:-1])
@@ -1745,44 +2029,134 @@ def system_solver(x0: list, Vt: list, component_list: list, exec_list: list, res
         return sol
 
     # maximum number of iterations for broyden solver
-    max_iter = 50
+    max_iter = 100
 
     # convergence criteria
     epsilon = 1e-6
 
-    # scales initial values
-    x0_scaled = np.zeros(len(x0))
-    for i, var in enumerate(x0):
-        if Vt[i].var_typ == 'p':
-            x0_scaled[i] = x0[i] * scale_factors[0]
-        elif Vt[i].var_typ == 'h':
-            x0_scaled[i] = x0[i] * scale_factors[1]
-        else:
-            x0_scaled[i] = x0[i] * scale_factors[2]
+    # adds inputs if there are parameters set to inputs
+    circuit.add_inputs()
 
-    # Runs Broyden solver, returning the solution array if the solver converges; otherwise, starts the Arc-Length Continuation solver.
-    print('Start Broyden Solver')
-    print('computing Jacobian...')
-    J, convergence_flag = jacobian_forward(fun, x0_scaled)
-    if convergence_flag == 0:
-        return {'x': x0, 'converged': False, 'message': 'failed to compute initial jacobian!'}
-    sol = broyden_method(fun, J, max_iter, epsilon, True, x0_scaled)
-    if sol['converged']:
-        return sol
-    else:
-        x0_scaled = np.append(x0_scaled, 0.0)
-        print('Solver not converged!')
-        print('Start Pseudo-Arc-Length Continuation Solver')
-        sol = pseudo_arc_length_continuation(x0_scaled, 'linear homotopy')
+    x0_scaled = [0] * (len(circuit.Vt) + len(circuit.U) + len([equa for equa in circuit.design_equa if equa.relaxed]))
+    bnds_scaled = [()] * (len(circuit.Vt) + len(circuit.U) + len(circuit.S))
+    i = 0
+    for var in circuit.Vt:
+        x0_scaled[i] = var.initial_value * var.scale_factor
+        bnds_scaled[i] = (var.bounds[0] * var.scale_factor, var.bounds[1] * var.scale_factor)
+        i += 1
+    for var in circuit.U:
+        x0_scaled[i] = var.initial_value * var.scale_factor
+        bnds_scaled[i] = (var.bounds[0] * var.scale_factor, var.bounds[1] * var.scale_factor)
+        i += 1
+    for var in circuit.S:
+        x0_scaled[i] = var.initial_value * var.scale_factor
+        bnds_scaled[i] = (var.bounds[0] * var.scale_factor, var.bounds[1] * var.scale_factor)
+        i += 1
+
+    if len(circuit.res_equa) + len(circuit.design_equa) + len(circuit.loop_breaker_equa) > len(circuit.Vt) + len(circuit.U) + len(circuit.S):
+        raise RuntimeWarning(f'More equations than number of independent variables!')
+
+    if len(circuit.res_equa) + len(circuit.design_equa) + len(circuit.loop_breaker_equa) == len(circuit.Vt) + len(
+            circuit.U) \
+            and not any([True if equa.relaxed else False for equa in circuit.design_equa]):
+
+        # Runs Broyden solver, returning the solution array if the solver converges; otherwise, starts the Arc-Length Continuation solver.
+        print('Start Broyden Solver \n'
+              'computing Jacobian...')
+        J, convergence_flag = jacobian_forward(fun, x0_scaled)
+        if convergence_flag == 0:
+            return {'x': x0_scaled, 'converged': False, 'message': 'failed to compute initial jacobian!'}
+        sol = broyden_method(fun, J, max_iter, epsilon, True, x0_scaled)
         if sol['converged']:
-            print('Solver converged!')
+            with open('init.pkl', 'wb') as save_data:
+                pickle.dump([var.initial_value for var in circuit.Vt + circuit.U + circuit.S], save_data)
+            return sol
         else:
-            print('Solver not converged!')
-        return sol
+        #     x0_scaled = np.append(x0_scaled, 0.0)
+        #     print('Solver not converged!')
+        #     print('Start Pseudo-Arc-Length Continuation Solver')
+        #     sol = pseudo_arc_length_continuation(x0_scaled, 'newton homotopy')
+        #     if sol['converged']:
+        #         print('Solver converged!')
+        #         with open('init.pkl', 'wb') as save_data:
+        #             pickle.dump([var.initial_value for var in circuit.Vt + circuit.U + circuit.S], save_data)
+        #     else:
+        #         print('Solver not converged!')
+        #     return sol
+            pool = multiprocessing.Pool(multiprocessing.cpu_count())
+            circuit_clones = [deepcopy(circuit)] * len(x0_scaled)
+
+            sol = scipy.optimize.fmin_slsqp(obj_fun,
+                                            x0_scaled,
+                                            bounds=bnds_scaled,
+                                            f_eqcons=circuit.econ,
+                                            f_ieqcons=circuit.iecon,
+                                            fprime=grad_obj,
+                                            fprime_eqcons=partial(grad_econ, pool, circuit_clones),
+                                            fprime_ieqcons=partial(grad_iecon, pool, circuit_clones),
+                                            full_output=True,
+                                            disp=3,
+                                            acc=1.0e-6,
+                                            epsilon=1.0e-05,
+                                            iter=1000)
+
+            if sol[3] == 0:
+                i = 0
+                for var in circuit.Vt:
+                    var.initial_value = sol[0][i] / var.scale_factor
+                    i += 1
+                for var in circuit.U:
+                    var.initial_value = sol[0][i] / var.scale_factor
+                    i += 1
+                for var in circuit.S:
+                    var.initial_value = sol[0][i] / var.scale_factor
+                    i += 1
+                with open('init.pkl', 'wb') as save_data:
+                    pickle.dump([var.initial_value for var in circuit.Vt + circuit.U + circuit.S], save_data)
+                return {'x': sol[0], 'f': circuit.econ(sol[0]), 'n_it': sol[2], 'converged': True,
+                        'message': 'solver converged'}
+            else:
+                return {'x': sol[0], 'converged': False, 'message': 'model execution error'}
+
+    else:
+
+        pool = multiprocessing.Pool(multiprocessing.cpu_count())
+        circuit_clones = [deepcopy(circuit)] * len(x0_scaled)
+
+        sol = scipy.optimize.fmin_slsqp(obj_fun,
+                                        x0_scaled,
+                                        bounds=bnds_scaled,
+                                        f_eqcons=circuit.econ,
+                                        f_ieqcons=circuit.iecon,
+                                        fprime=grad_obj,
+                                        fprime_eqcons=partial(grad_econ, pool, circuit_clones),
+                                        fprime_ieqcons=partial(grad_iecon, pool, circuit_clones),
+                                        full_output=True,
+                                        disp=3,
+                                        acc=1.0e-6,
+                                        epsilon=1.0e-05,
+                                        iter=1000)
+
+        if sol[3] == 0:
+            i = 0
+            for var in circuit.Vt:
+                var.initial_value = sol[0][i] / var.scale_factor
+                i += 1
+            for var in circuit.U:
+                var.initial_value = sol[0][i] / var.scale_factor
+                i += 1
+            for var in circuit.S:
+                var.initial_value = sol[0][i] / var.scale_factor
+                i += 1
+            with open('init.pkl', 'wb') as save_data:
+                pickle.dump([var.initial_value for var in circuit.Vt + circuit.U + circuit.S], save_data)
+            return {'x': sol[0], 'f': circuit.econ(sol[0]), 'n_it': sol[2], 'converged': True,
+                    'message': 'solver converged'}
+        else:
+            return {'x': sol[0], 'converged': False, 'message': 'model execution error'}
 
 
 def logph(h: List[list], p: List[list], no: List[list], fluids: List[str]):
-
     """
     Plot the pressure-enthalpy diagram for a given fluid.
 
@@ -1835,14 +2209,14 @@ def logph(h: List[list], p: List[list], no: List[list], fluids: List[str]):
             H4 = PropsSI('H', 'T', T[j], 'P', P4, fluid)
             H1 = np.append(H1, H4)
             Fig[i][1].plot(H1 / 1000, P1 / 100000, 'b', linewidth=0.7,
-                    label='T=' + str(int(T[j] - 273.15)) + '°C')
+                           label='T=' + str(int(T[j] - 273.15)) + '°C')
 
         P = np.linspace(Pmin, Pcrit + 1e8, 1000)
         T = [Tcrit + j * 10 for j in range(1, 20)]
         for j in range(len(T)):
             H = PropsSI('H', 'P', P, 'T', T[j], fluid)
             Fig[i][1].plot(np.array(H) / 1e3, P / 1e5, 'b', linewidth=0.7,
-                    label='T=' + str(int(T[j] - 273.15)) + '°C')
+                           label='T=' + str(int(T[j] - 273.15)) + '°C')
 
         labelLines(Fig[i][1].get_lines(), align=True, fontsize=7, backgroundcolor='none')
 
@@ -1876,10 +2250,12 @@ def logph(h: List[list], p: List[list], no: List[list], fluids: List[str]):
                 break
         if isinstance(h[i][0], list):
             Fig[i][1].set_xlim([min(min(h[i][:])) - 100, max(max(h[i][:])) + 100])
-            Fig[i][1].set_ylim([min(min(p[i][:])) - 10 ** np.floor(np.log10(min(min(p[i][:])))), Pcrit * 1e-5 + 10 ** np.floor(np.log10(Pcrit * 1e-4))])
+            Fig[i][1].set_ylim([min(min(p[i][:])) - 10 ** np.floor(np.log10(min(min(p[i][:])))),
+                                Pcrit * 1e-5 + 10 ** np.floor(np.log10(Pcrit * 1e-4))])
         else:
             Fig[i][1].set_xlim([min(h[i]) - 100, max(h[i]) + 100])
-            Fig[i][1].set_ylim([min(p[i]) - 10 ** np.floor(np.log10(min(p[i]))), Pcrit * 1e-5 + 10 ** np.floor(np.log10(Pcrit * 1e-4))])
+            Fig[i][1].set_ylim([min(p[i]) - 10 ** np.floor(np.log10(min(p[i]))),
+                                Pcrit * 1e-5 + 10 ** np.floor(np.log10(Pcrit * 1e-4))])
 
         Fig[i][1].set_xlabel('specific Enthalpy / kJ/kg', fontweight='bold')
         Fig[i][1].set_ylabel('Pressure / bar', fontweight='bold')
@@ -1890,83 +2266,21 @@ def logph(h: List[list], p: List[list], no: List[list], fluids: List[str]):
         plt.show()
 
 
-def initialization(component: [Component], root: str, file: str):
-
-    """
-    Initialize a component by reading specifications and parameters from a CSV file.
-
-    Args:
-        component (Component): The component to be initialized.
-        root (str): The root directory path.
-        file (str): The name of the CSV file (without extension) containing the component information.
-
-    Raises:
-        RuntimeError: If the component's boundary type is not defined or unsupported.
-
-    """
-
-    specification_list = []
-
-    with open(root + "/" + file + '.csv', encoding="utf-8") as f:
-        csv_reader = csv.reader(f, delimiter=";")
-        specification_list.extend(list(csv_reader))
-
-    # Creates component specification table from component .csv file
-    spec_start_index = next((i for i, line in enumerate(specification_list) if line[0] == 'Specification:'), None)
-    if spec_start_index is not None:
-        for spec in specification_list[spec_start_index + 1:]:
-            if spec[0] != '':
-                component.specifications.append(spec)
-            else:
-                break
-
-    # Creates component inputs from component .csv file
-    input_start_index = next((i for i, line in enumerate(specification_list) if line[0] == "Inputs:"), None)
-    if input_start_index is not None:
-        for inp in specification_list[input_start_index + 1:]:
-            if inp[0] != '':
-                component.inputs.append([inp[0], float])
-            else:
-                break
-
-    # Creates component outputs from component .csv file
-    output_start_index = next((i for i, line in enumerate(specification_list) if line[0] == "Outputs:"), None)
-    if output_start_index is not None:
-        for outp in specification_list[output_start_index + 1:]:
-            if outp[0] != '':
-                component.outputs.append([outp[0], float])
-            else:
-                break
-
-    # Defines Components Model Typ (Pressure Based or Mass Flow Based) from .csv file
-    boundary_type = next((line[1] for line in specification_list if line[0] == 'Boundary Typ:'), None)
-    if boundary_type == "Pressure Based":
-        component.__class__ = PressureBasedComponent
-    elif boundary_type == "Mass Flow Based":
-        component.__class__ = MassFlowBasedComponent
-    else:
-        raise RuntimeError(f"Tried to initialize {component.name} Component but no allowed Boundary Type was defined")
-
-    # Reads Component Parameter
-    parameter_start_index = next((i for i, line in enumerate(specification_list) if line[0] == "Parameter:"), None)
-    if parameter_start_index is not None:
-        component.parameter.extend(specification_list[parameter_start_index + 1:])
-
-        
 # function for just creating widget to define boundary conditions and later on saving them in variables
-def set_bc_values_onestage(pi_v_so=1.0, Ti_v_so=-10, mi_v_so=1.0, pi_c_so=1.0, Ti_c_so=20, mi_c_so=1.0):
+def set_inputs_onestage(pi_v_so=1.0, Ti_v_so=-5, mi_v_so=1.0, pi_c_so=1.0, Ti_c_so=30, mi_c_so=1.0):
     print(f'Evaporator: pi_v_so= {pi_v_so:5.1f} bar, Ti_v_so = {Ti_v_so:5.1f} °C, mi_v_so = {mi_v_so:5.1f} kg/s \n')
     print(f'Condenser:  pi_c_so= {pi_c_so:5.1f} bar, Ti_c_so = {Ti_c_so:5.1f} °C, mi_c_so = {mi_c_so:5.1f} kg/s \n')
     return pi_v_so, Ti_v_so, mi_v_so, pi_c_so, Ti_c_so, mi_c_so
 
 
 # function for just creating widget to define boundary conditions and later on saving them in variables
-def set_bc_values_cascade(pi_v_so=1.0, Ti_v_so=-10, mi_v_so=1.0,
-                          pi_c_so=1.0, Ti_c_so=20, mi_c_so=1.0,
-                          pi_gc_so=1.0, Ti_gc_so=20, mi_gc_so=1.0):
+def set_inputs_cascade(pi_v_so=1.0, Ti_v_so=-10, mi_v_so=1.0,
+                       pi_c_so=1.0, Ti_c_so=20, mi_c_so=1.0,
+                       pi_gc_so=1.0, Ti_gc_so=20, mi_gc_so=1.0):
     print(f'Evaporator: pi_v_so= {pi_v_so:5.1f} bar, Ti_v_so = {Ti_v_so:5.1f} °C, mi_v_so = {mi_v_so:5.1f} kg/s \n')
     print(f'Condenser:  pi_c_so= {pi_c_so:5.1f} bar, Ti_c_so = {Ti_c_so:5.1f} °C, mi_c_so = {mi_c_so:5.1f} kg/s \n')
-    print(f'Gas cooler:  pi_gc_so= {pi_gc_so:5.1f} bar, Ti_gc_so = {Ti_gc_so:5.1f} °C, mi_gc_so = {mi_gc_so:5.1f} kg/s \n')
+    print(
+        f'Gas cooler:  pi_gc_so= {pi_gc_so:5.1f} bar, Ti_gc_so = {Ti_gc_so:5.1f} °C, mi_gc_so = {mi_gc_so:5.1f} kg/s \n')
     return pi_v_so, Ti_v_so, mi_v_so, pi_c_so, Ti_c_so, mi_c_so, pi_gc_so, Ti_gc_so, mi_gc_so
 
 

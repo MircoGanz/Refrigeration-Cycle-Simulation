@@ -1,0 +1,458 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generiert durch Microsoft Visio, SVG Export ThermalHydraulicCircuit_Scheme.svg Zeichenblatt-1 -->
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ev="http://www.w3.org/2001/xml-events"
+		xmlns:v="http://schemas.microsoft.com/visio/2003/SVGExtensions/" width="11.51in" height="3.38633in"
+		viewBox="0 0 828.718 243.816" xml:space="preserve" color-interpolation-filters="sRGB" class="st14">
+	<v:documentProperties v:langID="1031" v:metric="true" v:viewMarkup="false"/>
+
+	<style type="text/css">
+	<![CDATA[
+		.st1 {fill:#ffffff;stroke:#000000;stroke-width:1}
+		.st2 {stroke:#000000;stroke-linecap:butt;stroke-width:1}
+		.st3 {stroke:#000000;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.5}
+		.st4 {fill:none;stroke:none;stroke-width:0.25}
+		.st5 {fill:#000000;font-family:Calibri;font-size:1.00001em}
+		.st6 {stroke:#000000;stroke-linecap:round;stroke-linejoin:round;stroke-width:1}
+		.st7 {fill:#ffffff;stroke:#000000;stroke-width:0.75}
+		.st8 {fill:#000000;stroke:#000000;stroke-width:0.25}
+		.st9 {fill:#000000;stroke:#000000;stroke-width:0.75}
+		.st10 {marker-start:url(#mrkr4-122);stroke:#000000;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.5}
+		.st11 {fill:#000000;fill-opacity:1;stroke:#000000;stroke-opacity:1;stroke-width:0.16556291390728}
+		.st12 {stroke:#000000;stroke-dasharray:3,3;stroke-linecap:round;stroke-linejoin:round;stroke-width:1}
+		.st13 {marker-end:url(#mrkr4-187);stroke:#000000;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.5}
+		.st14 {fill:none;fill-rule:evenodd;font-size:12px;overflow:visible;stroke-linecap:square;stroke-miterlimit:3}
+	]]>
+	</style>
+
+	<defs id="Markers">
+		<g id="lend4">
+			<path d="M 2 1 L 0 0 L 2 -1 L 2 1 " style="stroke:none"/>
+		</g>
+		<marker id="mrkr4-122" class="st11" v:arrowType="4" v:arrowSize="2" v:setback="11.36" refX="11.36" orient="auto"
+				markerUnits="strokeWidth" overflow="visible">
+			<use xlink:href="#lend4" transform="scale(6.04) "/>
+		</marker>
+		<marker id="mrkr4-187" class="st11" v:arrowType="4" v:arrowSize="2" v:setback="12.08" refX="-12.08" orient="auto"
+				markerUnits="strokeWidth" overflow="visible">
+			<use xlink:href="#lend4" transform="scale(-6.04,-6.04) "/>
+		</marker>
+	</defs>
+	<g v:mID="0" v:index="1" v:groupContext="foregroundPage">
+		<title>Zeichenblatt-1</title>
+		<v:pageProperties v:drawingScale="0.0393701" v:pageScale="0.0393701" v:drawingUnits="24" v:shadowOffsetX="8.50394"
+				v:shadowOffsetY="-8.50394"/>
+		<v:layer v:name="Verbinder" v:index="0"/>
+		<g id="group3391-1" transform="translate(7.07993,-0.25)" v:mID="3391" v:groupContext="group">
+			<title>Tabelle.3391</title>
+			<g id="group3119-2" transform="translate(731.457,82.3179) rotate(90)" v:mID="3119" v:groupContext="group">
+				<title>Tabelle.3119</title>
+				<g id="shape3120-3" v:mID="3120" v:groupContext="shape">
+					<title>Rechteck</title>
+					<v:userDefs>
+						<v:ud v:nameU="visVersion" v:val="VT0(15):26"/>
+					</v:userDefs>
+					<rect x="0" y="199.282" width="138.947" height="44.5344" class="st1"/>
+				</g>
+				<g id="shape3121-5" v:mID="3121" v:groupContext="shape" v:layerMember="0"
+						transform="translate(7.35412E-13,-44.5344)">
+					<title>Dynamischer Verbinder</title>
+					<path d="M0 243.82 L138.95 288.35" class="st2"/>
+				</g>
+			</g>
+			<g id="group3122-8" transform="translate(498.635,82.3179) rotate(90)" v:mID="3122" v:groupContext="group">
+				<title>Tabelle.3122</title>
+				<g id="shape3123-9" v:mID="3123" v:groupContext="shape">
+					<title>Rechteck</title>
+					<v:userDefs>
+						<v:ud v:nameU="visVersion" v:val="VT0(15):26"/>
+					</v:userDefs>
+					<rect x="0" y="199.282" width="138.947" height="44.5344" class="st1"/>
+				</g>
+				<g id="shape3124-11" v:mID="3124" v:groupContext="shape" v:layerMember="0"
+						transform="translate(7.35412E-13,-44.5344)">
+					<title>Dynamischer Verbinder</title>
+					<path d="M0 243.82 L138.95 288.35" class="st2"/>
+				</g>
+			</g>
+			<g id="group3125-14" transform="translate(614.036,184.925) rotate(90)" v:mID="3125" v:groupContext="group">
+				<title>Tabelle.3125</title>
+				<g id="shape3126-15" v:mID="3126" v:groupContext="shape">
+					<title>Kreis</title>
+					<v:userDefs>
+						<v:ud v:nameU="visVersion" v:val="VT0(15):26"/>
+					</v:userDefs>
+					<path d="M0 224.93 A18.8826 18.8826 0 0 1 37.77 224.93 A18.8826 18.8826 0 1 1 0 224.93 Z" class="st1"/>
+				</g>
+				<g id="shape3127-17" v:mID="3127" v:groupContext="shape" v:layerMember="0" transform="translate(17.1342,-37.2653)">
+					<title>Dynamischer Verbinder</title>
+					<path d="M-2.57 243.82 L-11.61 275.55" class="st2"/>
+				</g>
+				<g id="shape3128-20" v:mID="3128" v:groupContext="shape" v:layerMember="0" transform="translate(20.711,-37.227)">
+					<title>Dynamischer Verbinder.40</title>
+					<path d="M2.65 243.82 L11.53 275.51" class="st2"/>
+				</g>
+			</g>
+			<g id="shape3129-23" v:mID="3129" v:groupContext="shape" v:layerMember="0" transform="translate(487.641,-32.8771)">
+				<title>Dynamischer Verbinder.3129</title>
+				<path d="M0 236.77 L-79.66 236.68" class="st3"/>
+			</g>
+			<g id="shape3130-26" v:mID="3130" v:groupContext="shape" v:layerMember="0" transform="translate(299.354,-32.8771)">
+				<title>Dynamischer Verbinder.3130</title>
+				<path d="M0 236.77 L70.87 236.68" class="st3"/>
+			</g>
+			<g id="group3131-29" transform="translate(585.69,94.2531) rotate(90)" v:mID="3131" v:groupContext="group">
+				<title>Tabelle.3131</title>
+				<g id="shape3132-30" v:mID="3132" v:groupContext="shape">
+					<title>Dreieck</title>
+					<v:userDefs>
+						<v:ud v:nameU="visVersion" v:val="VT0(15):26"/>
+					</v:userDefs>
+					<path d="M10.69 243.82 L5.34 233.13 L0 243.82 L10.69 243.82 Z" class="st1"/>
+				</g>
+				<g id="shape3133-32" v:mID="3133" v:groupContext="shape" transform="translate(10.6883,466.256) rotate(180)">
+					<title>Dreieck.7</title>
+					<v:userDefs>
+						<v:ud v:nameU="visVersion" v:val="VT0(15):26"/>
+					</v:userDefs>
+					<path d="M10.69 243.82 L5.34 233.13 L0 243.82 L10.69 243.82 Z" class="st1"/>
+				</g>
+			</g>
+			<g id="shape3134-34" v:mID="3134" v:groupContext="shape" v:layerMember="0" transform="translate(433.999,-155.322)">
+				<title>Dynamischer Verbinder.3134</title>
+				<path d="M0 246.89 L0 254.92 L-70.75 254.92" class="st3"/>
+			</g>
+			<g id="shape3135-37" v:mID="3135" v:groupContext="shape" v:layerMember="0" transform="translate(341.873,-151.261)">
+				<title>Dynamischer Verbinder.3135</title>
+				<path d="M0 250.86 L-42.52 250.95" class="st3"/>
+			</g>
+			<g id="shape3139-40" v:mID="3139" v:groupContext="shape" transform="translate(332.989,-48.4677)">
+				<title>Tabelle.3139</title>
+				<desc>Compressor</desc>
+				<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
+				<v:textRect cx="56.1134" cy="224.221" width="112.23" height="39.1903"/>
+				<rect x="0" y="204.626" width="112.227" height="39.1903" class="st4"/>
+				<text x="26.78" y="227.82" class="st5" v:langID="1031"><v:paragraph v:horizAlign="1"/><v:tabList/>Compressor</text>			</g>
+			<g id="shape3140-43" v:mID="3140" v:groupContext="shape" transform="translate(454.686,-154.729)">
+				<title>Tabelle.3140</title>
+				<desc>Condenser</desc>
+				<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
+				<v:textRect cx="56.1134" cy="224.221" width="112.23" height="39.1903"/>
+				<rect x="0" y="204.626" width="112.227" height="39.1903" class="st4"/>
+				<text x="29.88" y="227.82" class="st5" v:langID="1031"><v:paragraph v:horizAlign="1"/><v:tabList/>Condenser</text>			</g>
+			<g id="shape3141-46" v:mID="3141" v:groupContext="shape" transform="translate(220.973,-152.18)">
+				<title>Tabelle.3141</title>
+				<desc>Evaporator</desc>
+				<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
+				<v:textRect cx="56.1134" cy="224.221" width="112.23" height="39.1903"/>
+				<rect x="0" y="204.626" width="112.227" height="39.1903" class="st4"/>
+				<text x="29.05" y="227.82" class="st5" v:langID="1031"><v:paragraph v:horizAlign="1"/><v:tabList/>Evaporator</text>			</g>
+			<g id="shape3142-49" v:mID="3142" v:groupContext="shape" transform="translate(299.933,-136.589)">
+				<title>Tabelle.3142</title>
+				<desc>Expansion Valve</desc>
+				<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
+				<v:textRect cx="56.1134" cy="224.221" width="112.23" height="39.1903"/>
+				<rect x="0" y="204.626" width="112.227" height="39.1903" class="st4"/>
+				<text x="16.66" y="227.82" class="st5" v:langID="1031"><v:paragraph v:horizAlign="1"/><v:tabList/>Expansion Valve</text>			</g>
+			<g id="group3145-52" transform="translate(415.117,-152.252)" v:mID="3145" v:groupContext="group">
+				<title>Tabelle.3145</title>
+				<g id="shape3146-53" v:mID="3146" v:groupContext="shape" transform="translate(243.816,178.619) rotate(90)">
+					<title>Rechteck</title>
+					<v:userDefs>
+						<v:ud v:nameU="visVersion" v:val="VT0(15):26"/>
+					</v:userDefs>
+					<rect x="0" y="206.051" width="65.1969" height="37.7652" rx="18.8826" ry="18.8826" class="st1"/>
+				</g>
+				<g id="shape3147-55" v:mID="3147" v:groupContext="shape" v:layerMember="0" transform="translate(37.7652,-37.7994)">
+					<title>Dynamischer Verbinder.2905</title>
+					<path d="M0 236.73 L-37.77 236.73" class="st6"/>
+				</g>
+				<g id="shape3148-58" v:mID="3148" v:groupContext="shape" v:layerMember="0" transform="translate(35.9864,-35.6261)">
+					<title>Dynamischer Verbinder.2906</title>
+					<path d="M-4.57 236.73 L-9.6 236.73" class="st6"/>
+				</g>
+			</g>
+			<g id="shape3149-61" v:mID="3149" v:groupContext="shape" v:layerMember="0" transform="translate(487.641,-144.13)">
+				<title>Dynamischer Verbinder.3149</title>
+				<path d="M0 243.82 L-14.24 243.82 L-14.24 161.14 L-53.64 161.14 L-53.64 170.5" class="st3"/>
+			</g>
+			<g id="shape3150-64" v:mID="3150" v:groupContext="shape" transform="translate(348.702,-204.126)">
+				<title>Tabelle.3150</title>
+				<desc>Receiver</desc>
+				<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
+				<v:textRect cx="56.1134" cy="224.221" width="112.23" height="39.1903"/>
+				<rect x="0" y="204.626" width="112.227" height="39.1903" class="st4"/>
+				<text x="35.18" y="227.82" class="st5" v:langID="1031"><v:paragraph v:horizAlign="1"/><v:tabList/>Receiver</text>			</g>
+			<g id="shape3151-67" v:mID="3151" v:groupContext="shape" v:layerMember="0" transform="translate(451.007,-186.268)">
+				<title>Dynamischer Verbinder.3151</title>
+				<path d="M-5.67 236.73 L-8.5 236.73" class="st6"/>
+			</g>
+			<g id="shape3152-70" v:mID="3152" v:groupContext="shape" v:layerMember="0" transform="translate(450.951,-184.283)">
+				<title>Dynamischer Verbinder.3152</title>
+				<path d="M-6.24 236.73 L-7.94 236.73" class="st6"/>
+			</g>
+			<g id="group3153-73" transform="translate(451.744,192.138) rotate(90)" v:mID="3153" v:groupContext="group">
+				<title>Tabelle.3153</title>
+				<g id="shape3154-74" v:mID="3154" v:groupContext="shape">
+					<title>Kreis</title>
+					<v:userDefs>
+						<v:ud v:nameU="visVersion" v:val="VT0(15):26"/>
+					</v:userDefs>
+					<path d="M0 232.06 A11.7571 11.7571 0 1 1 23.51 232.06 A11.7571 11.7571 0 0 1 0 232.06 Z" class="st7"/>
+				</g>
+				<g id="shape3155-76" v:mID="3155" v:groupContext="shape" transform="translate(1.95952,-5.70042)">
+					<title>Dreieck</title>
+					<v:userDefs>
+						<v:ud v:nameU="visVersion" v:val="VT0(15):26"/>
+					</v:userDefs>
+					<path d="M19.6 243.82 L9.8 226 L0 243.82 L19.6 243.82 Z" class="st8"/>
+				</g>
+			</g>
+			<g id="group3156-78" transform="translate(-82.705,215.831) rotate(-90)" v:mID="3156" v:groupContext="group">
+				<title>Tabelle.3156</title>
+				<g id="group3157-79" transform="translate(6.41297,2.84217E-14)" v:mID="3157" v:groupContext="group">
+					<title>Tabelle.3157</title>
+					<g id="shape3158-80" v:mID="3158" v:groupContext="shape">
+						<title>Dreieck</title>
+						<v:userDefs>
+							<v:ud v:nameU="visVersion" v:val="VT0(15):26"/>
+						</v:userDefs>
+						<path d="M10.69 243.82 L5.34 233.13 L0 243.82 L10.69 243.82 Z" class="st7"/>
+					</g>
+					<g id="shape3159-82" v:mID="3159" v:groupContext="shape" transform="translate(10.6883,466.256) rotate(180)">
+						<title>Dreieck.7</title>
+						<v:userDefs>
+							<v:ud v:nameU="visVersion" v:val="VT0(15):26"/>
+						</v:userDefs>
+						<path d="M10.69 243.82 L5.34 233.13 L0 243.82 L10.69 243.82 Z" class="st9"/>
+					</g>
+					<g id="shape3160-84" v:mID="3160" v:groupContext="shape" transform="translate(-227.784,238.472) rotate(-90)">
+						<title>Dreieck.8</title>
+						<v:userDefs>
+							<v:ud v:nameU="visVersion" v:val="VT0(15):26"/>
+						</v:userDefs>
+						<path d="M10.69 243.82 L5.34 233.13 L0 243.82 L10.69 243.82 Z" class="st9"/>
+					</g>
+				</g>
+				<g id="shape3161-86" v:mID="3161" v:groupContext="shape" transform="translate(-1.1241E-13,-7.4818)">
+					<title>Quadrat</title>
+					<v:userDefs>
+						<v:ud v:nameU="visVersion" v:val="VT0(15):26"/>
+					</v:userDefs>
+					<rect x="0" y="237.581" width="6.23485" height="6.23485" class="st7"/>
+				</g>
+				<g id="shape3162-88" v:mID="3162" v:groupContext="shape" v:layerMember="0" transform="translate(16.0826,-17.7303)">
+					<title>Dynamischer Verbinder.13</title>
+					<path d="M-4.33 250.86 L-9.85 250.95" class="st3"/>
+				</g>
+			</g>
+			<g id="shape3163-91" v:mID="3163" v:groupContext="shape" v:layerMember="0" transform="translate(139.735,-39.7426)">
+				<title>Dynamischer Verbinder.3163</title>
+				<path d="M0 243.82 L-37.87 243.82 L-37.87 211.72" class="st3"/>
+			</g>
+			<g id="shape3164-94" v:mID="3164" v:groupContext="shape" v:layerMember="0" transform="translate(207.928,-46.9182)">
+				<title>Dynamischer Verbinder.3164</title>
+				<path d="M0 250.81 L-46.82 250.99" class="st3"/>
+			</g>
+			<g id="shape3165-97" v:mID="3165" v:groupContext="shape" v:layerMember="0" transform="translate(101.862,-118.157)">
+				<title>Dynamischer Verbinder.3165</title>
+				<path d="M0 243.82 L0 217.84 L152.96 217.84" class="st3"/>
+			</g>
+			<g id="shape3166-100" v:mID="3166" v:groupContext="shape" transform="translate(-130.197,171.975) rotate(-90)">
+				<title>Rechteck.3166</title>
+				<v:userDefs>
+					<v:ud v:nameU="visVersion" v:val="VT0(15):26"/>
+				</v:userDefs>
+				<rect x="0" y="220.302" width="46.3158" height="23.5142" class="st7"/>
+			</g>
+			<g id="shape3167-102" v:mID="3167" v:groupContext="shape" v:layerMember="0" transform="translate(90.105,-70.2365)">
+				<title>Dynamischer Verbinder.3167</title>
+				<path d="M0 236.8 L18.57 236.66" class="st3"/>
+			</g>
+			<g id="shape3168-105" v:mID="3168" v:groupContext="shape" v:layerMember="0" transform="translate(96.4002,-95.0259)">
+				<title>Dynamischer Verbinder.3168</title>
+				<path d="M1.9 243.82 L12.27 261.45" class="st3"/>
+			</g>
+			<g id="shape3169-108" v:mID="3169" v:groupContext="shape" v:layerMember="0" transform="translate(96.2006,-95.0259)">
+				<title>Dynamischer Verbinder.3169</title>
+				<path d="M2.1 243.82 L12.07 227.57" class="st3"/>
+			</g>
+			<g id="shape3170-111" v:mID="3170" v:groupContext="shape" v:layerMember="0" transform="translate(90.105,-104.101)">
+				<title>Dynamischer Verbinder.3170</title>
+				<path d="M0 236.81 L18.17 236.64" class="st3"/>
+			</g>
+			<g id="shape3171-114" v:mID="3171" v:groupContext="shape" v:layerMember="0" transform="translate(90.105,-77.2566)">
+				<title>Dynamischer Verbinder.3171</title>
+				<path d="M0 243.82 L-77.18 243.82 L-77.18 91.28" class="st3"/>
+			</g>
+			<g id="shape3172-117" v:mID="3172" v:groupContext="shape" v:layerMember="0" transform="translate(36.7908,-229.797)">
+				<title>Dynamischer Verbinder.3172</title>
+				<path d="M0 249.5 L0 249.86 L0 362.51 L53.31 362.51" class="st10"/>
+			</g>
+			<g id="shape3173-123" v:mID="3173" v:groupContext="shape" v:layerMember="0" transform="translate(-2.51799E-13,-222.71)">
+				<title>Dynamischer Verbinder.3173</title>
+				<path d="M0 236.73 L57 236.73" class="st12"/>
+			</g>
+			<g id="shape3174-126" v:mID="3174" v:groupContext="shape" transform="translate(93.285,-8.52651E-14)">
+				<title>Tabelle.3174</title>
+				<desc>Mixing Valve 1</desc>
+				<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
+				<v:textRect cx="56.1134" cy="224.221" width="112.23" height="39.1903"/>
+				<rect x="0" y="204.626" width="112.227" height="39.1903" class="st4"/>
+				<text x="20.55" y="227.82" class="st5" v:langID="1031"><v:paragraph v:horizAlign="1"/><v:tabList/>Mixing Valve 1</text>			</g>
+			<g id="shape3175-129" v:mID="3175" v:groupContext="shape" v:layerMember="0" transform="translate(231.442,-47.0065)">
+				<title>Dynamischer Verbinder.3175</title>
+				<path d="M0 250.9 L23.38 250.9" class="st3"/>
+			</g>
+			<g id="shape3176-132" v:mID="3176" v:groupContext="shape" v:layerMember="0" transform="translate(150.423,-50.4308)">
+				<title>Dynamischer Verbinder.3176</title>
+				<path d="M0 243.82 L0 150.12 L104.4 150.12" class="st3"/>
+			</g>
+			<g id="shape3177-135" v:mID="3177" v:groupContext="shape" transform="translate(184.252,-7.66691)">
+				<title>Tabelle.3177</title>
+				<desc>Pump 1</desc>
+				<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
+				<v:textRect cx="38.3969" cy="232.059" width="76.8" height="23.5142"/>
+				<rect x="0" y="220.302" width="76.7937" height="23.5142" class="st4"/>
+				<text x="19.8" y="235.66" class="st5" v:langID="1031"><v:paragraph v:horizAlign="1"/><v:tabList/>Pump 1</text>			</g>
+			<g id="group3182-138" transform="translate(339.225,111.398) rotate(-90)" v:mID="3182" v:groupContext="group">
+				<title>Tabelle.3182</title>
+				<g id="shape3183-139" v:mID="3183" v:groupContext="shape">
+					<title>Kreis</title>
+					<v:userDefs>
+						<v:ud v:nameU="visVersion" v:val="VT0(15):26"/>
+					</v:userDefs>
+					<path d="M0 232.06 A11.7571 11.7571 0 1 1 23.51 232.06 A11.7571 11.7571 0 0 1 0 232.06 Z" class="st7"/>
+				</g>
+				<g id="shape3184-141" v:mID="3184" v:groupContext="shape" transform="translate(1.95952,-5.70042)">
+					<title>Dreieck</title>
+					<v:userDefs>
+						<v:ud v:nameU="visVersion" v:val="VT0(15):26"/>
+					</v:userDefs>
+					<path d="M19.6 243.82 L9.8 226 L0 243.82 L19.6 243.82 Z" class="st8"/>
+				</g>
+			</g>
+			<g id="shape3185-143" v:mID="3185" v:groupContext="shape" v:layerMember="0" transform="translate(583.041,-151.173)">
+				<title>Dynamischer Verbinder.3185</title>
+				<path d="M0 250.81 L47.55 250.99" class="st3"/>
+			</g>
+			<g id="shape3186-146" v:mID="3186" v:groupContext="shape" transform="translate(937.838,123.799) rotate(90)">
+				<title>Rechteck.3186</title>
+				<v:userDefs>
+					<v:ud v:nameU="visVersion" v:val="VT0(15):26"/>
+				</v:userDefs>
+				<rect x="0" y="220.302" width="46.3158" height="23.5142" class="st7"/>
+			</g>
+			<g id="group3188-148" transform="translate(874.408,88.0619) rotate(90)" v:mID="3188" v:groupContext="group">
+				<title>Tabelle.3188</title>
+				<g id="group3189-149" transform="translate(6.41297,2.84217E-14)" v:mID="3189" v:groupContext="group">
+					<title>Tabelle.3189</title>
+					<g id="shape3190-150" v:mID="3190" v:groupContext="shape">
+						<title>Dreieck</title>
+						<v:userDefs>
+							<v:ud v:nameU="visVersion" v:val="VT0(15):26"/>
+						</v:userDefs>
+						<path d="M10.69 243.82 L5.34 233.13 L0 243.82 L10.69 243.82 Z" class="st7"/>
+					</g>
+					<g id="shape3191-152" v:mID="3191" v:groupContext="shape" transform="translate(10.6883,466.256) rotate(180)">
+						<title>Dreieck.7</title>
+						<v:userDefs>
+							<v:ud v:nameU="visVersion" v:val="VT0(15):26"/>
+						</v:userDefs>
+						<path d="M10.69 243.82 L5.34 233.13 L0 243.82 L10.69 243.82 Z" class="st9"/>
+					</g>
+					<g id="shape3192-154" v:mID="3192" v:groupContext="shape" transform="translate(-227.784,238.472) rotate(-90)">
+						<title>Dreieck.8</title>
+						<v:userDefs>
+							<v:ud v:nameU="visVersion" v:val="VT0(15):26"/>
+						</v:userDefs>
+						<path d="M10.69 243.82 L5.34 233.13 L0 243.82 L10.69 243.82 Z" class="st9"/>
+					</g>
+				</g>
+				<g id="shape3193-156" v:mID="3193" v:groupContext="shape" transform="translate(-1.1241E-13,-7.4818)">
+					<title>Quadrat</title>
+					<v:userDefs>
+						<v:ud v:nameU="visVersion" v:val="VT0(15):26"/>
+					</v:userDefs>
+					<rect x="0" y="237.581" width="6.23485" height="6.23485" class="st7"/>
+				</g>
+				<g id="shape3194-158" v:mID="3194" v:groupContext="shape" v:layerMember="0" transform="translate(16.0826,-17.7303)">
+					<title>Dynamischer Verbinder.13</title>
+					<path d="M-4.33 250.86 L-9.85 250.95" class="st3"/>
+				</g>
+			</g>
+			<g id="shape3202-161" v:mID="3202" v:groupContext="shape" v:layerMember="0" transform="translate(705.779,-120.017)">
+				<title>Dynamischer Verbinder.3202</title>
+				<path d="M0 243.82 L0 219.84 L-53.81 219.84" class="st3"/>
+			</g>
+			<g id="shape3203-164" v:mID="3203" v:groupContext="shape" v:layerMember="0" transform="translate(705.779,-73.7008)">
+				<title>Dynamischer Verbinder.3203</title>
+				<path d="M0 243.82 L0 277.6 L-173.6 277.6" class="st3"/>
+			</g>
+			<g id="shape3204-167" v:mID="3204" v:groupContext="shape" v:layerMember="0" transform="translate(717.536,-121.621)">
+				<title>Dynamischer Verbinder.3204</title>
+				<path d="M0 250.84 L-18.57 250.97" class="st3"/>
+			</g>
+			<g id="shape3205-170" v:mID="3205" v:groupContext="shape" v:layerMember="0" transform="translate(711.241,-96.832)">
+				<title>Dynamischer Verbinder.3205</title>
+				<path d="M-1.9 243.82 L-12.27 226.18" class="st3"/>
+			</g>
+			<g id="shape3206-173" v:mID="3206" v:groupContext="shape" v:layerMember="0" transform="translate(711.441,-96.832)">
+				<title>Dynamischer Verbinder.3206</title>
+				<path d="M-2.1 243.82 L-12.07 260.06" class="st3"/>
+			</g>
+			<g id="shape3207-176" v:mID="3207" v:groupContext="shape" v:layerMember="0" transform="translate(717.536,-87.757)">
+				<title>Dynamischer Verbinder.3207</title>
+				<path d="M0 250.82 L-18.17 250.99" class="st3"/>
+			</g>
+			<g id="shape3208-179" v:mID="3208" v:groupContext="shape" v:layerMember="0" transform="translate(717.536,-114.601)">
+				<title>Dynamischer Verbinder.3208</title>
+				<path d="M0 243.82 L59.16 243.82 L59.16 128.81" class="st3"/>
+			</g>
+			<g id="shape3209-182" v:mID="3209" v:groupContext="shape" v:layerMember="0" transform="translate(717.536,-80.755)">
+				<title>Dynamischer Verbinder.3209</title>
+				<path d="M0 243.82 L84.1 243.82 L84.1 101" class="st13"/>
+			</g>
+			<g id="shape3210-188" v:mID="3210" v:groupContext="shape" v:layerMember="0" transform="translate(759.685,-222.52)">
+				<title>Dynamischer Verbinder.3210</title>
+				<path d="M0 236.73 L57 236.73" class="st12"/>
+			</g>
+			<g id="shape3211-191" v:mID="3211" v:groupContext="shape" transform="translate(517.323,-144.567)">
+				<title>Tabelle.3211</title>
+				<desc>Pump 2</desc>
+				<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
+				<v:textRect cx="56.1134" cy="224.221" width="112.23" height="39.1903"/>
+				<rect x="0" y="204.626" width="112.227" height="39.1903" class="st4"/>
+				<text x="37.52" y="227.82" class="st5" v:langID="1031"><v:paragraph v:horizAlign="1"/><v:tabList/>Pump 2  </text>			</g>
+			<g id="shape3212-194" v:mID="3212" v:groupContext="shape" transform="translate(595.855,-144.376)">
+				<title>Tabelle.3212</title>
+				<desc>Mixing Valve 2</desc>
+				<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
+				<v:textRect cx="56.1134" cy="224.221" width="112.23" height="39.1903"/>
+				<rect x="0" y="204.626" width="112.227" height="39.1903" class="st4"/>
+				<text x="20.55" y="227.82" class="st5" v:langID="1031"><v:paragraph v:horizAlign="1"/><v:tabList/>Mixing Valve 2</text>			</g>
+			<g id="shape3214-197" v:mID="3214" v:groupContext="shape" v:layerMember="0" transform="translate(532.176,-137.066)">
+				<title>Dynamischer Verbinder.3214</title>
+				<path d="M0 236.75 L27.35 236.71" class="st3"/>
+			</g>
+			<g id="shape3215-200" v:mID="3215" v:groupContext="shape" v:layerMember="0" transform="translate(641.28,-133.309)">
+				<title>Dynamischer Verbinder.3215</title>
+				<path d="M0 243.82 L0 337.21 L-109.1 337.21" class="st3"/>
+			</g>
+			<g id="shape3223-203" v:mID="3223" v:groupContext="shape" transform="translate(32.4693,-106.802)">
+				<title>Tabelle.3223</title>
+				<desc>Cooling Coil</desc>
+				<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
+				<v:textRect cx="38.3969" cy="224.933" width="76.8" height="37.7652"/>
+				<rect x="0" y="206.051" width="76.7937" height="37.7652" class="st4"/>
+				<text x="9.67" y="228.53" class="st5" v:langID="1031"><v:paragraph v:horizAlign="1"/><v:tabList/>Cooling Coil</text>			</g>
+			<g id="shape3224-206" v:mID="3224" v:groupContext="shape" transform="translate(701.575,-112.506)">
+				<title>Tabelle.3224</title>
+				<desc>Heating Coil</desc>
+				<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
+				<v:textRect cx="38.3969" cy="224.933" width="76.8" height="37.7652"/>
+				<rect x="0" y="206.051" width="76.7937" height="37.7652" class="st4"/>
+				<text x="8.96" y="228.53" class="st5" v:langID="1031"><v:paragraph v:horizAlign="1"/><v:tabList/>Heating Coil</text>			</g>
+		</g>
+	</g>
+</svg>

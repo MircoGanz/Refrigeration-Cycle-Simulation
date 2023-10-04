@@ -16,3 +16,5 @@ dependencies:
   - pandas 
   - pathlib
   - scipy
+  - pyoptsparse
+  - pandas
