@@ -375,17 +375,15 @@ def solver(component: [Component]):
 
         A = component.parameter['A'].value
 
-        for port in component.ports:
-            if port.port_id[2] == psd['c']:
-                cold_fluid = port.fluid
-                p_in_c = port.p.value
-                h_in_c = port.h.value
-                m_in_c = port.m.value
-            elif port.port_id[2] == psd['h']:
-                hot_fluid = port.fluid
-                p_in_h = port.p.value
-                h_in_h = port.h.value
-                m_in_h = port.m.value
+        h_in_h = component.ports[psd['h']].h.value
+        p_in_h = component.ports[psd['h']].p.value
+        m_in_h = component.ports[psd['h']].m.value
+        hot_fluid = component.ports[psd['h']].fluid
+
+        h_in_c = component.ports[psd['c']].h.value
+        p_in_c = component.ports[psd['c']].p.value
+        m_in_c = component.ports[psd['c']].m.value
+        cold_fluid = component.ports[psd['c']].fluid
 
         if component.linearized:
             x = np.array(component.x0.copy())
@@ -430,17 +428,15 @@ def solver(component: [Component]):
                     h_out_c = component.lamda * h_out_c + (1 - component.lamda) * F[1]
                     m_out_c = component.lamda * m_in_c + (1 - component.lamda) * F[2]
 
-        for port in component.ports:
-            if port.port_id[2] == psd['-c']:
-                port.p.set_value(p_out_c)
-                port.h.set_value(h_out_c)
-                port.m.set_value(m_out_c)
-            elif port.port_id[2] == psd['-h']:
-                port.p.set_value(p_out_h)
-                port.h.set_value(h_out_h)
-                port.m.set_value(m_out_h)
+        component.ports[psd['-h']].p.set_value(p_out_h)
+        component.ports[psd['-h']].h.set_value(h_out_h)
+        component.ports[psd['-h']].m.set_value(m_out_h)
 
-        component.outputs['Q'] = HX.Q
+        component.ports[psd['-c']].p.set_value(p_out_c)
+        component.ports[psd['-c']].h.set_value(h_out_c)
+        component.ports[psd['-c']].m.set_value(m_out_c)
+
+        component.outputs['Q'].set_value(HX.Q)
 
     except:
         print('Evaporator ' + str(component.number) + ' ' + 'failed!')

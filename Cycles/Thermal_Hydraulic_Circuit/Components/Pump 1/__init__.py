@@ -1,4 +1,4 @@
-from system import Component
+from system import *
 from CoolProp.CoolProp import PropsSI
 import numpy as np
     
@@ -13,14 +13,11 @@ def solver(component: [Component]):
     try:
 
         k = component.parameter['k'].value
-        m0 = component.parameter['m0'].value
 
-        for port in component.ports:
-            if port.port_type == "in":
-                p_in = port.p.value
-                h_in = port.h.value
-            elif port.port_type == "out":
-                p_out = port.p.value
+        h_in = component.ports[psd['p']].h.value
+        p_in = component.ports[psd['p']].p.value
+        p_out = component.ports[psd['-p']].p.value
+        fluid = component.ports[psd['p']].fluid
 
         if component.linearized:
             x = np.array(component.x0.copy())
@@ -34,8 +31,7 @@ def solver(component: [Component]):
                     x[i] = port.p.value
                     i += 1
 
-        rho = PropsSI('D', 'H', h_in, 'P', p_in, port.fluid)
-        # m = max(m0 - k * (p_out - p_in), 0.00001)
+        rho = PropsSI('D', 'H', h_in, 'P', p_in, fluid)
         m = k * np.sqrt((p_out - p_in) / rho)
         h_out = h_in
 
@@ -49,13 +45,9 @@ def solver(component: [Component]):
             h_out = h_out
             m_out = m
 
-        for port in component.ports:
-            if port.port_type == "in":
-                port.m.set_value(m_in)
-        for port in component.ports:
-            if port.port_type == "out":
-                port.m.set_value(m_out)
-                port.h.set_value(h_out)
+        component.ports[psd['p']].m.set_value(m)
+        component.ports[psd['-p']].m.set_value(m)
+        component.ports[psd['-p']].h.set_value(h_out)
 
     except:
         print(component.name + ' ' + ' failed!')

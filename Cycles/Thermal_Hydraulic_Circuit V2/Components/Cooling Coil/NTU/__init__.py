@@ -53,29 +53,15 @@ def solver(component: [Component]):
         m_out_c = m_in_c
         m_out_h = m_in_h
 
+        component.ports[psd['-h']].p.set_value(p_out_h)
+        component.ports[psd['-h']].h.set_value(h_out_h)
+        component.ports[psd['-h']].m.set_value(m_out_h)
 
-        if component.linearized:
-            F = np.dot(component.J, (x - component.x0)) + component.F0
-            for port in component.ports:
-                if port.port_id[2] == psd['-h']:
-                    port.p.set_value(component.lamda * p_out_h + (1 - component.lamda) * F[0])
-                    port.h.set_value(component.lamda * h_out_h + (1 - component.lamda) * F[1])
-                    port.m.set_value(component.lamda * m_in_h + (1 - component.lamda) * F[2])
+        component.ports[psd['-c']].p.set_value(p_out_c)
+        component.ports[psd['-c']].h.set_value(h_out_c)
+        component.ports[psd['-c']].m.set_value(m_out_c)
 
-                elif port.port_id[2] == psd['-c']:
-                    port.p.set_value(component.lamda * p_out_c + (1 - component.lamda) * F[3])
-                    port.h.set_value(component.lamda * h_out_c + (1 - component.lamda) * F[4])
-                    port.m.set_value(component.lamda * m_in_c + (1 - component.lamda) * F[5])
-        else:
-            component.ports[psd['-h']].p.set_value(p_out_h)
-            component.ports[psd['-h']].h.set_value(h_out_h)
-            component.ports[psd['-h']].m.set_value(m_out_h)
-
-            component.ports[psd['-c']].p.set_value(p_out_c)
-            component.ports[psd['-c']].h.set_value(h_out_c)
-            component.ports[psd['-c']].m.set_value(m_out_c)
-
-        component.outputs['Q'] = Q
+        component.outputs['Q'].set_value(Q)
 
     except:
         print(component.name + ' failed!')

@@ -389,7 +389,7 @@ class HeatExchanger(object):
         # else:
         #     return 1000
 
-        return 10000
+        return 100000
 
 
 def solver(component: [Component]):

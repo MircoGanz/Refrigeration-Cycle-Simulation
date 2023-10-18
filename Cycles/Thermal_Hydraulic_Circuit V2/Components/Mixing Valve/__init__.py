@@ -12,8 +12,8 @@ def solver(component: [Component]):
     """
     try:
 
-        CA = component.parameter['CA'].value
-        eps = component.parameter['eps'].value
+        Kv = component.parameter['Kv'].value
+        U = component.parameter['U'].value
 
         p_in_A = component.ports[psd['A']].p.value
         h_in_A = component.ports[psd['A']].h.value
@@ -26,8 +26,10 @@ def solver(component: [Component]):
         rho_A = PropsSI('D', 'H', h_in_A, 'P', p_in_A, fluid_A)
         rho_B = PropsSI('D', 'H', h_in_A, 'P', p_in_B, fluid_B)
         A = 1.0
-        m_A = eps * A * CA * np.sqrt((p_in_A - p_out) / rho_A)
-        m_B = (1 - eps) * A * CA * np.sqrt((p_in_B - p_out) / rho_B)
+        # m_A = eps * A * CA * np.sqrt((p_in_A - p_out) / rho_A)
+        m_A = Kv * U * np.sqrt((p_in_A - p_out) * 1e-5 * 1000 * rho_A) / 3600
+        # m_B = (1 - eps) * A * CA * np.sqrt((p_in_B - p_out) / rho_B)
+        m_B = Kv * U * np.sqrt((p_in_B - p_out) * 1e-5 * 1000 * rho_B) / 3600
         h_out = m_A / (m_A + m_B) * h_in_A + m_B / (m_A + m_B) * h_in_B
         m_out = m_A + m_B
 

@@ -324,42 +324,40 @@ class HeatExchanger(object):
         D_h = self.Dh
         n = self.n
 
-        # if fluid == 'R134a':
-        #
-        #     if phase == "two-phase":
-        #
-        #         """
-        #         R134a Evaporation Heat Transfer Correlation by
-        #         Yan, Y.Y., Lin, T.F., 1999. Evaporation heat transfer and pressure drop of refrigerant R-134a
-        #         in a plate heat exchanger. J. Heat Transfer 121
-        #
-        #         """
-        #         x = PropsSI('Q', 'P', p, 'H', h, fluid)
-        #         rho_l = PropsSI('D', 'P', p, 'Q', 0.0, fluid)
-        #         rho_v = PropsSI('D', 'P', p, 'Q', 1.0, fluid)
-        #         mu_l = PropsSI('V', 'P', p, 'Q', 0.0, fluid)
-        #         lamda_l = PropsSI('L', 'P', p, 'Q', 0.0, fluid)
-        #         h_evap = PropsSI('H', 'P', p, 'Q', 1.0, fluid) - PropsSI('H', 'P', p, 'Q', 0.0, fluid)
-        #         G = m / n / S
-        #         Re = G * D_h / mu_l
-        #         G_eq = G * ((1 - x) + x * (rho_l / rho_v)) ** (1 / 2)
-        #         Re_eq = G_eq * D_h / mu_l
-        #         q = 10.5 * 1e3
-        #         Bo_eq = q / (G_eq * h_evap)
-        #         Pr_l = PropsSI('Prandtl', 'P', p, 'Q', 0.0, fluid)
-        #
-        #         return 1.926 * (lamda_l / D_h) * Re_eq * Pr_l ** (1 / 3) * Bo_eq ** (0.3) * Re ** (-0.5)
-        #
-        #     elif phase == "vapor":
-        #         return 1000
-        #
-        #     else:
-        #         return 1000
-        #
-        # else:
-        #     return 12200
+        if fluid == 'R134a':
 
-        return 10000
+            if phase == "two-phase":
+
+                """
+                R134a Evaporation Heat Transfer Correlation by
+                Yan, Y.Y., Lin, T.F., 1999. Evaporation heat transfer and pressure drop of refrigerant R-134a
+                in a plate heat exchanger. J. Heat Transfer 121
+
+                """
+                x = PropsSI('Q', 'P', p, 'H', h, fluid)
+                rho_l = PropsSI('D', 'P', p, 'Q', 0.0, fluid)
+                rho_v = PropsSI('D', 'P', p, 'Q', 1.0, fluid)
+                mu_l = PropsSI('V', 'P', p, 'Q', 0.0, fluid)
+                lamda_l = PropsSI('L', 'P', p, 'Q', 0.0, fluid)
+                h_evap = PropsSI('H', 'P', p, 'Q', 1.0, fluid) - PropsSI('H', 'P', p, 'Q', 0.0, fluid)
+                G = m / n / S
+                Re = G * D_h / mu_l
+                G_eq = G * ((1 - x) + x * (rho_l / rho_v)) ** (1 / 2)
+                Re_eq = G_eq * D_h / mu_l
+                q = 10.5 * 1e3
+                Bo_eq = q / (G_eq * h_evap)
+                Pr_l = PropsSI('Prandtl', 'P', p, 'Q', 0.0, fluid)
+
+                return 1.926 * (lamda_l / D_h) * Re_eq * Pr_l ** (1 / 3) * Bo_eq ** (0.3) * Re ** (-0.5)
+
+            elif phase == "vapor":
+                return 1000
+
+            else:
+                return 1000
+
+        else:
+            return 12200
 
 
 def solver(component: [Component]):
@@ -385,16 +383,6 @@ def solver(component: [Component]):
         m_in_c = component.ports[psd['c']].m.value
         cold_fluid = component.ports[psd['c']].fluid
 
-        if component.linearized:
-            x = np.array(component.x0.copy())
-            i = 0
-            for port in component.ports:
-                if port.port_type == 'in' and port.port_id[-1] == 0:
-                    x[i] = port.p.value
-                    x[i+1] = port.h.value
-                    x[i+2] = port.m.value
-                    i += 3
-
         if PropsSI('T', 'P', p_in_h, 'H', h_in_h, hot_fluid) < PropsSI('T', 'P', p_in_c, 'H', h_in_c, cold_fluid):
             HX = HeatExchanger(cold_fluid, m_in_c, p_in_c, h_in_c, hot_fluid, m_in_h, p_in_h, h_in_h)
             HX.A_h = HX.A_c = A
@@ -411,22 +399,10 @@ def solver(component: [Component]):
             HX.run(and_solve=True)
             h_out_h = HX.hvec_h[0]
             h_out_c = HX.hvec_c[-1]
-            p_out_c = p_in_c - 0.0001 * m_in_c
-            p_out_h = p_in_h - 0.0001 * m_in_h
+            p_out_c = p_in_c
+            p_out_h = p_in_h
             m_out_h = m_in_h
             m_out_c = m_in_c
-
-        if component.linearized:
-            F = np.dot(component.J, (x - component.x0)) + component.F0
-            for port in component.ports:
-                if port.port_id[2] == psd['-h']:
-                    p_out_h = component.lamda * p_out_h + (1 - component.lamda) * F[3]
-                    h_out_h = component.lamda * h_out_h + (1 - component.lamda) * F[4]
-                    m_out_h = component.lamda * m_in_h + (1 - component.lamda) * F[5]
-                elif port.port_id[2] == psd['-c']:
-                    p_out_c = component.lamda * p_out_c + (1 - component.lamda) * F[0]
-                    h_out_c = component.lamda * h_out_c + (1 - component.lamda) * F[1]
-                    m_out_c = component.lamda * m_in_c + (1 - component.lamda) * F[2]
 
         component.ports[psd['-h']].p.set_value(p_out_h)
         component.ports[psd['-h']].h.set_value(h_out_h)

@@ -16,9 +16,10 @@ def solver(component: [Component]):
 
         f = component.parameter['f'].value
 
-        h_in = component.ports_v2[psd['p']].h.value
-        p_in = component.ports_v2[psd['p']].p.value
-        p_out = component.ports_v2[psd['-p']].p.value
+        h_in = component.ports[psd['p']].h.value
+        p_in = component.ports[psd['p']].p.value
+        p_out = component.ports[psd['-p']].p.value
+        fluid = component.ports[psd['-p']].fluid
 
         if component.linearized:
             x = np.array(component.x0.copy())
@@ -32,8 +33,8 @@ def solver(component: [Component]):
                     x[i] = port.p.value
                     i += 1
 
-        t_evap = PropsSI("T", "P", p_in, "Q", 1, port.fluid) - 273.15
-        t_cond = PropsSI("T", "P", p_out, "Q", 0, port.fluid) - 273.15
+        t_evap = PropsSI("T", "P", p_in, "Q", 1, fluid) - 273.15
+        t_cond = PropsSI("T", "P", p_out, "Q", 0, fluid) - 273.15
         SH_ref = 10
 
         if not f % 5 == 0 and 30 <= f <= 70:
@@ -52,11 +53,11 @@ def solver(component: [Component]):
 
             return Phi
 
-        Z = PropsSI("D", "P", p_in, "H", h_in, port.fluid)
-        if abs(PropsSI("T", "P", p_in, "Q", 1.0, port.fluid) - (t_evap + SH_ref + 273.15)) < 1e-4:
-            N = PropsSI("D", "P", p_in, "Q", 1.0, port.fluid)
+        Z = PropsSI("D", "P", p_in, "H", h_in, fluid)
+        if abs(PropsSI("T", "P", p_in, "Q", 1.0, fluid) - (t_evap + SH_ref + 273.15)) < 1e-4:
+            N = PropsSI("D", "P", p_in, "Q", 1.0, fluid)
         else:
-            N = PropsSI("D", "P", p_in, "T", t_evap + SH_ref + 273.15, port.fluid)
+            N = PropsSI("D", "P", p_in, "T", t_evap + SH_ref + 273.15, fluid)
 
         m = evalPoly(t_evap, t_cond, coefficients.loc['m [kg/h]', :]) / 3600
 
@@ -76,17 +77,10 @@ def solver(component: [Component]):
             h_out = h_out
             m_out = m
 
-        component.ports_v2.ports[psd['p']].m.set_value(m_in)
-        component.ports_v2.ports[psd['-p']].m.set_value(h_out)
-        component.ports_v2.ports[psd['-p']].m.set_value(m_out)
+        component.ports[psd['p']].m.set_value(m_in)
+        component.ports[psd['-p']].h.set_value(h_out)
+        component.ports[psd['-p']].m.set_value(m_out)
 
-        for port in component.ports:
-            if port.port_type == "in":
-                port.m.set_value(m_in)
-        for port in component.ports:
-            if port.port_type == "out":
-                port.m.set_value(m_out)
-                port.h.set_value(h_out)
 
     except:
         print(component.name + ' ' + ' failed!')

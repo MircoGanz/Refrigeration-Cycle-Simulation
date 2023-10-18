@@ -16,12 +16,10 @@ def solver(component: [Component]):
 
         CA = component.parameter['CA'].value
 
-        for port in component.ports:
-            if port.port_id[2] == psd['p']:
-                p_in = port.p.value
-                h_in = port.h.value
-            elif port.port_id[2] == psd['-p']:
-                p_out = port.p.value
+        h_in = component.ports[psd['p']].h.value
+        p_in = component.ports[psd['p']].p.value
+        p_out = component.ports[psd['-p']].p.value
+        fluid = component.ports[psd['p']].fluid
 
         if component.linearized:
             x = np.array(component.x0.copy())
@@ -35,13 +33,13 @@ def solver(component: [Component]):
                     x[i] = port.p.value
                     i += 1
 
-        rho = PropsSI('D', 'P', p_in, 'H', h_in, port.fluid)
+        rho = PropsSI('D', 'P', p_in, 'H', h_in, fluid)
         if component.linearized:
             F = component.lamda * CA * np.sqrt(rho * (p_in - p_out)) + \
             (1 - component.lamda) * (np.dot(component.J, x - component.x0) + component.F0)
             m = F[0]
         else:
-            m = CA * np.sqrt(rho * (p_in - p_out))
+            m = CA * np.sqrt((p_in - p_out) / rho)
         h_out = h_in
 
         m_in = m
@@ -50,12 +48,9 @@ def solver(component: [Component]):
         if m < 0:
             print()
 
-        for port in component.ports:
-            if port.port_id[2] == psd['p']:
-                port.m.set_value(m_in)
-            elif port.port_id[2] == psd['-p']:
-                port.h.set_value(h_out)
-                port.m.set_value(m_out)
+        component.ports[psd['p']].m.set_value(m_in)
+        component.ports[psd['-p']].h.set_value(h_out)
+        component.ports[psd['-p']].m.set_value(m_out)
 
     except:
         print(component.name + ' failed!')

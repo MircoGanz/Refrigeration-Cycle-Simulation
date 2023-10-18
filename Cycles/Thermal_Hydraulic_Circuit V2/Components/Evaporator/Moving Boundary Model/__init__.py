@@ -17,9 +17,9 @@ class HeatExchanger(object):
     A_h = None # heat transfer area cold side
     t = 0.003  # wall thickness [m]
     L = 0.5 # heat excahnge Length [m]
-    Dh = 0.000909633 # hydraulic diameter [m]
+    Dh = 0.000866397 # hydraulic diameter [m]
     n = 22 # number of channels
-    S = 0.000227615 # Cross sectional area per channel [m2]
+    S = 0.000216787 # Cross sectional area per channel [m2]
     k = 16.7 # heat conductivity [W/mK]
 
     fluid_list = ['Water', 'Air', 'R134a', 'R744']
@@ -68,20 +68,14 @@ class HeatExchanger(object):
         """ Determine the maximum heat transfer rate based on the external pinching analysis """
 
         if self.T_hmin < self.T_ci:
-            if abs(self.T_ci - PropsSI('T', 'P', self.p_hi, 'Q', 1.0, self.Fluid_h)) < 1e-4:
-                self.h_ho = PropsSI('H', 'P', self.p_hi, 'Q', 1.0, self.Fluid_h)
-            else:
-                self.h_ho = PropsSI('H', 'T', self.T_ci, 'P', self.p_hi, self.Fluid_h)
+            self.h_ho = PropsSI('H', 'T', self.T_ci, 'P', self.p_hi, self.Fluid_h)
         else:
             self.h_ho = PropsSI('H', 'T', self.T_hmin, 'P', self.p_hi, self.Fluid_h)
 
         Qmaxh = self.mdot_h * (self.h_hi - self.h_ho)
 
         if self.T_cmax > self.T_hi:
-            if abs(self.T_hi - PropsSI('T', 'P', self.p_ci, 'Q', 1.0, self.Fluid_h)) < 1e-4:
-                self.h_co = PropsSI('H', 'P', self.p_ci, 'Q', 1.0, self.Fluid_c)
-            else:
-                self.h_co = PropsSI('H', 'T', self.T_hi, 'P', self.p_ci, self.Fluid_c)
+            self.h_co = PropsSI('H', 'T', self.T_hi, 'P', self.p_ci, self.Fluid_c)
         else:
             self.h_co = PropsSI('H', 'T', self.T_cmax, 'P', self.p_ci, self.Fluid_c)
 
@@ -105,15 +99,15 @@ class HeatExchanger(object):
         self.hvec_h = [self.h_ho, self.h_hi]
 
         # Add the bubble and dew enthalpies for the hot stream
-        if self.h_hdew is not None and self.h_hi > self.h_hdew > self.h_ho:
+        if self.h_hdew is not None and self.h_hi - 1e-4 > self.h_hdew > self.h_ho + 1e-4:
             self.hvec_h.insert(-1, self.h_hdew)
         if self.h_hbubble is not None and self.h_hi > self.h_hbubble > self.h_ho:
             self.hvec_h.insert(1, self.h_hbubble)
 
         # Add the bubble and dew enthalpies for the cold stream
-        if self.h_cdew is not None and self.h_ci < self.h_cdew < self.h_co:
+        if self.h_cdew is not None and self.h_ci + 1e-4 < self.h_cdew < self.h_co - 1e-4:
             self.hvec_c.insert(-1, self.h_cdew)
-        if self.h_cbubble is not None and self.h_ci < self.h_cbubble < self.h_co:
+        if self.h_cbubble is not None and self.h_ci + 1e-4 < self.h_cbubble < self.h_co - 1e-4:
             self.hvec_c.insert(1, self.h_cbubble)
 
         # Fill in the complementary cell boundaries
@@ -139,10 +133,14 @@ class HeatExchanger(object):
 
             Qcell_hk = self.mdot_h * (self.hvec_h[k + 1] - self.hvec_h[k])
             Qcell_ck = self.mdot_c * (self.hvec_c[k + 1] - self.hvec_c[k])
-            # assert (abs(Qcell_hk / Qcell_ck - 1) < 1e-6)
+            assert (abs(Qcell_hk / Qcell_ck - 1) < 1e-6)
 
             # Increment index
             k += 1
+
+        assert (len(self.hvec_h) == len(self.hvec_c))
+        Qhs = np.array([self.mdot_h * (self.hvec_h[i + 1] - self.hvec_h[i]) for i in range(len(self.hvec_h) - 1)])
+        Qcs = np.array([self.mdot_c * (self.hvec_c[i + 1] - self.hvec_c[i]) for i in range(len(self.hvec_c) - 1)])
 
         # Calculate the temperature and entropy at each cell boundary
         self.Tvec_c = PropsSI('T', 'H', self.hvec_c, 'P', self.p_ci, self.Fluid_c)
@@ -187,13 +185,11 @@ class HeatExchanger(object):
 
             # Try to find the dew point enthalpy as one of the cell boundaries
             # that is not the inlet or outlet
-
             if self.h_hdew == None:
                 Qmax = self.mdot_h * (self.hvec_h[-1] - self.hvec_h[0])
                 return Qmax
             # Check for the hot stream pinch point
             for i in range(1, len(self.hvec_h) - 1):
-
                 # Check if enthalpy is equal to the dewpoint enthalpy of hot
                 # stream and hot stream is colder than cold stream (impossible)
                 if (abs(self.hvec_h[i] - self.h_hdew) < 1e-6
@@ -241,6 +237,7 @@ class HeatExchanger(object):
             raise ValueError
 
     def run(self, only_external=False, and_solve=False):
+
         # Check the external pinching & update cell boundaries
         Qmax_ext = self.external_pinching()
         Qmax = Qmax_ext
@@ -293,17 +290,18 @@ class HeatExchanger(object):
                 except ValueError as VE:
                     print(Q, DTA, DTB)
                     raise
+
             UA_req = self.mdot_h * (self.hvec_h[k + 1] - self.hvec_h[k]) / LMTD
             h_h = (self.hvec_h[k + 1] + self.hvec_h[k]) / 2
-            T_h = (self.Tvec_h[k+1] + self.Tvec_h[k]) / 2
+            T_h = (self.Tvec_h[k + 1] + self.Tvec_h[k]) / 2
             h_c = (self.hvec_c[k + 1] + self.hvec_c[k]) / 2
-            T_c = (self.Tvec_c[k+1] + self.Tvec_c[k]) / 2
+            T_c = (self.Tvec_c[k + 1] + self.Tvec_c[k]) / 2
             T_w = (T_h + T_c) / 2
             alpha_h = self.alpha_correlation(self.p_hi, h_h, T_h, T_w, self.mdot_h, self.phases_h[k], self.Fluid_h)
             alpha_c = self.alpha_correlation(self.p_ci, h_c, T_c, T_w, self.mdot_c, self.phases_c[k], self.Fluid_c)
 
             UA_avail = 1 / (1 / (alpha_h * self.A_h) + 1 / (alpha_c * self.A_c))
-            Uj = 1 / (1 / alpha_h + self.A_h/self.A_c * 1 / alpha_c)
+            Uj = 1 / (1 / alpha_h + self.A_h / self.A_c * 1 / alpha_c)
             self.Areq.append(UA_req / Uj)
             w.append(UA_req / UA_avail)
 
@@ -313,14 +311,11 @@ class HeatExchanger(object):
         """
         Solve the objective function using Brent's method and the maximum heat transfer
         rate calculated from the pinching analysis
-
-        """
+        # """
         if self.objective_function(self.Qmax - 1e-10) < 0:
             self.Q = scipy.optimize.brentq(self.objective_function, 1e-5, self.Qmax - 1e-10, rtol=1e-14, xtol=1e-10)
         else:
             self.Q = self.Qmax
-
-        self.calculate_cell_boundaries(self.Q)
         return self.Q
 
     def alpha_correlation(self, p, h, T, Tw, m, phase, fluid):
@@ -328,66 +323,41 @@ class HeatExchanger(object):
         # S = self.S
         # D_h = self.Dh
         # n = self.n
-        # phi = 1.5
         #
         # if fluid == 'R134a':
         #
         #     if phase == "two-phase":
         #
         #         """
-        #         R134aCondensation Heat Transfer Correlation by
-        #         Longo, G.A., Righetti, G., Zilio, C., 2014. A New Model for Refrigeration Condensation Inside a Brazed
-        #         Plate Heat Exchanger(BPHE).Kyoto, Japan, Proceedings of the 15th International Heat Transfer Conference,
-        #         IHTC - 15, August 10– 15.
+        #         R134a Evaporation Heat Transfer Correlation by
+        #         Yan, Y.Y., Lin, T.F., 1999. Evaporation heat transfer and pressure drop of refrigerant R-134a
+        #         in a plate heat exchanger. J. Heat Transfer 121
         #
         #         """
-        #
         #         x = PropsSI('Q', 'P', p, 'H', h, fluid)
         #         rho_l = PropsSI('D', 'P', p, 'Q', 0.0, fluid)
         #         rho_v = PropsSI('D', 'P', p, 'Q', 1.0, fluid)
-        #         mu_v = PropsSI('V', 'P', p, 'Q', 1.0, fluid)
         #         mu_l = PropsSI('V', 'P', p, 'Q', 0.0, fluid)
         #         lamda_l = PropsSI('L', 'P', p, 'Q', 0.0, fluid)
-        #         lamda_v = PropsSI('L', 'P', p, 'Q', 1.0, fluid)
         #         h_evap = PropsSI('H', 'P', p, 'Q', 1.0, fluid) - PropsSI('H', 'P', p, 'Q', 0.0, fluid)
-        #         cp_h = PropsSI('C', 'P', p, 'H', h, fluid)
-        #         Pr_l = PropsSI('Prandtl', 'P', p, 'Q', 0.0, fluid)
-        #         Pr_v = PropsSI('Prandtl', 'P', p, 'Q', 1.0, fluid)
         #         G = m / n / S
-        #         Re_v = G * D_h / mu_v
+        #         Re = G * D_h / mu_l
         #         G_eq = G * ((1 - x) + x * (rho_l / rho_v)) ** (1 / 2)
         #         Re_eq = G_eq * D_h / mu_l
-        #         q = 8.09
-        #         h_sat = 1.875 * phi * (lamda_l / D_h) * Re_eq ** 0.445 * Pr_l ** (1 / 3)
-        #         h_l = 0.2267 * (lamda_v / D_h) * Re_v ** 0.631 * Pr_v ** (1 / 3)
-        #         T_sat = PropsSI('T', 'P', p, 'Q', 1.0, fluid)
-        #         if (T_sat - Tw) > 0:
-        #             F = (T - T_sat) / (T_sat - Tw)
-        #         else:
-        #             F = 0
-        #         return h_sat + F * (h_l + (cp_h * q) / h_evap)
+        #         q = 10.5 * 1e3
+        #         Bo_eq = q / (G_eq * h_evap)
+        #         Pr_l = PropsSI('Prandtl', 'P', p, 'Q', 0.0, fluid)
+        #
+        #         return 1.926 * (lamda_l / D_h) * Re_eq * Pr_l ** (1 / 3) * Bo_eq ** (0.3) * Re ** (-0.5)
         #
         #     elif phase == "vapor":
-        #
-        #         return 10000
+        #         return 1000
         #
         #     else:
-        #
         #         return 1000
         #
         # else:
-        #     return 4780
-
-        # if fluid == 'R134a':
-        #
-        #     if phase == 'two-phase':
-        #         return 10000
-        #     elif phase == 'vapor':
-        #         return 10000
-        #     else:
-        #         return 10000
-        # else:
-        #     return 1000
+        #     return 12200
 
         return 10000
 
@@ -415,24 +385,14 @@ def solver(component: [Component]):
         m_in_c = component.ports[psd['c']].m.value
         cold_fluid = component.ports[psd['c']].fluid
 
-        if component.linearized:
-            x = np.array(component.x0.copy())
-            i = 0
-            for port in component.ports:
-                if port.port_type == 'in' and port.port_id[-1] == 0:
-                    x[i] = port.p.value
-                    x[i+1] = port.h.value
-                    x[i+2] = port.m.value
-                    i += 3
-
         if PropsSI('T', 'P', p_in_h, 'H', h_in_h, hot_fluid) < PropsSI('T', 'P', p_in_c, 'H', h_in_c, cold_fluid):
             HX = HeatExchanger(cold_fluid, m_in_c, p_in_c, h_in_c, hot_fluid, m_in_h, p_in_h, h_in_h)
             HX.A_h = HX.A_c = A
             HX.run(and_solve=True)
             h_out_h = HX.hvec_c[-1]
             h_out_c = HX.hvec_h[0]
-            p_out_c = p_in_c
             p_out_h = p_in_h
+            p_out_c = p_in_c
             m_out_h = m_in_h
             m_out_c = m_in_c
         else:
@@ -441,23 +401,10 @@ def solver(component: [Component]):
             HX.run(and_solve=True)
             h_out_h = HX.hvec_h[0]
             h_out_c = HX.hvec_c[-1]
-            p_out_c = p_in_c
-            p_out_h = p_in_h
+            p_out_c = p_in_c - 0.0001 * m_in_c
+            p_out_h = p_in_h - 0.0001 * m_in_h
             m_out_h = m_in_h
             m_out_c = m_in_c
-
-        if component.linearized:
-            F = np.dot(component.J, (x - component.x0)) + component.F0
-            for port in component.ports:
-                if port.port_id[2] == psd['-h']:
-                    p_out_h = component.lamda * p_out_h + (1 - component.lamda) * F[0]
-                    h_out_h = component.lamda * h_out_h + (1 - component.lamda) * F[1]
-                    m_out_h = component.lamda * m_in_h + (1 - component.lamda) * F[2]
-
-                elif port.port_id[2] == psd['-c']:
-                    p_out_c = component.lamda * p_out_c + (1 - component.lamda) * F[3]
-                    h_out_c = component.lamda * h_out_c + (1 - component.lamda) * F[4]
-                    m_out_c = component.lamda * m_in_c + (1 - component.lamda) * F[5]
 
         component.ports[psd['-h']].p.set_value(p_out_h)
         component.ports[psd['-h']].h.set_value(h_out_h)
@@ -470,20 +417,19 @@ def solver(component: [Component]):
         component.outputs['Q'].set_value(HX.Q)
 
     except:
-        print(component.name + ' failed!')
+        print('Evaporator ' + str(component.number) + ' ' + 'failed!')
         component.status = 0
 
     if component.diagramm_plot:
-
         A = [0]
         for i, element in enumerate(HX.Areq):
-            A.append(A[-1] + element)
+            A.append((sum(A) + element))
         A = A / sum(HX.Areq)
 
         fig, ax = plt.subplots()
         fig.suptitle(f'{component.name} \n {round(HX.Q / 1000, 3)} kW', fontsize=16)
-        ax.plot(A, HX.Tvec_c-273.15, 'b-')
-        ax.plot(A, HX.Tvec_h-273.15, 'r-')
+        ax.plot(A, HX.Tvec_c - 273.15, 'b-')
+        ax.plot(A, HX.Tvec_h - 273.15, 'r-')
         ax.set_xlabel('$A / A_{ges} [-]$')
         ax.set_ylabel('$Temperature [\u00b0 C]$')
         ax.grid(True)

@@ -66,16 +66,16 @@ def main():
                       solver_path_list=solver_path_list,
                       fluid_list=fluid_list)
 
-    circuit.components['Compressor'].add_component_parameter(name='f', value=50)
-    circuit.components['Compressor'].add_component_output(name='P')
+    circuit.add_parameter(component_name='Compressor', parameter_name='f', value=50)
+    circuit.add_output(component_name='Compressor', output_name='P')
 
-    circuit.components['Condenser'].add_component_parameter(name='A', value=3.65)
-    circuit.components['Condenser'].add_component_output(name='Q')
+    circuit.add_parameter(component_name='Condenser', parameter_name='A', value=3.65)
+    circuit.add_output(component_name='Condenser', output_name='Q')
 
-    circuit.components['Expansion Valve'].add_component_parameter(name='CA', value=2.63e-6, scale_factor=1e5, is_input=True, bounds=(1e-9, 1e3))
+    circuit.add_parameter(component_name='Expansion Valve', parameter_name='CA', value=2.63e-6, scale_factor=1e5, is_input=True, bounds=(1e-9, 1e3))
 
-    circuit.components['Evaporator'].add_component_parameter(name='A', value=2.65)
-    circuit.components['Evaporator'].add_component_output(name='Q')
+    circuit.add_parameter(component_name='Evaporator', parameter_name='A', value=2.65)
+    circuit.add_output(component_name='Evaporator', output_name='Q')
 
     pi_v_sec = 2.0
     Ti_v_sec = -9.25
@@ -85,19 +85,13 @@ def main():
     Ti_c_sec = 30.0
     mi_c_sec = 1.0
 
-    circuit.components['Evaporator Source'].parameter['p_source'].set_value(pi_v_sec * 1e5)
-    circuit.components['Evaporator Source'].parameter['T_source'].set_value(Ti_v_sec + 273.15)
-    circuit.components['Evaporator Source'].parameter['m_source'].set_value(mi_v_sec)
-    circuit.components['Evaporator Source'].parameter['m_source'].is_input = True
-    circuit.components['Evaporator Source'].parameter['m_source'].initial_value = mi_v_sec
-    circuit.components['Evaporator Source'].parameter['m_source'].bounds = (0.0001, 1000.0)
+    circuit.set_parameter('Evaporator Source', 'p_source', value=pi_v_sec * 1e5)
+    circuit.set_parameter('Evaporator Source', 'T_source', value=Ti_v_sec + 273.15)
+    circuit.set_parameter('Evaporator Source', 'm_source', value=mi_v_sec, is_input=True, initial_value=mi_c_sec, bounds=(0.0001, 10000.0))
 
-    circuit.components['Condenser Source'].parameter['p_source'].set_value(pi_c_sec * 1e5)
-    circuit.components['Condenser Source'].parameter['T_source'].set_value(Ti_c_sec + 273.15)
-    circuit.components['Condenser Source'].parameter['m_source'].set_value(mi_c_sec)
-    circuit.components['Condenser Source'].parameter['m_source'].is_input = True
-    circuit.components['Condenser Source'].parameter['m_source'].initial_value = mi_c_sec
-    circuit.components['Condenser Source'].parameter['m_source'].bounds = (0.0001, 10000.0)
+    circuit.set_parameter('Condenser Source', 'p_source', value=pi_c_sec * 1e5)
+    circuit.set_parameter('Condenser Source', 'T_source', value=Ti_c_sec + 273.15)
+    circuit.set_parameter('Condenser Source', 'm_source', value=mi_c_sec, is_input=True, initial_value=mi_c_sec, bounds=(0.0001, 10000.0))
 
     # gets design criteria value from widget input
     SH = 10.0
@@ -106,9 +100,8 @@ def main():
     To_c_sp = 45.0
 
     # adds design equations to circuit
-    circuit.add_design_equa(SuperheatEquation(circuit.components['Evaporator'], SH, 'out', 'h', psd['-c'], relaxed=True))
-    # circuit.add_design_equa(DesignParameterEquation(circuit.components['Compressor'], pi_co * 1e5, 'out', 'p', psd['-p'], relaxed=True))
-    circuit.add_design_equa(DesignParameterEquation(circuit.components['Condenser'], To_c_sp + 273.15, 'out', 'T', psd['-c'], relaxed=False))
+    circuit.add_design_equa(name='Superheat', design_equa=SuperheatEquation(circuit.components['Evaporator'], DC_value=SH, port_type='out', var_type='h', port_id=psd['-c'], relaxed=False))
+    circuit.add_design_equa(name='To_c_sp', design_equa=DesignParameterEquation(circuit.components['Condenser'], DC_value=To_c_sp + 273.15, port_type='out', var_type='T', port_id=psd['-c'], relaxed=True))
 
     # solver initial values
     p1 = PropsSI('P', 'T', Ti_v_sec + 273.15 - 5.0, 'Q', 1.0, fluid_list[0])

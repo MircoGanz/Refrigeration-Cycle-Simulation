@@ -1,17 +1,15 @@
-from system import Component, psd
-import numpy as np
+from system import *
 from CoolProp.CoolProp import PropsSI
-
+import numpy as np
+    
 
 def solver(component: [Component]):
-
     """
-    solves expansion valve object using Fixed Orifice Model
+    solves valve object
 
-    :param    component:   expansion valve object
-    :return:  None:        all port states of the expansion valve object gets updated by solution values
+    :param    component:   valve object
+    :return:  None:        all port states of the valve object gets updated by solution values
     """
-
     try:
 
         U = component.parameter['U'].value
@@ -31,10 +29,6 @@ def solver(component: [Component]):
         component.ports[psd['-p']].h.set_value(h_out)
         component.ports[psd['-p']].m.set_value(m_out)
 
-        component.ports[psd['p']].m.set_value(m_in)
-        component.ports[psd['-p']].h.set_value(h_out)
-        component.ports[psd['-p']].m.set_value(m_out)
-
     except:
-        print(component.name + ' failed!')
+        print(component.name + ' ' + ' failed!')
         component.status = 0

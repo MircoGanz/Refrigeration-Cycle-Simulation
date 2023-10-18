@@ -38,7 +38,7 @@ def main():
 
     # defines the solver path of each component
     solver_path_list = [directory + '/Components/Compressor/Polynomial based Model',
-                        directory + '/Components/Condenser/Moving Boundary Model',
+                        directory + '/Components/Condenser/Moving Boundary Model V2',
                         directory + " ",
                         directory + '/Components/ExpansionValve',
                         directory + '/Components/Evaporator/Moving Boundary Model',
@@ -61,7 +61,7 @@ def main():
                                     'Sink']
 
     # defines fluids of each fluid loop
-    fluid_list = ['R134a', 'INCOMP::TY20', 'Water']
+    fluid_list = ['R134a', 'Water', 'Water']
 
     circuit = Circuit(jpcm=jpcm,
                       component_type_list=component_type_list,
@@ -70,41 +70,39 @@ def main():
                       solver_path_list=solver_path_list,
                       fluid_list=fluid_list)
 
-    circuit.components['Compressor'].add_component_parameter(name='f', value=70)
-    circuit.components['Compressor'].add_component_output(name='P')
+    circuit.add_parameter(component_name='Compressor', parameter_name='f', value=30)
+    circuit.add_output(component_name='Compressor', output_name='P')
 
-    circuit.components['Condenser'].add_component_parameter(name='A', value=3.65)
-    circuit.components['Condenser'].add_component_output(name='Q')
+    circuit.add_parameter(component_name='Condenser', parameter_name='A', value=3.65)
+    circuit.add_output(component_name='Condenser', output_name='Q')
 
-    circuit.components['Expansion Valve'].add_component_parameter(name='CA', value=0.004, scale_factor=1e5, is_input=True, bounds=(1e-9, 1e3))
+    circuit.add_parameter(component_name='Expansion Valve', parameter_name='Kv', value=0.25, scale_factor=1e1, bounds=(1e-3, 1e3))
+    circuit.add_parameter(component_name='Expansion Valve', parameter_name='U', value=0.5, scale_factor=1e1, is_input=True, bounds=(0.1, 1.0))
 
-    circuit.components['Evaporator'].add_component_parameter(name='A', value=2.65)
-    circuit.components['Evaporator'].add_component_output(name='Q')
+    circuit.add_parameter(component_name='Evaporator', parameter_name='A', value=2.65)
+    circuit.add_output(component_name='Evaporator', output_name='Q')
 
-    circuit.components['IHX'].add_component_parameter(name='A', value=0.78)
-    circuit.components['IHX'].add_component_parameter(name='k', value=123.0)
+    circuit.add_parameter(component_name='IHX', parameter_name='A', value=0.784)
+    circuit.add_parameter(component_name='IHX', parameter_name='k', value=123.0)
 
     pi_v_sec = 2.0
-    Ti_v_sec = -1.0
-    mi_v_sec = 10.0
+    Ti_v_sec = 10.0
+    mi_v_sec = 50 / 60 * 1
 
-    pi_c_sec = 1.0
-    Ti_c_sec = 30.0
-    mi_c_sec = 10.0
+    pi_c_sec = 2.0
+    Ti_c_sec = 45.0
+    mi_c_sec = 70 / 60 * 1
 
-    circuit.components['Evaporator Source'].parameter['p_source'].set_value(pi_v_sec * 1e5)
-    circuit.components['Evaporator Source'].parameter['T_source'].set_value(Ti_v_sec + 273.15)
-    circuit.components['Evaporator Source'].parameter['m_source'].set_value(mi_v_sec)
-    circuit.components['Evaporator Source'].parameter['m_source'].is_input = False
-    circuit.components['Evaporator Source'].parameter['m_source'].initial_value = mi_v_sec
-    circuit.components['Evaporator Source'].parameter['m_source'].bounds = (0.01, 1000.0)
+    circuit.set_parameter('Evaporator Source', 'p_source', value=pi_v_sec * 1e5)
+    # circuit.set_port_value('Evaporator', port_name='h', var_type='p', value=pi_v_sec * 1e5)
+    circuit.set_parameter('Evaporator Source', 'T_source', value=Ti_v_sec + 273.15)
+    # circuit.set_port_value('Evaporator', port_name='h', var_type='h', value=Ti_v_sec - 273.15)
+    circuit.set_parameter('Evaporator Source', 'm_source', value=mi_v_sec, is_input=False, initial_value=mi_v_sec, bounds=(0.0001, 10000.0))
+    # circuit.set_port_value('Evaporator', port_name='h', var_type='m', value=mi_v_sec)
 
-    circuit.components['Condenser Source'].parameter['p_source'].set_value(pi_c_sec * 1e5)
-    circuit.components['Condenser Source'].parameter['T_source'].set_value(Ti_c_sec + 273.15)
-    circuit.components['Condenser Source'].parameter['m_source'].set_value(mi_c_sec)
-    circuit.components['Condenser Source'].parameter['m_source'].is_input = False
-    circuit.components['Condenser Source'].parameter['m_source'].initial_value = mi_c_sec
-    circuit.components['Condenser Source'].parameter['m_source'].bounds = (0.01, 10000.0)
+    circuit.set_parameter('Condenser Source', 'p_source', value=pi_c_sec * 1e5)
+    circuit.set_parameter('Condenser Source', 'T_source', value=Ti_c_sec + 273.15)
+    circuit.set_parameter('Condenser Source', 'm_source', value=mi_c_sec, is_input=False, initial_value=mi_c_sec, bounds=(0.0001, 10000.0))
 
     # gets design criteria value from widget input
     SH = 10.0
@@ -113,7 +111,7 @@ def main():
     To_c_sp = 50.0
 
     # adds design equations to circuit
-    circuit.add_design_equa(SuperheatEquation(circuit.components['Evaporator'], SH, 'out', 'h', psd['-c'], relaxed=False))
+    circuit.add_design_equa(name='Superheat Equation', design_equa=SuperheatEquation(circuit.components['Evaporator'], SH, 'out', 'h', psd['-c'], relaxed=False))
     # circuit.add_design_equa(DesignParameterEquation(circuit.components['Compressor'], po_co * 1e5, 'out', 'p', psd['-p'], relaxed=False))
     # circuit.add_design_equa(DesignParameterEquation(circuit.components['Condenser'], To_c_sp + 273.15, 'out', 'T', psd['-c'], relaxed=False))
 
