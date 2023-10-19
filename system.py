@@ -902,6 +902,7 @@ class SubcoolingEquation(DesignEquation):
         self.DC_port_type = port_type
         self.DC_var_type = var_type
         self.port_id = port_id
+        self.scale_factor = 1e-5
 
     def solve(self):
         """
@@ -977,12 +978,11 @@ class DesignParameterEquation(DesignEquation):
 
 class OutputDesignEquation(DesignEquation):
 
-    def __init__(self, component: Component, DC_value: float, output_name: str, scale_factor: float, relaxed=False):
+    def __init__(self, component: Component, DC_value: float, output_name: str, scale_factor=1.0, relaxed=False):
         super().__init__(component, DC_value, relaxed)
 
         self.output_name = output_name
         self.scale_factor = scale_factor
-        self.component = component
 
         if not output_name in [key for key in component.outputs]:
             RuntimeError(f'Output name "{output_name}" not in components output dictionary!')
@@ -990,7 +990,7 @@ class OutputDesignEquation(DesignEquation):
             pass
 
     def solve(self):
-        return (self.component.outputs[self.output_name].value - self.DC_value) * self.scale_factor
+        return self.component.outputs[self.output_name].value - self.DC_value
 
 
 class Junction:
@@ -1321,7 +1321,7 @@ class Circuit:
         # evaluates the resiudals at the current iteration
         res = [equa.residual() for equa in self.res_equa]
         res += [equa.solve() for equa in self.loop_breaker_equa]
-        res += [((self.design_equa[key].solve() + self.design_equa[key].S.value) * self.design_equa[key].S.scale_factor)
+        res += [((self.design_equa[key].solve() + self.design_equa[key].S.value) * self.design_equa[key].scale_factor)
                 if self.design_equa[key].relaxed
                 else (self.design_equa[key].solve() * self.design_equa[key].scale_factor)
                 for i, key in enumerate(self.design_equa)]
@@ -1547,7 +1547,7 @@ def system_solver(circuit: Circuit):
     :param x0:                  iteration start variables
     :param circuit:             Circuit object
     :return:                    solution of the system
-    
+
     """
 
     def fun(x):
@@ -2109,35 +2109,96 @@ def system_solver(circuit: Circuit):
 
     if len(circuit.res_equa) + len(circuit.design_equa) + len(circuit.loop_breaker_equa) == len(circuit.Vt) + len(
             circuit.U) \
-            and not any([True if equa.relaxed else False for equa in circuit.design_equa]):
+            and not any([True if circuit.design_equa[key].relaxed else False for key in circuit.design_equa]):
 
         # Runs Broyden solver, returning the solution array if the solver converges; otherwise, starts the Arc-Length Continuation solver.
         print('Start Broyden Solver \n'
               'computing Jacobian...')
         J, convergence_flag = jacobian_forward(fun, x0_scaled)
         if convergence_flag == 0:
-            return {'x': x0_scaled, 'converged': False, 'message': 'failed to compute initial jacobian!'}
+            print('Failed to compute intial jacobian! \n')
+            print('Start SQLSQ Algorithm to solve system')
+            pool = multiprocessing.Pool(len(x0_scaled))
+            circuit_clones = [deepcopy(circuit)] * len(x0_scaled)
+            sol = scipy.optimize.fmin_slsqp(obj_fun,
+                                            x0_scaled,
+                                            bounds=bnds_scaled,
+                                            f_eqcons=circuit.econ,
+                                            fprime=grad_obj,
+                                            fprime_eqcons=partial(grad_econ, pool, circuit_clones),
+                                            full_output=True,
+                                            disp=3,
+                                            acc=1.0e-6,
+                                            epsilon=1.0e-05,
+                                            iter=1000)
+            if sol[3] == 0:
+                print('Solver converged!')
+                i = 0
+                for var in circuit.Vt:
+                    var.initial_value = sol[0][i] / var.scale_factor
+                    i += 1
+                for var in circuit.U:
+                    var.initial_value = sol[0][i] / var.scale_factor
+                    i += 1
+                for var in circuit.S:
+                    var.initial_value = sol[0][i] / var.scale_factor
+                    i += 1
+                with open('init.pkl', 'wb') as save_data:
+                    pickle.dump([var.initial_value for var in circuit.Vt + circuit.U + circuit.S], save_data)
+                return {'x': sol[0], 'f': circuit.econ(sol[0]), 'n_it': sol[2], 'converged': True,
+                        'message': 'solver converged'}
+            else:
+                return {'x': sol[0], 'converged': False, 'message': 'model execution error'}
         sol = broyden_method(fun, J, max_iter, epsilon, True, x0_scaled)
         if sol['converged']:
             with open('init.pkl', 'wb') as save_data:
                 pickle.dump([var.initial_value for var in circuit.Vt + circuit.U + circuit.S], save_data)
             return sol
         else:
-            x0_scaled = np.append(x0_scaled, 0.0)
-            print('Solver not converged!')
-            print('Start Pseudo-Arc-Length Continuation Solver')
-            sol = pseudo_arc_length_continuation(x0_scaled, 'newton homotopy')
-            if sol['converged']:
+            # x0_scaled = np.append(x0_scaled, 0.0)
+            # print('Solver not converged!')
+            # print('Start Pseudo-Arc-Length Continuation Solver')
+            # sol = pseudo_arc_length_continuation(x0_scaled, 'newton homotopy')
+            # if sol['converged']:
+            #     print('Solver converged!')
+            #     with open('init.pkl', 'wb') as save_data:
+            #         pickle.dump([var.initial_value for var in circuit.Vt + circuit.U + circuit.S], save_data)
+            # else:
+            #     print('Solver not converged!')
+            # for i, var in enumerate(circuit.Vt):
+            #     var.initial_value = sol[0] / var.scale_factor
+            # with open('init.pkl', 'wb') as save_data:
+            #     pickle.dump([var.initial_value for var in circuit.Vt + circuit.U + circuit.S], save_data)
+            # return sol
+            sol = scipy.optimize.fmin_slsqp(obj_fun,
+                                            x0_scaled,
+                                            bounds=bnds_scaled,
+                                            f_eqcons=circuit.econ,
+                                            fprime=grad_obj,
+                                            fprime_eqcons=partial(grad_econ, pool, circuit_clones),
+                                            full_output=True,
+                                            disp=3,
+                                            acc=1.0e-6,
+                                            epsilon=1.0e-05,
+                                            iter=1000)
+            if sol[3] == 0:
                 print('Solver converged!')
+                i = 0
+                for var in circuit.Vt:
+                    var.initial_value = sol[0][i] / var.scale_factor
+                    i += 1
+                for var in circuit.U:
+                    var.initial_value = sol[0][i] / var.scale_factor
+                    i += 1
+                for var in circuit.S:
+                    var.initial_value = sol[0][i] / var.scale_factor
+                    i += 1
                 with open('init.pkl', 'wb') as save_data:
                     pickle.dump([var.initial_value for var in circuit.Vt + circuit.U + circuit.S], save_data)
+                return {'x': sol[0], 'f': circuit.econ(sol[0]), 'n_it': sol[2], 'converged': True,
+                        'message': 'solver converged'}
             else:
-                print('Solver not converged!')
-            for i, var in enumerate(circuit.Vt):
-                var.initial_value = sol[0] / var.scale_factor
-            with open('init.pkl', 'wb') as save_data:
-                pickle.dump([var.initial_value for var in circuit.Vt + circuit.U + circuit.S], save_data)
-            return sol
+                return {'x': sol[0], 'converged': False, 'message': 'model execution error'}
 
     else:
         pool = multiprocessing.Pool(len(x0_scaled))
@@ -2155,6 +2216,17 @@ def system_solver(circuit: Circuit):
                                         acc=1.0e-6,
                                         epsilon=1.0e-05,
                                         iter=1000)
+        # sol = scipy.optimize.fmin_slsqp(obj_fun,
+        #                                 x0_scaled,
+        #                                 bounds=bnds_scaled,
+        #                                 f_eqcons=circuit.econ,
+        #                                 fprime=grad_obj,
+        #                                 fprime_eqcons=partial(grad_econ, pool, circuit_clones),
+        #                                 full_output=True,
+        #                                 disp=3,
+        #                                 acc=1.0e-6,
+        #                                 epsilon=1.0e-05,
+        #                                 iter=1000)
         if sol[3] == 0:
             print('Solver converged!')
             i = 0
