@@ -187,8 +187,8 @@ def main():
     T6_6sp = -5.0
     T10_9sp = 55.0
 
-    TVL_HC1 = 59.0
-    TVL_HC2 = 59.0
+    TVL_HC1 = 47.5
+    TVL_HC2 = 47.5
 
     # adds design equations to circuit
     circuit.add_design_equa(name='Superheat Equation',
@@ -213,18 +213,18 @@ def main():
                                                                 var_type='T',
                                                                 port_id=psd['-c'],
                                                                 relaxed=False))
-    circuit.add_design_equa(name='HC1 Q Equation',
-                            design_equa=OutputDesignEquation(circuit.components['Heating Coil 1'],
-                                                             DC_value=10000,
-                                                             output_name='Q',
-                                                             scale_factor=1e-5,
-                                                             relaxed=False))
-    circuit.add_design_equa(name='HC2 Q Equation',
-                            design_equa=OutputDesignEquation(circuit.components['Heating Coil 2'],
-                                                             DC_value=10000,
-                                                             output_name='Q',
-                                                             scale_factor=1e-5,
-                                                             relaxed=False))
+    # circuit.add_design_equa(name='HC1 Q Equation',
+    #                         design_equa=OutputDesignEquation(circuit.components['Heating Coil 1'],
+    #                                                          DC_value=8000,
+    #                                                          output_name='Q',
+    #                                                          scale_factor=1e-5,
+    #                                                          relaxed=True))
+    # circuit.add_design_equa(name='HC2 Q Equation',
+    #                         design_equa=OutputDesignEquation(circuit.components['Heating Coil 2'],
+    #                                                          DC_value=10000,
+    #                                                          output_name='Q',
+    #                                                          scale_factor=1e-5,
+    #                                                          relaxed=True))
     # solver initial values
     p1_1 = PropsSI('P', 'T', T6_6sp + 273.15 - 5.0, 'Q', 1.0, fluid_list[0])
     h1_1 = 4.0e5
@@ -258,20 +258,20 @@ def main():
                (2.5e5, 5.0e5),
                (0.01, 1000.0)]
 
-    with open('init.pkl', 'rb') as load_data:
-        init = pickle.load(load_data)
+    # with open('init.pkl', 'rb') as load_data:
+    #     init = pickle.load(load_data)
 
     i = 0
     for var in circuit.Vt:
         var.initial_value = init[i]
         var.bounds = Vt_bnds[i]
         i += 1
-    for var in circuit.U:
-        var.initial_value = init[i]
-        i += 1
-    for var in circuit.S:
-        var.initial_value = init[i]
-        i += 1
+    # for var in circuit.U:
+    #     var.initial_value = init[i]
+    #     i += 1
+    # for var in circuit.S:
+    #     var.initial_value = init[i]
+    #     i += 1
 
     # resets all compontent ports
     [(circuit.components[key].reset(), setattr(circuit.components[key], 'linearized', False)) for key in circuit.components]
@@ -309,7 +309,7 @@ def main():
                       f'h = {round(circuit.components[key].ports[port].h.value * 1e-3, 3)} kJ/kg, '
                       f'm = {round(circuit.components[key].ports[port].m.value, 3)} kg/s')
             for param in circuit.components[key].parameter:
-                print(f'{param}: {round(circuit.components[key].parameter[param].value, 3)}')
+                print(f'{param}: {round(circuit.components[key].parameter[param].value, 5)}')
             print('\n')
 
 

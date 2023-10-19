@@ -38,7 +38,7 @@ def main():
 
     # defines the solver path of each component
     solver_path_list = [directory + '/Components/Compressor/Polynomial based Model',
-                        directory + '/Components/Condenser/Moving Boundary Model V2',
+                        directory + '/Components/Condenser/Moving Boundary Model',
                         directory + " ",
                         directory + '/Components/ExpansionValve',
                         directory + '/Components/Evaporator/Moving Boundary Model',
@@ -77,7 +77,7 @@ def main():
     circuit.add_output(component_name='Condenser', output_name='Q')
 
     circuit.add_parameter(component_name='Expansion Valve', parameter_name='Kv', value=0.25, scale_factor=1e1, bounds=(1e-3, 1e3))
-    circuit.add_parameter(component_name='Expansion Valve', parameter_name='U', value=0.5, scale_factor=1e1, is_input=True, bounds=(0.1, 1.0))
+    circuit.add_parameter(component_name='Expansion Valve', parameter_name='U', value=0.5, scale_factor=1e1, is_input=True, bounds=(0.01, 1.0))
 
     circuit.add_parameter(component_name='Evaporator', parameter_name='A', value=2.65)
     circuit.add_output(component_name='Evaporator', output_name='Q')
@@ -97,23 +97,28 @@ def main():
     # circuit.set_port_value('Evaporator', port_name='h', var_type='p', value=pi_v_sec * 1e5)
     circuit.set_parameter('Evaporator Source', 'T_source', value=Ti_v_sec + 273.15)
     # circuit.set_port_value('Evaporator', port_name='h', var_type='h', value=Ti_v_sec - 273.15)
-    circuit.set_parameter('Evaporator Source', 'm_source', value=mi_v_sec, is_input=False, initial_value=mi_v_sec, bounds=(0.0001, 10000.0))
+    circuit.set_parameter('Evaporator Source', 'm_source', value=mi_v_sec, is_input=True, initial_value=mi_v_sec, bounds=(0.0001, 10000.0))
     # circuit.set_port_value('Evaporator', port_name='h', var_type='m', value=mi_v_sec)
 
     circuit.set_parameter('Condenser Source', 'p_source', value=pi_c_sec * 1e5)
     circuit.set_parameter('Condenser Source', 'T_source', value=Ti_c_sec + 273.15)
-    circuit.set_parameter('Condenser Source', 'm_source', value=mi_c_sec, is_input=False, initial_value=mi_c_sec, bounds=(0.0001, 10000.0))
+    circuit.set_parameter('Condenser Source', 'm_source', value=mi_c_sec, is_input=True, initial_value=mi_c_sec, bounds=(0.0001, 10000.0))
 
     # gets design criteria value from widget input
     SH = 10.0
     SC = 2.0
     po_co = 11.0
-    To_c_sp = 50.0
+    To_c_sp = 52.5
 
     # adds design equations to circuit
-    circuit.add_design_equa(name='Superheat Equation', design_equa=SuperheatEquation(circuit.components['Evaporator'], SH, 'out', 'h', psd['-c'], relaxed=False))
-    # circuit.add_design_equa(DesignParameterEquation(circuit.components['Compressor'], po_co * 1e5, 'out', 'p', psd['-p'], relaxed=False))
-    # circuit.add_design_equa(DesignParameterEquation(circuit.components['Condenser'], To_c_sp + 273.15, 'out', 'T', psd['-c'], relaxed=False))
+    circuit.add_design_equa(name='Superheat Equation',
+                            design_equa=SuperheatEquation(circuit.components['Evaporator'],
+                                                          DC_value=SH,
+                                                          port_type='out',
+                                                          var_type='h',
+                                                          port_id=psd['-c'],
+                                                          relaxed=False))
+    circuit.add_design_equa(name='TV_c Equation', design_equa=DesignParameterEquation(circuit.components['Condenser'], To_c_sp + 273.15, 'out', 'T', psd['-c'], relaxed=False))
 
     # solver initial values
     p1 = PropsSI('P', 'T', Ti_v_sec + 273.15 - 5.0, 'Q', 1.0, fluid_list[0])
@@ -133,8 +138,8 @@ def main():
                (1e5, 3e5),
                (0.1e5, 5e5)]
 
-    # with open('init.pkl', 'rb') as load_data:
-    #     init = pickle.load(load_data)
+    with open('init.pkl', 'rb') as load_data:
+        init = pickle.load(load_data)
 
     i = 0
     for var in circuit.Vt:

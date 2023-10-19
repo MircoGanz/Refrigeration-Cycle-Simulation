@@ -320,46 +320,46 @@ class HeatExchanger(object):
 
     def alpha_correlation(self, p, h, T, Tw, m, phase, fluid):
 
-        # S = self.S
-        # D_h = self.Dh
-        # n = self.n
-        #
-        # if fluid == 'R134a':
-        #
-        #     if phase == "two-phase":
-        #
-        #         """
-        #         R134a Evaporation Heat Transfer Correlation by
-        #         Yan, Y.Y., Lin, T.F., 1999. Evaporation heat transfer and pressure drop of refrigerant R-134a
-        #         in a plate heat exchanger. J. Heat Transfer 121
-        #
-        #         """
-        #         x = PropsSI('Q', 'P', p, 'H', h, fluid)
-        #         rho_l = PropsSI('D', 'P', p, 'Q', 0.0, fluid)
-        #         rho_v = PropsSI('D', 'P', p, 'Q', 1.0, fluid)
-        #         mu_l = PropsSI('V', 'P', p, 'Q', 0.0, fluid)
-        #         lamda_l = PropsSI('L', 'P', p, 'Q', 0.0, fluid)
-        #         h_evap = PropsSI('H', 'P', p, 'Q', 1.0, fluid) - PropsSI('H', 'P', p, 'Q', 0.0, fluid)
-        #         G = m / n / S
-        #         Re = G * D_h / mu_l
-        #         G_eq = G * ((1 - x) + x * (rho_l / rho_v)) ** (1 / 2)
-        #         Re_eq = G_eq * D_h / mu_l
-        #         q = 10.5 * 1e3
-        #         Bo_eq = q / (G_eq * h_evap)
-        #         Pr_l = PropsSI('Prandtl', 'P', p, 'Q', 0.0, fluid)
-        #
-        #         return 1.926 * (lamda_l / D_h) * Re_eq * Pr_l ** (1 / 3) * Bo_eq ** (0.3) * Re ** (-0.5)
-        #
-        #     elif phase == "vapor":
-        #         return 1000
-        #
-        #     else:
-        #         return 1000
-        #
-        # else:
-        #     return 12200
+        S = self.S
+        D_h = self.Dh
+        n = self.n
 
-        return 10000
+        if fluid == 'R134a':
+
+            if phase == "two-phase":
+
+                """
+                R134a Evaporation Heat Transfer Correlation by
+                Yan, Y.Y., Lin, T.F., 1999. Evaporation heat transfer and pressure drop of refrigerant R-134a
+                in a plate heat exchanger. J. Heat Transfer 121
+
+                """
+                x = PropsSI('Q', 'P', p, 'H', h, fluid)
+                rho_l = PropsSI('D', 'P', p, 'Q', 0.0, fluid)
+                rho_v = PropsSI('D', 'P', p, 'Q', 1.0, fluid)
+                mu_l = PropsSI('V', 'P', p, 'Q', 0.0, fluid)
+                lamda_l = PropsSI('L', 'P', p, 'Q', 0.0, fluid)
+                h_evap = PropsSI('H', 'P', p, 'Q', 1.0, fluid) - PropsSI('H', 'P', p, 'Q', 0.0, fluid)
+                G = m / n / S
+                Re = G * D_h / mu_l
+                G_eq = G * ((1 - x) + x * (rho_l / rho_v)) ** (1 / 2)
+                Re_eq = G_eq * D_h / mu_l
+                q = 10.5 * 1e3
+                Bo_eq = q / (G_eq * h_evap)
+                Pr_l = PropsSI('Prandtl', 'P', p, 'Q', 0.0, fluid)
+
+                return 1.926 * (lamda_l / D_h) * Re_eq * Pr_l ** (1 / 3) * Bo_eq ** (0.3) * Re ** (-0.5)
+
+            elif phase == "vapor":
+                return 1000
+
+            else:
+                return 1000
+
+        else:
+            return 12200
+
+        # return 10000
 
 
 def solver(component: [Component]):
@@ -401,8 +401,8 @@ def solver(component: [Component]):
             HX.run(and_solve=True)
             h_out_h = HX.hvec_h[0]
             h_out_c = HX.hvec_c[-1]
-            p_out_c = p_in_c - 0.0001 * m_in_c
-            p_out_h = p_in_h - 0.0001 * m_in_h
+            p_out_c = p_in_c
+            p_out_h = p_in_h
             m_out_h = m_in_h
             m_out_c = m_in_c
 
