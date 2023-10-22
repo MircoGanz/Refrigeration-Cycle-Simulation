@@ -325,71 +325,71 @@ class HeatExchanger(object):
 
     def alpha_correlation(self, p, h, T, Tw, m, phase, fluid):
 
-        # S = self.S
-        # D_h = self.Dh
-        # n = self.n
-        # phi = 1.5
-        #
-        # if fluid == 'R134a':
-        #
-        #     if phase == "two-phase":
-        #
-        #         """
-        #         R134aCondensation Heat Transfer Correlation by
-        #         Longo, G.A., Righetti, G., Zilio, C., 2014. A New Model for Refrigeration Condensation Inside a Brazed
-        #         Plate Heat Exchanger(BPHE).Kyoto, Japan, Proceedings of the 15th International Heat Transfer Conference,
-        #         IHTC - 15, August 10– 15.
-        #
-        #         """
-        #
-        #         x = PropsSI('Q', 'P', p, 'H', h, fluid)
-        #         rho_l = PropsSI('D', 'P', p, 'Q', 0.0, fluid)
-        #         rho_v = PropsSI('D', 'P', p, 'Q', 1.0, fluid)
-        #         mu_v = PropsSI('V', 'P', p, 'Q', 1.0, fluid)
-        #         mu_l = PropsSI('V', 'P', p, 'Q', 0.0, fluid)
-        #         lamda_l = PropsSI('L', 'P', p, 'Q', 0.0, fluid)
-        #         lamda_v = PropsSI('L', 'P', p, 'Q', 1.0, fluid)
-        #         h_evap = PropsSI('H', 'P', p, 'Q', 1.0, fluid) - PropsSI('H', 'P', p, 'Q', 0.0, fluid)
-        #         cp_h = PropsSI('C', 'P', p, 'H', h, fluid)
-        #         Pr_l = PropsSI('Prandtl', 'P', p, 'Q', 0.0, fluid)
-        #         Pr_v = PropsSI('Prandtl', 'P', p, 'Q', 1.0, fluid)
-        #         G = m / n / S
-        #         Re_v = G * D_h / mu_v
-        #         G_eq = G * ((1 - x) + x * (rho_l / rho_v)) ** (1 / 2)
-        #         Re_eq = G_eq * D_h / mu_l
-        #         q = 8.09
-        #         h_sat = 1.875 * phi * (lamda_l / D_h) * Re_eq ** 0.445 * Pr_l ** (1 / 3)
-        #         h_l = 0.2267 * (lamda_v / D_h) * Re_v ** 0.631 * Pr_v ** (1 / 3)
-        #         T_sat = PropsSI('T', 'P', p, 'Q', 1.0, fluid)
-        #         if (T_sat - Tw) > 0:
-        #             F = (T - T_sat) / (T_sat - Tw)
-        #         else:
-        #             F = 0
-        #         return h_sat + F * (h_l + (cp_h * q) / h_evap)
-        #
-        #     elif phase == "vapor":
-        #
-        #         return 10000
-        #
-        #     else:
-        #
-        #         return 1000
-        #
-        # else:
-        #     return 4780
+        S = self.S
+        D_h = self.Dh
+        n = self.n
+        phi = 1.5
 
-        # if fluid == 'R134a':
-        #
-        #     if phase == 'two-phase':
-        #         return 10000
-        #     elif phase == 'vapor':
-        #         return 10000
-        #     else:
-        #         return 10000
-        # else:
-        #     return 1000
+        if fluid == 'R134a':
 
-        return 100000
+            if phase == "two-phase":
+
+                """
+                R134aCondensation Heat Transfer Correlation by
+                Longo, G.A., Righetti, G., Zilio, C., 2014. A New Model for Refrigeration Condensation Inside a Brazed
+                Plate Heat Exchanger(BPHE).Kyoto, Japan, Proceedings of the 15th International Heat Transfer Conference,
+                IHTC - 15, August 10– 15.
+
+                """
+
+                x = PropsSI('Q', 'P', p, 'H', h, fluid)
+                rho_l = PropsSI('D', 'P', p, 'Q', 0.0, fluid)
+                rho_v = PropsSI('D', 'P', p, 'Q', 1.0, fluid)
+                mu_v = PropsSI('V', 'P', p, 'Q', 1.0, fluid)
+                mu_l = PropsSI('V', 'P', p, 'Q', 0.0, fluid)
+                lamda_l = PropsSI('L', 'P', p, 'Q', 0.0, fluid)
+                lamda_v = PropsSI('L', 'P', p, 'Q', 1.0, fluid)
+                h_evap = PropsSI('H', 'P', p, 'Q', 1.0, fluid) - PropsSI('H', 'P', p, 'Q', 0.0, fluid)
+                cp_h = PropsSI('C', 'P', p, 'H', h, fluid)
+                Pr_l = PropsSI('Prandtl', 'P', p, 'Q', 0.0, fluid)
+                Pr_v = PropsSI('Prandtl', 'P', p, 'Q', 1.0, fluid)
+                G = m / n / S
+                Re_v = G * D_h / mu_v
+                G_eq = G * ((1 - x) + x * (rho_l / rho_v)) ** (1 / 2)
+                Re_eq = G_eq * D_h / mu_l
+                q = 8.09
+                h_sat = 1.875 * phi * (lamda_l / D_h) * Re_eq ** 0.445 * Pr_l ** (1 / 3)
+                h_l = 0.2267 * (lamda_v / D_h) * Re_v ** 0.631 * Pr_v ** (1 / 3)
+                T_sat = PropsSI('T', 'P', p, 'Q', 1.0, fluid)
+                if (T_sat - Tw) > 0:
+                    F = (T - T_sat) / (T_sat - Tw)
+                else:
+                    F = 0
+                return h_sat + F * (h_l + (cp_h * q) / h_evap)
+
+            elif phase == "vapor":
+
+                return 10000
+
+            else:
+
+                return 1000
+
+        else:
+            return 4780
+
+        if fluid == 'R134a':
+
+            if phase == 'two-phase':
+                return 10000
+            elif phase == 'vapor':
+                return 10000
+            else:
+                return 10000
+        else:
+            return 1000
+
+        # return 100000
 
 
 def solver(component: [Component]):

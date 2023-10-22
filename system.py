@@ -1211,11 +1211,11 @@ class Circuit:
 
     def add_design_equa(self, name, design_equa):
         self.design_equa[name] = design_equa
-        if design_equa.relaxed:
-            self.S += [SlackVariable(value=0.0, scale_factor=design_equa.scale_factor)]
-            design_equa.S = self.S[-1]
-        else:
-            pass
+        # if design_equa.relaxed:
+        #     self.S += [SlackVariable(value=0.0, scale_factor=design_equa.scale_factor)]
+        #     design_equa.S = self.S[-1]
+        # else:
+        #     pass
 
     def add_loop_breaker_equa(self, loop_breaker_equa):
         self.loop_breaker_equa += [loop_breaker_equa]
@@ -1321,14 +1321,19 @@ class Circuit:
         # evaluates the resiudals at the current iteration
         res = [equa.residual() for equa in self.res_equa]
         res += [equa.solve() for equa in self.loop_breaker_equa]
-        res += [((self.design_equa[key].solve() + self.design_equa[key].S.value) * self.design_equa[key].scale_factor)
-                if self.design_equa[key].relaxed
-                else (self.design_equa[key].solve() * self.design_equa[key].scale_factor)
-                for i, key in enumerate(self.design_equa)]
+        # res += [((self.design_equa[key].solve() + self.design_equa[key].S.value) * self.design_equa[key].scale_factor)
+        #         if self.design_equa[key].relaxed
+        #         else (self.design_equa[key].solve() * self.design_equa[key].scale_factor)
+        #         for key in self.design_equa]
+        for key in self.design_equa:
+            if not self.design_equa[key].relaxed:
+                res += [(self.design_equa[key].solve() * self.design_equa[key].scale_factor)]
+            else:
+                pass
 
         # resets all components
         [self.components[key].reset() for key in self.components]
-        # print(f'Max Norm Residuals: {max(res)}')
+        print(f'Max Norm Residuals: {max(np.abs(res))}')
         return np.array(res)
 
     def iecon(self, x):
@@ -1770,7 +1775,6 @@ def system_solver(circuit: Circuit):
 
         J = np.zeros((len(f_0), len(x0)))
         epsilon = 1e-6 * np.maximum(np.abs(x0), 0.01)
-
         for j in range(len(x0)):
             x = x0.copy()
             x[j] += epsilon[j]
@@ -1784,7 +1788,34 @@ def system_solver(circuit: Circuit):
         return [J, 1]
 
     def obj_fun(x):
-        y = 0.5 * sum((x[len(circuit.Vt) + len(circuit.U):]) ** 2)
+        # y = 0.5 * sum((x[len(circuit.Vt) + len(circuit.U):]) ** 2)
+
+        i = 0
+        # sets current iteration value to tearing variables
+        for var in circuit.Vt:
+            var.set_value(x[i] / var.scale_factor)
+            i += 1
+
+        # sets current iteration values to input variables
+        for var in circuit.U:
+            var.set_value(x[i] / var.scale_factor)
+            i += 1
+
+        # sets current iteration values to slack variables
+        for var in circuit.S:
+            var.set_value(x[i] / var.scale_factor)
+            i += 1
+
+        # solves and executes equations and components to solve the circuit
+        for item in circuit.exec_list:
+            if isinstance(item, BalanceEquation) or isinstance(item, EnthalpyFlowBalance):
+                item.solve()
+            elif isinstance(item, Component):
+                item.lamda = 1.0
+                item.solve()
+        y = sum([(circuit.design_equa[key].solve() * circuit.design_equa[key].scale_factor) ** 2
+                if circuit.design_equa[key].relaxed else 0.0 for key in circuit.design_equa])
+        [circuit.components[key].reset() for key in circuit.components]
         return y
 
     def grad_obj(x):
@@ -1794,7 +1825,7 @@ def system_solver(circuit: Circuit):
 
     def grad_econ(pool, circuit_clones, x):
         f_0 = circuit_clones[0].econ(x)
-        x_new = x + 1e-5 * np.identity(len(x))
+        x_new = x + np.diag([1e-6 * max(np.abs(x[i]), 1) for i, var in enumerate(circuit.Vt + circuit.U + circuit.S)])
         items = [(circuit_clones[j], x_new[j]) for j in range(len(x_new))]
         f_fw = pool.starmap(circuit_econ, items)
         J = np.transpose(f_fw - f_0) / np.diag(x_new - x)
@@ -1802,7 +1833,7 @@ def system_solver(circuit: Circuit):
 
     def grad_iecon(pool, circuit_clones, x):
         f_0 = circuit_clones[0].iecon(x)
-        x_new = x + 1e-5 * np.identity(len(x))
+        x_new = x + np.diag([1e-6 * max(np.abs(x[i]), 1) for i, var in enumerate(circuit.Vt + circuit.U + circuit.S)])
         items = [(circuit_clones[j], x_new[j]) for j in range(len(x_new))]
         f_fw = pool.starmap(circuit_iecon, items)
         J = np.transpose(f_fw - f_0) / np.diag(x_new - x)
@@ -2087,7 +2118,36 @@ def system_solver(circuit: Circuit):
     # adds inputs if there are parameters set to inputs
     circuit.add_inputs()
 
-    x0_scaled = [0] * (len(circuit.Vt) + len(circuit.U) + len([circuit.design_equa[key] for key in circuit.design_equa if circuit.design_equa[key].relaxed]))
+    Vt_bnds = [(0.1e5, 5e5),
+               (3e5, 6e5),
+               (5.1e5, 30e5),
+               (0.1e5, 1e5),
+               (-1e5, -1e4),
+               (5.5e5, 10e5),
+               (0.1e5, 1e5),
+               (1e5, 5e6),
+               (5.5e5, 10e5),
+               (0.1e5, 5.0e5),
+               (2.5e5, 5.0e5),
+               (1e4, 1e6),
+               (2.5e5, 5.0e5),
+               (0.01, 1000.0)]
+
+    with open('init.pkl', 'rb') as load_data:
+        init = pickle.load(load_data)
+        i = 0
+        for var in circuit.Vt:
+            var.initial_value = init[i]
+            var.bounds = Vt_bnds[i]
+            i += 1
+        for var in circuit.U:
+            var.initial_value = init[i]
+            i += 1
+        # for var in circuit.S:
+        #     var.initial_value = init[i]
+        #     i += 1
+
+    x0_scaled = [0] * (len(circuit.Vt) + len(circuit.U) + len(circuit.S))
     bnds_scaled = [()] * (len(circuit.Vt) + len(circuit.U) + len(circuit.S))
     i = 0
     for var in circuit.Vt:
@@ -2203,30 +2263,29 @@ def system_solver(circuit: Circuit):
     else:
         pool = multiprocessing.Pool(len(x0_scaled))
         circuit_clones = [deepcopy(circuit)] * len(x0_scaled)
-        sol = scipy.optimize.fmin_slsqp(obj_fun,
-                                        x0_scaled,
-                                        bounds=bnds_scaled,
-                                        f_eqcons=circuit.econ,
-                                        f_ieqcons=circuit.iecon,
-                                        fprime=grad_obj,
-                                        fprime_eqcons=partial(grad_econ, pool, circuit_clones),
-                                        fprime_ieqcons=partial(grad_iecon, pool, circuit_clones),
-                                        full_output=True,
-                                        disp=3,
-                                        acc=1.0e-6,
-                                        epsilon=1.0e-05,
-                                        iter=1000)
         # sol = scipy.optimize.fmin_slsqp(obj_fun,
         #                                 x0_scaled,
         #                                 bounds=bnds_scaled,
         #                                 f_eqcons=circuit.econ,
+        #                                 f_ieqcons=circuit.iecon,
         #                                 fprime=grad_obj,
         #                                 fprime_eqcons=partial(grad_econ, pool, circuit_clones),
+        #                                 fprime_ieqcons=partial(grad_iecon, pool, circuit_clones),
         #                                 full_output=True,
         #                                 disp=3,
         #                                 acc=1.0e-6,
         #                                 epsilon=1.0e-05,
         #                                 iter=1000)
+        sol = scipy.optimize.fmin_slsqp(obj_fun,
+                                        x0_scaled,
+                                        bounds=bnds_scaled,
+                                        f_eqcons=circuit.econ,
+                                        fprime_eqcons=partial(grad_econ, pool, circuit_clones),
+                                        full_output=True,
+                                        disp=3,
+                                        acc=1.0e-6,
+                                        epsilon=1.0e-05,
+                                        iter=1000)
         if sol[3] == 0:
             print('Solver converged!')
             i = 0
