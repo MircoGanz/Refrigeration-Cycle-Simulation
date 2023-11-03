@@ -147,10 +147,10 @@ def main():
     circuit.add_parameter(component_name='Mixing Valve 2', parameter_name='U', value=0.9, scale_factor=1.0, is_input=True, bounds=(0.01, 1.0))
 
     circuit.add_parameter(component_name='Valve 1', parameter_name='Kv', value=15.0)
-    circuit.add_parameter(component_name='Valve 1', parameter_name='U', value=0.9, scale_factor=1.0, is_input=True, bounds=(0.001, 1.0))
+    circuit.add_parameter(component_name='Valve 1', parameter_name='U', value=0.5, scale_factor=1.0, is_input=True, bounds=(0.001, 1.0))
 
     circuit.add_parameter(component_name='Valve 2', parameter_name='Kv', value=15.0)
-    circuit.add_parameter(component_name='Valve 2', parameter_name='U', value=0.9, scale_factor=1.0, is_input=True, bounds=(0.001, 1.0))
+    circuit.add_parameter(component_name='Valve 2', parameter_name='U', value=0.5, scale_factor=1.0, is_input=True, bounds=(0.001, 1.0))
 
     # circuit.add_parameter(component_name='Pipe', parameter_name='CA', value=50000.0)
     circuit.add_parameter(component_name='Pipe', parameter_name='CA', value=10000.0)
@@ -188,9 +188,9 @@ def main():
     T6_6sp = -5.0
     T10_9sp = 55.0
 
-    TVL_HC1 = 50.0
+    TVL_HC1 = 60.0
     TVL_HC2 = 60.0
-    TVL_Cond = 62.0
+    TVL_Cond = 65.0
 
     # adds design equations to circuit
     circuit.add_design_equa(name='Superheat Equation',
@@ -216,30 +216,30 @@ def main():
                                                                 relaxed=True))
     circuit.add_design_equa(name='HC1 Q Equation',
                             design_equa=OutputDesignEquation(circuit.components['Heating Coil 1'],
-                                                             DC_value=12000,
+                                                             DC_value=10000,
                                                              output_name='Q',
                                                              scale_factor=1e-5,
                                                              relaxed=True))
     circuit.add_design_equa(name='HC2 Q Equation',
                             design_equa=OutputDesignEquation(circuit.components['Heating Coil 2'],
-                                                             DC_value=12000,
+                                                             DC_value=10000,
                                                              output_name='Q',
                                                              scale_factor=1e-5,
-                                                             relaxed=False))
-    circuit.add_design_equa(name='CC Q Equation',
-                            design_equa=OutputDesignEquation(circuit.components['Cooling Coil'],
-                                                             DC_value=11000,
-                                                             output_name='Q',
-                                                             scale_factor=1e-5,
-                                                             relaxed=False))
+                                                             relaxed=True))
+    # circuit.add_design_equa(name='CC Q Equation',
+    #                         design_equa=OutputDesignEquation(circuit.components['Cooling Coil'],
+    #                                                          DC_value=12000,
+    #                                                          output_name='Q',
+    #                                                          scale_factor=1e-5,
+    #                                                          relaxed=False))
 
-    circuit.add_design_equa(name='TVL_Cond Equation',
-                            design_equa=DesignParameterEquation(circuit.components['Condenser'],
-                                                                DC_value=TVL_Cond + 273.15,
-                                                                port_type='in',
-                                                                var_type='T',
-                                                                port_id=psd['c'],
-                                                                relaxed=True))
+    # circuit.add_design_equa(name='TVL_Cond Equation',
+    #                         design_equa=DesignParameterEquation(circuit.components['Condenser'],
+    #                                                             DC_value=TVL_Cond + 273.15,
+    #                                                             port_type='in',
+    #                                                             var_type='T',
+    #                                                             port_id=psd['c'],
+    #                                                             relaxed=True))
 
     # solver initial values
     p1_1 = PropsSI('P', 'T', T6_6sp + 273.15 - 5.0, 'Q', 1.0, fluid_list[0])
@@ -326,6 +326,8 @@ def main():
                       f'm = {round(circuit.components[key].ports[port].m.value, 3)} kg/s')
             for param in circuit.components[key].parameter:
                 print(f'{param}: {round(circuit.components[key].parameter[param].value, 5)}')
+            for out in circuit.components[key].outputs:
+                print(f'{out}: {round(circuit.components[key].outputs[out].value, 5)}')
             print('\n')
 
 

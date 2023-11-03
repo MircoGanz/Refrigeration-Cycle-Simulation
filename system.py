@@ -1863,7 +1863,7 @@ def system_solver(circuit: Circuit):
         """
         x = [x0]
         it = 0
-        λmin = 1e-19
+        λmin = 1e-9
         F, convergence_flag = fun(x[0])
 
         if convergence_flag == 0:
@@ -1895,6 +1895,86 @@ def system_solver(circuit: Circuit):
             F = newF
             F_array.append(np.max(np.abs(F[:-1])))
             it += 1
+            if print_convergence:
+                print(f'Iteration {it} / Max-Norm of Residuals: {np.max(np.abs(F[:-1]))}')
+
+            if it > max_iter:
+                break
+
+        if np.linalg.norm(F, 2) > epsilon:
+            print('Convergence criteria not reached within allowed number of iteration steps!')
+            return {'x': x[-1], 'f': F, 'n_it': it + 1, 'converged': False,
+                    'message': 'convergence criteria not reached within allowed number of iteration steps'}
+        else:
+            print('Broyden Solver converged!')
+            return {'x': x[-1], 'f': F, 'n_it': it + 1, 'converged': True, 'message': 'solver converged'}
+
+    def mixed_newton_broyden_method(fun, J, max_iter, epsilon, print_convergence, x0):
+
+        """
+        Implements a Mixed Newton-Broyden method for solving a system of nonlinear equations.
+
+        Args:
+            fun: A function that calculates the residuals of the equations and returns a tuple (F, convergence_flag),
+                 where F is the array of residuals and convergence_flag indicates whether the model execution was successful.
+            J: The initial Jacobian matrix.
+            max_iter: The maximum number of iterations allowed.
+            epsilon: The convergence criteria threshold.
+            x0: The initial values of the iteration variables.
+
+        Returns:
+            A dictionary with the following keys:
+                - 'x': The final values of the iteration variables.
+                - 'f': The final residuals.
+                - 'n_it': The number of iterations performed.
+                - 'converged': A boolean indicating whether the solver converged.
+                - 'message': A message describing the outcome of the solver.
+
+        """
+        x = [x0]
+        it = 0
+        λmin = 1e-9
+        F, convergence_flag = fun(x[0])
+
+        if convergence_flag == 0:
+            print('Broyden-Solver stopped due to failure in model execution!')
+            return {'x': x[-1], 'f': F, 'n_it': it + 1, 'converged': False, 'model execution error': True}
+
+        F_array = [1e12]
+        improved = True
+        while np.linalg.norm(F, 2) > epsilon:
+            λ = 1.0
+            try:
+                dx = np.linalg.solve(J, -F)
+                x_new = x[it] + λ * dx
+            except:
+                return {'x': x[-1], 'f': F, 'n_it': it + 1, 'converged': False, 'message': 'singular jacobian!'}
+            while any([(x_new[i] < var.bounds[0] * var.scale_factor or x_new[i] > var.bounds[1] * var.scale_factor) for
+                       i, var in enumerate(circuit.Vt)]) and λ > λmin:
+                λ *= 1 / 2
+                x_new = x[it] + λ * dx
+            x.append(x[it] + λ * dx)
+            newF, convergence_flag = fun(x[-1])
+
+            if convergence_flag == 0:
+                print('Broyden-Solver stopped due to failure in model execution!')
+                return {'x': x[-1], 'f': F, 'n_it': it + 1, 'converged': False, 'message': 'model execution error'}
+            if improved:
+                dF = newF - F
+                J = J + np.outer(dF - np.dot(J, dx), dx) / np.dot(dx, dx)
+            else:
+                J, convergence_flag = jacobian_forward(fun, x[-1])
+            if convergence_flag == 0:
+                print('Broyden-Solver stopped due to failure in model execution!')
+                return {'x': x[-1], 'f': F, 'n_it': it + 1, 'converged': False, 'message': 'model execution error'}
+
+            F = newF
+            F_array.append(np.max(np.abs(F)))
+            it += 1
+            if abs(F_array[-1]) < abs(F_array[-2]):
+                improved = True
+            else:
+                improved = False
             if print_convergence:
                 print(f'Iteration {it} / Max-Norm of Residuals: {np.max(np.abs(F[:-1]))}')
 
@@ -2177,7 +2257,7 @@ def system_solver(circuit: Circuit):
         J, convergence_flag = jacobian_forward(fun, x0_scaled)
         if convergence_flag == 0:
             print('Failed to compute intial jacobian! \n')
-            print('Start SQLSQ Algorithm to solve system')
+            print('Start SLSQP Algorithm to solve system')
             pool = multiprocessing.Pool(len(x0_scaled))
             circuit_clones = [deepcopy(circuit)] * len(x0_scaled)
             sol = scipy.optimize.fmin_slsqp(obj_fun,
@@ -2209,7 +2289,7 @@ def system_solver(circuit: Circuit):
                         'message': 'solver converged'}
             else:
                 return {'x': sol[0], 'converged': False, 'message': 'model execution error'}
-        sol = broyden_method(fun, J, max_iter, epsilon, True, x0_scaled)
+        sol = mixed_newton_broyden_method(fun, J, max_iter, epsilon, True, x0_scaled)
         if sol['converged']:
             with open('init.pkl', 'wb') as save_data:
                 pickle.dump([var.initial_value for var in circuit.Vt + circuit.U + circuit.S], save_data)
@@ -2261,6 +2341,7 @@ def system_solver(circuit: Circuit):
                 return {'x': sol[0], 'converged': False, 'message': 'model execution error'}
 
     else:
+        print('Start SLSQP Algorithm to solve system')
         pool = multiprocessing.Pool(len(x0_scaled))
         circuit_clones = [deepcopy(circuit)] * len(x0_scaled)
         # sol = scipy.optimize.fmin_slsqp(obj_fun,

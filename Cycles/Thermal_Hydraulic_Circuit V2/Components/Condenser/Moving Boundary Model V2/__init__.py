@@ -462,7 +462,7 @@ def solver(component: [Component]):
         component.ports[psd['-c']].h.set_value(h_out_c)
         component.ports[psd['-c']].m.set_value(m_out_c)
 
-        component.outputs['Q'].set_value(HX.Q / 1000)
+        component.outputs['Q'].set_value(HX.Q)
 
     except:
         print(component.name + ' failed!')

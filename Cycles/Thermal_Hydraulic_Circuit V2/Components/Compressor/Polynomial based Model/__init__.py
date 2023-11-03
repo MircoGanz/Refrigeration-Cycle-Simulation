@@ -81,6 +81,7 @@ def solver(component: [Component]):
         component.ports[psd['-p']].h.set_value(h_out)
         component.ports[psd['-p']].m.set_value(m_out)
 
+        component.outputs['P'].set_value(P_el)
 
     except:
         print(component.name + ' ' + ' failed!')
