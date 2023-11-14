@@ -1,7 +1,7 @@
-import math
-
 from system import Component, psd
 from CoolProp.CoolProp import PropsSI
+import matplotlib
+matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -31,8 +31,7 @@ def solver(component: [Component]):
 
         C_h = m_in_h * PropsSI("C", "P", p_in_h, "H", h_in_h, hot_fluid)
         C_c = m_in_c * PropsSI("C", "P", p_in_c, "H", h_in_c, cold_fluid)
-        if C_c < 1e-16 or C_h < 1e-16:
-            print()
+
         T_in_h = PropsSI('T', 'H', h_in_h, 'P', p_in_h, hot_fluid)
         T_in_c = PropsSI('T', 'H', h_in_c, 'P', p_in_c, cold_fluid)
 

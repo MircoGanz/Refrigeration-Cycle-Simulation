@@ -1,5 +1,7 @@
 from system import Component, psd
 from CoolProp.CoolProp import PropsSI
+import matplotlib
+matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 import numpy as np
 

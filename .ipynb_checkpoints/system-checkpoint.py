@@ -15,8 +15,7 @@ import pickle
 from functools import partial
 from typing import List
 
-import matplotlib
-matplotlib.use('TkAgg')
+import CoolProp.CoolProp
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.optimize
@@ -41,37 +40,7 @@ psd = {'0': 0,
        }
 
 
-class ValueAndPartial:
-    def __init__(self, value, partial):
-        self.value = value
-        self.partial = partial
-
-    def toList(self):
-        return [self.value, self.partial]
-
-class Expression:
-    def __add__(self, other):
-        return Plus(self, other)
-
-    def __mul__(self, other):
-        return Multiply(self, other)
-
-class Plus(Expression):
-    def __init__(self, expressionA, expressionB):
-        self.expressionA = expressionA
-        self.expressionB = expressionB
-
-    def evaluateAndDerive(self, variable):
-        valueA, partialA = self.expressionA.evaluateAndDerive(variable).toList()
-        valueB, partialB = self.expressionB.evaluateAndDerive(variable).toList()
-        return ValueAndPartial(valueA + valueB, partialA + partialB)
-
-class Multiply(Expression):
-    def __init__(self, expressionA, expressionB):
-        self.expressionA = expressionA
-        self.expressionB = expressionB
-
-class Variable(Expression):
+class Variable:
     """
     Represents a variable in the system.
 
@@ -109,10 +78,6 @@ class Variable(Expression):
         self.scale_factor = scale_factor
         self.bounds = bounds
 
-    def evaluateAndDerive(self, variable):
-        partial = 1 if self == variable else 0
-        return ValueAndPartial(self.value, partial)
-
     def set_value(self, value: float):
         """
         Set the value of the variable.
@@ -129,11 +94,6 @@ class Variable(Expression):
         """
         self.known = False
         self.value = None
-
-
-class DummyVariable(Expression):
-    def __init__(self, value):
-        self.value = value
 
 
 class SlackVariable:
@@ -521,11 +481,9 @@ class SeparatorComponent(Component):
         p_out = p_in
         phase = PhaseSI('H', h_in, 'P', p_in, fluid)
         if phase == 'twophase':
-            # h_out = PropsSI('H', 'P', p_in, 'Q', 0.0, fluid) + self.parameter['hLP'].value
-            h_out = PropsSI('H', 'P', p_in, 'Q', 0.0, fluid)
+            h_out = PropsSI('H', 'P', p_in, 'Q', 0.0, fluid) + self.parameter['hLP'].value
         else:
-            # h_out = h_in + self.parameter['hLP'].value
-            h_out = h_in
+            h_out = h_in + self.parameter['hLP'].value
         m_out = m_in
 
         self.ports[psd['-l']].p.set_value(p_out)
@@ -677,7 +635,6 @@ class MassFlowBalance(BalanceEquation):
 
         unknown_variable.set_value(m_total)
         self.solved = True
-
 
     def residual(self):
         """
@@ -1085,18 +1042,12 @@ class Junction:
                     enthalpy_flow_variables.append([oc.ports[key].m, oc.ports[key].h])
 
         pressure_equations = []
-        id = [i for i, var in enumerate(pressure_variables) if var.port_type == 'in']
-        ref_pressure = pressure_variables[id[0]]
-        for pressure_variable in pressure_variables:
-            if pressure_variable != ref_pressure:
-                pressure_equations.append(PressureEquality([ref_pressure, pressure_variable], self.fluid_loop))
+        for pressure_variable in pressure_variables[1:]:
+            pressure_equations.append(PressureEquality([pressure_variables[0], pressure_variable], self.fluid_loop))
 
         enthalpy_equations = []
-        id = [i for i, var in enumerate(enthalpy_variables) if var.port_type == 'in']
-        ref_enthalpy = enthalpy_variables[id[0]]
-        for enthalpy_variable in enthalpy_variables:
-            if enthalpy_variable != ref_enthalpy:
-                enthalpy_equations.append(EnthalpyEquality([ref_enthalpy, enthalpy_variable], self.fluid_loop))
+        for enthalpy_variable in enthalpy_variables[1:]:
+            enthalpy_equations.append(EnthalpyEquality([enthalpy_variables[0], enthalpy_variable], self.fluid_loop))
 
         mass_flow_equation = MassFlowBalance(mass_flow_variables, self.fluid_loop)
         if len(self.in_comp) > 1:
@@ -1155,27 +1106,12 @@ class TripartiteGraph:
                   for equation in equations]
 
         index_set = set()
-        for element in jpcm[:, -2]:
-            if element not in index_set:
-                index_set.add(element)
-            else:
-                pass
-        for fluid_no in index_set:
-            check_list = []
-            for row in jpcm:
-                if row[-2] == fluid_no:
-                    check_list.append(row)
-                else:
-                    pass
-            if any(abs(row[-1]) == 1 for row in check_list):
-                index_set = index_set.difference({fluid_no})
-
         for i, equation in enumerate(self.U):
-            if equation.fluid_loop in index_set and isinstance(equation, MassFlowBalance):
+            if equation.fluid_loop not in index_set and isinstance(equation, MassFlowBalance):
                 for var in equation.variables:
                     if components[var.port_id[1] - 1].component_type in ['Compressor', 'Pump']:
                         self.U.pop(i)
-                        index_set = index_set.difference({equation.fluid_loop})
+                        index_set.add(equation.fluid_loop)
                         break
                     else:
                         pass
@@ -1218,10 +1154,6 @@ class Circuit:
         self.loop_breaker_equa = []
         self.U = []
         self.S = []
-        self.xlast = []
-        self.flast = []
-        self.reslast = []
-        self.grad_objfun = []
 
         # generates components and sets corresponding fluid to each port
         self.components = {}
@@ -1234,8 +1166,8 @@ class Circuit:
                 self.components[component_name_list[i]] = BypassComponent(i + 1, item, self.component_name_list[i], jpcm)
             elif component_modeling_type_list[i] == 'SeparatorComponent':
                 self.components[component_name_list[i]] = SeparatorComponent(i + 1, item, self.component_name_list[i], jpcm)
-                # self.add_parameter(self.component_name_list[i], 'hLP', value=0.0, scale_factor=1e-5, is_input=True)
-                # self.add_loop_breaker_equa(LoopBreakerEquation(self.components[component_name_list[i]], 'hLP'))
+                self.add_parameter(self.component_name_list[i], 'hLP', value=0.0, scale_factor=1e-5, is_input=True)
+                self.add_loop_breaker_equa(LoopBreakerEquation(self.components[component_name_list[i]], 'hLP'))
             elif component_modeling_type_list[i] == 'Source':
                 self.components[component_name_list[i]] = Source(i + 1, item, self.component_name_list[i], jpcm)
                 self.add_parameter(self.component_name_list[i], 'p_source', value=np.nan, scale_factor=1e-5)
@@ -1360,92 +1292,6 @@ class Circuit:
         else:
             design_equa.DC_value = DC_value
 
-    def objfun(self, x):
-
-        # y = 0.5 * sum((x[len(self.Vt) + len(self.U):]) ** 2)
-
-        i = 0
-        # sets current iteration value to tearing variables
-        for var in self.Vt:
-            var.set_value(x[i] / var.scale_factor)
-            i += 1
-
-        # sets current iteration values to input variables
-        for var in self.U:
-            var.set_value(x[i] / var.scale_factor)
-            i += 1
-
-        # sets current iteration values to slack variables
-        for var in self.S:
-            var.set_value(x[i] / var.scale_factor)
-            i += 1
-
-        # solves and executes equations and components to solve the circuit
-        try:
-            for item in self.exec_list:
-                if isinstance(item, BalanceEquation) or isinstance(item, EnthalpyFlowBalance):
-                    item.solve()
-                elif isinstance(item, Component):
-                    item.lamda = 1.0
-                    item.solve()
-            f = sum([(self.design_equa[key].solve() * self.design_equa[key].scale_factor) ** 2
-                    if self.design_equa[key].relaxed else 0.0 for key in self.design_equa])
-        except Exception as e:
-            print(e)
-            [self.components[key].reset() for key in self.components]
-        [self.components[key].reset() for key in self.components]
-        return f
-
-    def res_objfun(self, x):
-
-        i = 0
-        # sets current iteration value to tearing variables
-        for var in self.Vt:
-            var.set_value(x[i] / var.scale_factor)
-            i += 1
-
-        # sets current iteration values to input variables
-        for var in self.U:
-            var.set_value(x[i] / var.scale_factor)
-            i += 1
-
-        # sets current iteration values to slack variables
-        for var in self.S:
-            var.set_value(x[i] / var.scale_factor)
-            i += 1
-
-        # solves and executes equations and components to solve the circuit
-        for item in self.exec_list:
-            if isinstance(item, BalanceEquation) or isinstance(item, EnthalpyFlowBalance):
-                item.solve()
-            elif isinstance(item, Component):
-                item.lamda = 1.0
-                item.solve()
-        # evaluates the resiudals at the current iteration
-        res = [equa.residual() for equa in self.res_equa]
-        res += [equa.solve() for equa in self.loop_breaker_equa]
-        try:
-            # res += [((self.design_equa[key].solve() + self.design_equa[key].S.value) * self.design_equa[key].scale_factor)
-            #     if self.design_equa[key].relaxed
-            #     else (self.design_equa[key].solve() * self.design_equa[key].scale_factor)
-            #     for key in self.design_equa]
-            # res += [0.5 * sum((x[len(self.Vt) + len(self.U):]) ** 2)]
-
-            for key in self.design_equa:
-                if not self.design_equa[key].relaxed:
-                    res += [(self.design_equa[key].solve() * self.design_equa[key].scale_factor)]
-                else:
-                    pass
-
-            res += [sum([(self.design_equa[key].solve() * self.design_equa[key].scale_factor) ** 2
-                    if self.design_equa[key].relaxed else 0.0 for key in self.design_equa])]
-
-        except Exception as e:
-            print(e)
-            [self.components[key].reset() for key in self.components]
-        [self.components[key].reset() for key in self.components]
-        return res
-
     def econ(self, x):
 
         i = 0
@@ -1475,59 +1321,19 @@ class Circuit:
         # evaluates the resiudals at the current iteration
         res = [equa.residual() for equa in self.res_equa]
         res += [equa.solve() for equa in self.loop_breaker_equa]
-        try:
-            # res += [((self.design_equa[key].solve() + self.design_equa[key].S.value) * self.design_equa[key].scale_factor)
-            #     if self.design_equa[key].relaxed
-            #     else (self.design_equa[key].solve() * self.design_equa[key].scale_factor)
-            #     for key in self.design_equa]
-            for key in self.design_equa:
-                if not self.design_equa[key].relaxed:
-                    res += [(self.design_equa[key].solve() * self.design_equa[key].scale_factor)]
-                else:
-                    pass
-        except Exception as e:
-            print(e)
-            [self.components[key].reset() for key in self.components]
+        # res += [((self.design_equa[key].solve() + self.design_equa[key].S.value) * self.design_equa[key].scale_factor)
+        #         if self.design_equa[key].relaxed
+        #         else (self.design_equa[key].solve() * self.design_equa[key].scale_factor)
+        #         for key in self.design_equa]
+        for key in self.design_equa:
+            if not self.design_equa[key].relaxed:
+                res += [(self.design_equa[key].solve() * self.design_equa[key].scale_factor)]
+            else:
+                pass
+
         # resets all components
         [self.components[key].reset() for key in self.components]
-        return np.array(res)
-
-    def sim_fun(self, x):
-
-        """
-        Calculate the residuals of the system equations
-        :param x: iteration variables
-        :return:  residuals
-        """
-
-        # sets current iteration value to tearing variables
-        for i, var in enumerate(self.Vt):
-            var.set_value(x[i] / var.scale_factor)
-
-        for item in self.exec_list:
-            if isinstance(item, BalanceEquation) or isinstance(item, EnthalpyFlowBalance):
-                item.solve()
-            elif isinstance(item, Component):
-                item.lamda = 1.0
-                item.solve()
-                if item.status == 0:
-                    [self.components[key].reset() for key in self.components]
-                    return [], 0
-
-        res = [equa.residual() for equa in self.res_equa]
-        res += [equa.solve() for equa in self.loop_breaker_equa]
-        try:
-            for key in self.design_equa:
-                if not self.design_equa[key].relaxed:
-                    res += [(self.design_equa[key].solve() * self.design_equa[key].scale_factor)]
-                else:
-                    pass
-        except Exception as e:
-            print(f'Error in design equation calculation: {e}')
-            [self.components[key].reset() for key in self.components]
-
-        [self.components[key].reset() for key in self.components]
-
+        print(f'Max Norm Residuals: {max(np.abs(res))}')
         return np.array(res)
 
     def iecon(self, x):
@@ -1576,7 +1382,7 @@ class Circuit:
                 item.solve()
             elif isinstance(item, Component):
                 item.lamda = 1.0
-                item.diagramm_plot = False
+                item.diagramm_plot = True
                 item.solve()
 
 
@@ -1732,24 +1538,12 @@ def source_search(junc_no: int, var: Variable, jpcm, components: List[Component]
     return []
 
 
-def circuit_res_objfun(clone, x):
-    return clone.res_objfun(x)
-
-
-def circuit_objfun(clone, x):
-    return clone.objfun(x)
-
-
 def circuit_econ(clone, x):
     return clone.econ(x)
 
 
 def circuit_iecon(clone, x):
     return clone.iecon(x)
-
-
-def circuit_sim_fun(clone, x):
-    return clone.sim_fun(x)
 
 
 def system_solver(circuit: Circuit):
@@ -1771,7 +1565,7 @@ def system_solver(circuit: Circuit):
 
         # sets current iteration value to tearing variables
         i = 0
-        for i, var in circuit.Vt:
+        for i, var in enumerate(circuit.Vt):
             var.set_value(x[i] / var.scale_factor)
             i += 1
 
@@ -1787,58 +1581,19 @@ def system_solver(circuit: Circuit):
                 item.solve()
                 if item.status == 0:
                     [circuit.components[key].reset() for key in circuit.components]
-                    return [], 0
+                    return [[], 0]
 
         res = [equa.residual() for equa in circuit.res_equa]
         res += [equa.solve() for equa in circuit.loop_breaker_equa]
         try:
-            res += [circuit.design_equa[key].solve() * circuit.design_equa[key].scale_factor for key in circuit.design_equa]
+            res += [equa.solve() for equa in circuit.design_equa]
         except:
             [circuit.components[key].reset() for key in circuit.components]
-            return [], 0
+            return [[], 0]
 
         [circuit.components[key].reset() for key in circuit.components]
 
-        return np.array(res), 1
-
-    def sim_fun(x):
-
-        """
-        Calculate the residuals of the system equations
-        :param x: iteration variables
-        :return:  residuals
-        """
-
-        # sets current iteration value to tearing variables
-        for i, var in enumerate(circuit.Vt):
-            var.set_value(x[i] / var.scale_factor)
-
-        for item in circuit.exec_list:
-            if isinstance(item, BalanceEquation) or isinstance(item, EnthalpyFlowBalance):
-                item.solve()
-            elif isinstance(item, Component):
-                item.lamda = 1.0
-                item.solve()
-                if item.status == 0:
-                    [circuit.components[key].reset() for key in circuit.components]
-                    return [], 0
-
-        res = [equa.residual() for equa in circuit.res_equa]
-        res += [equa.solve() for equa in circuit.loop_breaker_equa]
-        try:
-            for key in circuit.design_equa:
-                if not circuit.design_equa[key].relaxed:
-                    res += [(circuit.design_equa[key].solve() * circuit.design_equa[key].scale_factor)]
-                else:
-                    pass
-        except Exception as e:
-            print(f'Error in design equation calculation: {e}')
-            [circuit.components[key].reset() for key in circuit.components]
-            return [], 0
-
-        [circuit.components[key].reset() for key in circuit.components]
-
-        return np.array(res), 1
+        return [np.array(res), 1]
 
     def linear_fun(x):
 
@@ -2016,7 +1771,7 @@ def system_solver(circuit: Circuit):
         f_0, convergence_flag = fun(x0)
 
         if convergence_flag == 0:
-            return [], convergence_flag
+            return [[], 0]
 
         J = np.zeros((len(f_0), len(x0)))
         epsilon = 1e-6 * np.maximum(np.abs(x0), 0.01)
@@ -2026,200 +1781,51 @@ def system_solver(circuit: Circuit):
             f_fw, convergence_flag = fun(x)
 
             if convergence_flag == 0:
-                return J, convergence_flag
+                return [[], 0]
 
             J[:, j] = (f_fw - f_0) / epsilon[j]
 
-        return J, convergence_flag
+        return [J, 1]
 
-    def objfun(x):
-
+    def obj_fun(x):
         # y = 0.5 * sum((x[len(circuit.Vt) + len(circuit.U):]) ** 2)
 
-        if not np.array_equal(x, circuit.xlast):
+        i = 0
+        # sets current iteration value to tearing variables
+        for var in circuit.Vt:
+            var.set_value(x[i] / var.scale_factor)
+            i += 1
 
-            i = 0
-            # sets current iteration value to tearing variables
-            for var in circuit.Vt:
-                var.set_value(x[i] / var.scale_factor)
-                i += 1
+        # sets current iteration values to input variables
+        for var in circuit.U:
+            var.set_value(x[i] / var.scale_factor)
+            i += 1
 
-            # sets current iteration values to input variables
-            for var in circuit.U:
-                var.set_value(x[i] / var.scale_factor)
-                i += 1
+        # sets current iteration values to slack variables
+        for var in circuit.S:
+            var.set_value(x[i] / var.scale_factor)
+            i += 1
 
-            # sets current iteration values to slack variables
-            for var in circuit.S:
-                var.set_value(x[i] / var.scale_factor)
-                i += 1
+        # solves and executes equations and components to solve the circuit
+        for item in circuit.exec_list:
+            if isinstance(item, BalanceEquation) or isinstance(item, EnthalpyFlowBalance):
+                item.solve()
+            elif isinstance(item, Component):
+                item.lamda = 1.0
+                item.solve()
+        y = sum([(circuit.design_equa[key].solve() * circuit.design_equa[key].scale_factor) ** 2
+                if circuit.design_equa[key].relaxed else 0.0 for key in circuit.design_equa])
+        [circuit.components[key].reset() for key in circuit.components]
+        return y
 
-            # solves and executes equations and components to solve the circuit
-            for item in circuit.exec_list:
-                if isinstance(item, BalanceEquation) or isinstance(item, EnthalpyFlowBalance):
-                    item.solve()
-                elif isinstance(item, Component):
-                    item.lamda = 1.0
-                    item.solve()
-
-            # evaluates the resiudals at the current iteration
-            circuit.reslast = [equa.residual() for equa in circuit.res_equa]
-            circuit.reslast += [equa.solve() for equa in circuit.loop_breaker_equa]
-            try:
-                # res += [((self.design_equa[key].solve() + self.design_equa[key].S.value) * self.design_equa[key].scale_factor)
-                #     if self.design_equa[key].relaxed
-                #     else (self.design_equa[key].solve() * self.design_equa[key].scale_factor)
-                #     for key in self.design_equa]
-                for key in circuit.design_equa:
-                    if not circuit.design_equa[key].relaxed:
-                        circuit.reslast += [(circuit.design_equa[key].solve() * circuit.design_equa[key].scale_factor)]
-                    else:
-                        pass
-                circuit.flast = sum([(circuit.design_equa[key].solve() * circuit.design_equa[key].scale_factor) ** 2
-                        if circuit.design_equa[key].relaxed else 0.0 for key in circuit.design_equa])
-            except Exception as e:
-                print(e)
-                [circuit.components[key].reset() for key in circuit.components]
-            # resets all components
-            [circuit.components[key].reset() for key in circuit.components]
-            circuit.xlast = x.copy()
-        return circuit.flast
-
-    def objfun_jac(x):
-
-        # y = 0.5 * sum((x[len(circuit.Vt) + len(circuit.U):]) ** 2)
-
-        if not np.array_equal(x, circuit.xlast):
-
-            circuit.xlast = x.copy()
-
-            i = 0
-            # sets current iteration value to tearing variables
-            for var in circuit.Vt:
-                var.set_value(x[i] / var.scale_factor)
-                i += 1
-
-            # sets current iteration values to input variables
-            for var in circuit.U:
-                var.set_value(x[i] / var.scale_factor)
-                i += 1
-
-            # sets current iteration values to slack variables
-            for var in circuit.S:
-                var.set_value(x[i] / var.scale_factor)
-                i += 1
-
-            # solves and executes equations and components to solve the circuit
-            for item in circuit.exec_list:
-                if isinstance(item, BalanceEquation) or isinstance(item, EnthalpyFlowBalance):
-                    item.solve()
-                elif isinstance(item, Component):
-                    item.lamda = 1.0
-                    item.solve()
-
-            # evaluates the resiudals at the current iteration
-            circuit.reslast = [equa.residual() for equa in circuit.res_equa]
-            circuit.reslast += [equa.solve() for equa in circuit.loop_breaker_equa]
-            try:
-                # res += [((self.design_equa[key].solve() + self.design_equa[key].S.value) * self.design_equa[key].scale_factor)
-                #     if self.design_equa[key].relaxed
-                #     else (self.design_equa[key].solve() * self.design_equa[key].scale_factor)
-                #     for key in self.design_equa]
-                for key in circuit.design_equa:
-                    if not circuit.design_equa[key].relaxed:
-                        circuit.reslast += [
-                            (circuit.design_equa[key].solve() * circuit.design_equa[key].scale_factor)]
-                    else:
-                        pass
-                circuit.flast = sum([(circuit.design_equa[key].solve() * circuit.design_equa[key].scale_factor) ** 2
-                                     if circuit.design_equa[key].relaxed else 0.0 for key in circuit.design_equa])
-            except Exception as e:
-                print(e)
-                [circuit.components[key].reset() for key in circuit.components]
-            # resets all components
-            [circuit.components[key].reset() for key in circuit.components]
-
-            f_0 = circuit.flast.copy()
-            x_new = x + np.diag([1e-6 * max(np.abs(x[i]), 1.0) for i, var in enumerate(circuit.Vt + circuit.U + circuit.S)])
-            items = [(circuit_clones[j], x_new[j]) for j in range(len(x_new))]
-            f_fw = pool.starmap(circuit_objfun, items)
-            circuit.grad_objfun = np.transpose(np.array(f_fw) - np.array(f_0)) / np.diag(x_new - x)
-            print(f'Objective Value: {circuit.flast}')
-
-        return circuit.flast, circuit.grad_objfun
-
-    def econ(x):
-
-        if not np.array_equal(x, circuit.xlast):
-
-            circuit.xlast = x.copy()
-
-            i = 0
-            # sets current iteration value to tearing variables
-            for var in circuit.Vt:
-                var.set_value(x[i] / var.scale_factor)
-                i += 1
-
-            # sets current iteration values to input variables
-            for var in circuit.U:
-                var.set_value(x[i] / var.scale_factor)
-                i += 1
-
-            # sets current iteration values to slack variables
-            for var in circuit.S:
-                var.set_value(x[i] / var.scale_factor)
-                i += 1
-
-            # solves and executes equations and components to solve the circuit
-            for item in circuit.exec_list:
-                if isinstance(item, BalanceEquation) or isinstance(item, EnthalpyFlowBalance):
-                    item.solve()
-                elif isinstance(item, Component):
-                    item.lamda = 1.0
-                    item.solve()
-
-            # evaluates the resiudals at the current iteration
-            circuit.reslast = [equa.residual() for equa in circuit.res_equa]
-            circuit.reslast += [equa.solve() for equa in circuit.loop_breaker_equa]
-            try:
-                # res += [((self.design_equa[key].solve() + self.design_equa[key].S.value) * self.design_equa[key].scale_factor)
-                #     if self.design_equa[key].relaxed
-                #     else (self.design_equa[key].solve() * self.design_equa[key].scale_factor)
-                #     for key in self.design_equa]
-                for key in circuit.design_equa:
-                    if not circuit.design_equa[key].relaxed:
-                        circuit.reslast += [(circuit.design_equa[key].solve() * circuit.design_equa[key].scale_factor)]
-                    else:
-                        pass
-                circuit.flast = sum([(circuit.design_equa[key].solve() * circuit.design_equa[key].scale_factor) ** 2
-                        if circuit.design_equa[key].relaxed else 0.0 for key in circuit.design_equa])
-            except Exception as e:
-                print(e)
-                [circuit.components[key].reset() for key in circuit.components]
-            # resets all components
-            [circuit.components[key].reset() for key in circuit.components]
-
-            f_0 = circuit.flast
-            x_new = x + np.diag([1e-6 * max(np.abs(x[i]), 1) for i, var in enumerate(circuit.Vt + circuit.U + circuit.S)])
-            items = [(circuit_clones[j], x_new[j]) for j in range(len(x_new))]
-            f_fw = pool.starmap(circuit_objfun, items)
-            circuit.grad_objfun = np.transpose(np.array(f_fw) - np.array(f_0)) / np.diag(x_new - x)
-            print(f'Max Norm Residuals: {max(np.abs(circuit.reslast))}')
-        return np.array(circuit.reslast)
-
-    def grad_objfun(pool, circuit_clones, x):
-        #     grad = np.zeros(len(x))
-        #     grad[len(circuit.Vt) + len(circuit.U):] = x[len(circuit.Vt) + len(circuit.U):]
-        #     return grad
-        f_0 = circuit_clones[0].objfun(x)
-        x_new = x + np.diag([1e-6 * max(np.abs(x[i]), 1e-3) for i, var in enumerate(circuit.Vt + circuit.U + circuit.S)])
-        items = [(circuit_clones[j], x_new[j]) for j in range(len(x_new))]
-        f_fw = pool.starmap(circuit_objfun, items)
-        return np.transpose(np.array(f_fw) - np.array(f_0)) / np.diag(x_new - x)
+    def grad_obj(x):
+        grad = np.zeros(len(x))
+        grad[len(circuit.Vt) + len(circuit.U):] = x[len(circuit.Vt) + len(circuit.U):]
+        return grad
 
     def grad_econ(pool, circuit_clones, x):
         f_0 = circuit_clones[0].econ(x)
-        x_new = x + np.diag([1e-6 * max(np.abs(x[i]), 1e-3) for i, var in enumerate(circuit.Vt + circuit.U + circuit.S)])
+        x_new = x + np.diag([1e-6 * max(np.abs(x[i]), 1) for i, var in enumerate(circuit.Vt + circuit.U + circuit.S)])
         items = [(circuit_clones[j], x_new[j]) for j in range(len(x_new))]
         f_fw = pool.starmap(circuit_econ, items)
         J = np.transpose(f_fw - f_0) / np.diag(x_new - x)
@@ -2233,58 +1839,7 @@ def system_solver(circuit: Circuit):
         J = np.transpose(f_fw - f_0) / np.diag(x_new - x)
         return J
 
-    def grad_sim_fun(pool, circuit_clones, x):
-        try:
-            f_0 = circuit_clones[0].sim_fun(x)
-            x_new = x + np.diag([1e-6 * max(np.abs(x[i]), 1e-3) for i in range(len(x))])
-            items = [(circuit_clones[j], x_new[j]) for j in range(len(x_new))]
-            f_fw = pool.starmap(circuit_sim_fun, items)
-            J = np.transpose(f_fw - f_0) / np.diag(x_new - x)
-            return J, 1
-        except Exception as e:
-            print(e)
-            return [], 0
-
-    def adjoint_derivative(pool, circuit_clones, u):
-        global L_global
-        L, x = simulation(u)
-        if L == float('inf'):
-            L = L_global + 1.0
-        else:
-            L_global = L
-        X = np.append(x, u)
-        f_0 = circuit_clones[0].res_objfun(X)
-        X_new = X + np.diag([1e-6 * max(np.abs(X[i]), 1.0) for i, var in enumerate(circuit.Vt + circuit.U + circuit.S)])
-        items = [(circuit_clones[j], X_new[j]) for j in range(len(X_new))]
-        f_fw = pool.starmap(circuit_res_objfun, items)
-        J = np.transpose(np.array(f_fw) - np.array(f_0)) / np.diag(X_new - X)
-        dr_dx = J[0:len(circuit.Vt), 0:len(circuit.Vt)]
-        dL_dx = J[-1, 0:len(circuit.Vt)]
-        dr_du = J[0:len(circuit.Vt), len(circuit.Vt):]
-        dL_du = J[-1, len(circuit.Vt):]
-        psi = np.linalg.solve(dr_dx.T, dL_dx)
-        DL_Du = dL_du - np.matmul(psi, dr_du)
-        return L, DL_Du
-
-    def simulation(u):
-        global x0_global
-        for i, var in enumerate(circuit.U):
-            var.set_value(u[i] / var.scale_factor)
-        try:
-            sol = mixed_newton_broyden_method(sim_fun, max_iter=20, epsilon=1e-5, print_convergence=True, x0=x0_global)
-        except Exception as e:
-            print(f'Error in objective function evaluation: {e} \n'
-                  f'Function value gets set to <<inf>>')
-            return float('inf'), x0_global
-        if sol['converged']:
-            x0_global = sol['x']
-            x = np.append(x0_global, u)
-            return circuit.objfun(x), x0_global
-        else:
-            return float('inf'), x0_global
-
-
-    def broyden_method(fun, max_iter, epsilon, print_convergence, x0):
+    def broyden_method(fun, J, max_iter, epsilon, print_convergence, x0):
 
         """
         Implements the Broyden method for solving a system of nonlinear equations.
@@ -2315,11 +1870,6 @@ def system_solver(circuit: Circuit):
             print('Broyden-Solver stopped due to failure in model execution!')
             return {'x': x[-1], 'f': F, 'n_it': it + 1, 'converged': False, 'model execution error': True}
 
-        J, convergence_flag = jacobian_forward(fun, x0)
-        if convergence_flag == 0:
-            print('Broyden-Solver stopped due to failure in model execution!')
-            return {'x': x[-1], 'f': F, 'n_it': it + 1, 'converged': False, 'failed to compute initial jacobian!': True}
-
         F_array = []
 
         while np.linalg.norm(F, 2) > epsilon:
@@ -2346,7 +1896,7 @@ def system_solver(circuit: Circuit):
             F_array.append(np.max(np.abs(F[:-1])))
             it += 1
             if print_convergence:
-                print(f'Iteration {it} / Max-Norm of Residuals: {np.max(np.abs(F))}')
+                print(f'Iteration {it} / Max-Norm of Residuals: {np.max(np.abs(F[:-1]))}')
 
             if it > max_iter:
                 break
@@ -2359,7 +1909,8 @@ def system_solver(circuit: Circuit):
             print('Broyden Solver converged!')
             return {'x': x[-1], 'f': F, 'n_it': it + 1, 'converged': True, 'message': 'solver converged'}
 
-    def mixed_newton_broyden_method(fun, max_iter, epsilon, print_convergence, x0):
+    def mixed_newton_broyden_method(fun, J, max_iter, epsilon, print_convergence, x0):
+
         """
         Implements a Mixed Newton-Broyden method for solving a system of nonlinear equations.
 
@@ -2383,17 +1934,11 @@ def system_solver(circuit: Circuit):
         x = [x0]
         it = 0
         λmin = 1e-9
-
         F, convergence_flag = fun(x[0])
+
         if convergence_flag == 0:
             print('Broyden-Solver stopped due to failure in model execution!')
             return {'x': x[-1], 'f': F, 'n_it': it + 1, 'converged': False, 'model execution error': True}
-
-        # J, convergence_flag = grad_sim_fun(pool, circuit_clones, x0)
-        J, convergence_flag = jacobian_forward(fun, x0)
-        if convergence_flag == 0:
-            print('Broyden-Solver stopped due to failure in model execution!')
-            return {'x': x[-1], 'f': F, 'n_it': it + 1, 'converged': False, 'failed to compute initial jacobian!': True}
 
         F_array = [1e12]
         improved = True
@@ -2418,7 +1963,6 @@ def system_solver(circuit: Circuit):
                 dF = newF - F
                 J = J + np.outer(dF - np.dot(J, dx), dx) / np.dot(dx, dx)
             else:
-                # J, convergence_flag = grad_sim_fun(pool, circuit_clones, x0)
                 J, convergence_flag = jacobian_forward(fun, x[-1])
             if convergence_flag == 0:
                 print('Broyden-Solver stopped due to failure in model execution!')
@@ -2433,6 +1977,7 @@ def system_solver(circuit: Circuit):
                 improved = False
             if print_convergence:
                 print(f'Iteration {it} / Max-Norm of Residuals: {np.max(np.abs(F[:-1]))}')
+
             if it > max_iter:
                 break
 
@@ -2668,13 +2213,6 @@ def system_solver(circuit: Circuit):
                (2.5e5, 5.0e5),
                (0.01, 1000.0)]
 
-    # Vt_bnds = [(0.1e5, 5e5),
-    #            (3e5, 6e5),
-    #            (5.1e5, 30e5),
-    #            (5.1e5, 30e5),
-    #            (1e5, 3e5),
-    #            (0.1e5, 5e5)]
-
     with open('init.pkl', 'rb') as load_data:
         init = pickle.load(load_data)
         i = 0
@@ -2705,9 +2243,9 @@ def system_solver(circuit: Circuit):
         bnds_scaled[i] = (var.bounds[0] * var.scale_factor, var.bounds[1] * var.scale_factor)
         i += 1
 
-    # if len(circuit.res_equa) + len(circuit.design_equa) + len(circuit.loop_breaker_equa) > len(circuit.Vt) + len(
-    #         circuit.U) + len(circuit.S):
-    #     raise RuntimeWarning(f'More equations than number of independent variables!')
+    if len(circuit.res_equa) + len(circuit.design_equa) + len(circuit.loop_breaker_equa) > len(circuit.Vt) + len(
+            circuit.U) + len(circuit.S):
+        raise RuntimeWarning(f'More equations than number of independent variables!')
 
     if len(circuit.res_equa) + len(circuit.design_equa) + len(circuit.loop_breaker_equa) == len(circuit.Vt) + len(
             circuit.U) \
@@ -2716,7 +2254,42 @@ def system_solver(circuit: Circuit):
         # Runs Broyden solver, returning the solution array if the solver converges; otherwise, starts the Arc-Length Continuation solver.
         print('Start Broyden Solver \n'
               'computing Jacobian...')
-        sol = mixed_newton_broyden_method(fun, max_iter, epsilon, True, x0_scaled)
+        J, convergence_flag = jacobian_forward(fun, x0_scaled)
+        if convergence_flag == 0:
+            print('Failed to compute intial jacobian! \n')
+            print('Start SLSQP Algorithm to solve system')
+            pool = multiprocessing.Pool(len(x0_scaled))
+            circuit_clones = [deepcopy(circuit)] * len(x0_scaled)
+            sol = scipy.optimize.fmin_slsqp(obj_fun,
+                                            x0_scaled,
+                                            bounds=bnds_scaled,
+                                            f_eqcons=circuit.econ,
+                                            fprime=grad_obj,
+                                            fprime_eqcons=partial(grad_econ, pool, circuit_clones),
+                                            full_output=True,
+                                            disp=3,
+                                            acc=1.0e-6,
+                                            epsilon=1.0e-05,
+                                            iter=1000)
+            if sol[3] == 0:
+                print('Solver converged!')
+                i = 0
+                for var in circuit.Vt:
+                    var.initial_value = sol[0][i] / var.scale_factor
+                    i += 1
+                for var in circuit.U:
+                    var.initial_value = sol[0][i] / var.scale_factor
+                    i += 1
+                for var in circuit.S:
+                    var.initial_value = sol[0][i] / var.scale_factor
+                    i += 1
+                with open('init.pkl', 'wb') as save_data:
+                    pickle.dump([var.initial_value for var in circuit.Vt + circuit.U + circuit.S], save_data)
+                return {'x': sol[0], 'f': circuit.econ(sol[0]), 'n_it': sol[2], 'converged': True,
+                        'message': 'solver converged'}
+            else:
+                return {'x': sol[0], 'converged': False, 'message': 'model execution error'}
+        sol = mixed_newton_broyden_method(fun, J, max_iter, epsilon, True, x0_scaled)
         if sol['converged']:
             with open('init.pkl', 'wb') as save_data:
                 pickle.dump([var.initial_value for var in circuit.Vt + circuit.U + circuit.S], save_data)
@@ -2737,14 +2310,11 @@ def system_solver(circuit: Circuit):
             # with open('init.pkl', 'wb') as save_data:
             #     pickle.dump([var.initial_value for var in circuit.Vt + circuit.U + circuit.S], save_data)
             # return sol
-            print('Start SLSQP Algorithm to solve system')
-            pool = multiprocessing.Pool(len(x0_scaled))
-            circuit_clones = [deepcopy(circuit)] * len(x0_scaled)
-            sol = scipy.optimize.fmin_slsqp(objfun,
+            sol = scipy.optimize.fmin_slsqp(obj_fun,
                                             x0_scaled,
                                             bounds=bnds_scaled,
-                                            f_eqcons=econ,
-                                            fprime=partial(grad_objfun, pool, circuit_clones),
+                                            f_eqcons=circuit.econ,
+                                            fprime=grad_obj,
                                             fprime_eqcons=partial(grad_econ, pool, circuit_clones),
                                             full_output=True,
                                             disp=3,
@@ -2774,43 +2344,29 @@ def system_solver(circuit: Circuit):
         print('Start SLSQP Algorithm to solve system')
         pool = multiprocessing.Pool(len(x0_scaled))
         circuit_clones = [deepcopy(circuit)] * len(x0_scaled)
-        global x0_global, L_global
-        x0_global = x0_scaled[0:len(circuit.Vt)]
-        L_global = 1e12
-        # L, DL_du = adjoint_derivative(pool, circuit_clones, x0_scaled[len(circuit.Vt):])
-        sol = scipy.optimize.minimize(partial(adjoint_derivative, pool, circuit_clones), x0_scaled[len(circuit.Vt):], bounds=bnds_scaled[len(circuit.Vt):], method='L-BFGS-B', jac=True, options={'disp': True, 'maxls': 20, 'gtol': 1e-6, 'ftol': 1e-9})
-        L, x = simulation(sol['x'])
-        if sol['success']:
-            x = np.append(x, sol['x'])
-            print('Solver converged!')
-            i = 0
-            for var in circuit.Vt:
-                var.initial_value = x[i] / var.scale_factor
-                i += 1
-            for var in circuit.U:
-                var.initial_value = x[i] / var.scale_factor
-                i += 1
-            for var in circuit.S:
-                var.initial_value = x[i] / var.scale_factor
-                i += 1
-            with open('init.pkl', 'wb') as save_data:
-                pickle.dump([var.initial_value for var in circuit.Vt + circuit.U + circuit.S], save_data)
-            return {'x': x, 'f': circuit.econ(x), 'n_it': sol['nit'], 'converged': True,
-                    'message': 'solver converged'}
-        else:
-            return {'x': [], 'converged': False, 'message': 'model execution error'}
-        t1 = time.time()
-        sol = scipy.optimize.fmin_slsqp(objfun,
+        # sol = scipy.optimize.fmin_slsqp(obj_fun,
+        #                                 x0_scaled,
+        #                                 bounds=bnds_scaled,
+        #                                 f_eqcons=circuit.econ,
+        #                                 f_ieqcons=circuit.iecon,
+        #                                 fprime=grad_obj,
+        #                                 fprime_eqcons=partial(grad_econ, pool, circuit_clones),
+        #                                 fprime_ieqcons=partial(grad_iecon, pool, circuit_clones),
+        #                                 full_output=True,
+        #                                 disp=3,
+        #                                 acc=1.0e-6,
+        #                                 epsilon=1.0e-05,
+        #                                 iter=1000)
+        sol = scipy.optimize.fmin_slsqp(obj_fun,
                                         x0_scaled,
                                         bounds=bnds_scaled,
-                                        f_eqcons=econ,
-                                        fprime=partial(grad_objfun, pool, circuit_clones),
+                                        f_eqcons=circuit.econ,
                                         fprime_eqcons=partial(grad_econ, pool, circuit_clones),
                                         full_output=True,
                                         disp=3,
                                         acc=1.0e-6,
+                                        epsilon=1.0e-05,
                                         iter=1000)
-        print(f'Time first run: {time.time() - t1}')
         if sol[3] == 0:
             print('Solver converged!')
             i = 0

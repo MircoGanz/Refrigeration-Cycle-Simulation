@@ -1,4 +1,6 @@
 from CoolProp.CoolProp import PropsSI, PhaseSI
+import matplotlib
+matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 import numpy as np
 from math import log

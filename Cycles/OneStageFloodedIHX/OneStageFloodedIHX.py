@@ -86,11 +86,11 @@ def main():
     circuit.add_parameter(component_name='IHX', parameter_name='k', value=123.0)
 
     pi_v_sec = 2.0
-    Ti_v_sec = 10.0
+    Ti_v_sec = 5.0
     mi_v_sec = 50 / 60 * 1
 
     pi_c_sec = 2.0
-    Ti_c_sec = 45.0
+    Ti_c_sec = 30.0
     mi_c_sec = 70 / 60 * 1
 
     circuit.set_parameter('Evaporator Source', 'p_source', value=pi_v_sec * 1e5)
@@ -105,10 +105,10 @@ def main():
     circuit.set_parameter('Condenser Source', 'm_source', value=mi_c_sec, is_input=True, initial_value=mi_c_sec, bounds=(0.0001, 10000.0))
 
     # gets design criteria value from widget input
-    SH = 10.0
+    SH = 15.0
     SC = 2.0
     po_co = 11.0
-    To_c_sp = 52.5
+    To_c_sp = 40.0
 
     # adds design equations to circuit
     circuit.add_design_equa(name='Superheat Equation',
@@ -118,7 +118,11 @@ def main():
                                                           var_type='h',
                                                           port_id=psd['-c'],
                                                           relaxed=False))
-    circuit.add_design_equa(name='TV_c Equation', design_equa=DesignParameterEquation(circuit.components['Condenser'], To_c_sp + 273.15, 'out', 'T', psd['-c'], relaxed=False))
+    circuit.add_design_equa(name='TV_c Equation', design_equa=DesignParameterEquation(circuit.components['Condenser'], To_c_sp + 273.15, 'out', 'T', psd['-c'], relaxed=True))
+    circuit.add_design_equa(name='Q0 Equation',
+                            design_equa=OutputDesignEquation(circuit.components['Condenser'], 20.0,
+                                                             output_name='Q',
+                                                             relaxed=True))
 
     # solver initial values
     p1 = PropsSI('P', 'T', Ti_v_sec + 273.15 - 5.0, 'Q', 1.0, fluid_list[0])
@@ -205,11 +209,11 @@ def main():
                 print(f'{param}: {round(circuit.components[key].parameter[param].value, 3)}')
             print('\n')
 
-        # plots log ph diagramm
-        logph([[hi_co * 1e-3, hi_c * 1e-3, hi_r * 1e-3, hi_ihx_h * 1e-3, hi_ev * 1e-3, hi_v * 1e-3, hi_ihx_c * 1e-3, hi_co * 1e-3]],
-              [[pi_co * 1e-5, pi_c * 1e-5, pi_r * 1e-5, pi_ihx_h * 1e-5, pi_ev * 1e-5, pi_v * 1e-5, pi_ihx_c * 1e-5, pi_co * 1e-5]],
-              [[1, 2, 3, 4, 5, 6, 7, 1]],
-              [fluid_list[0]])
+        # # plots log ph diagramm
+        # logph([[hi_co * 1e-3, hi_c * 1e-3, hi_r * 1e-3, hi_ihx_h * 1e-3, hi_ev * 1e-3, hi_v * 1e-3, hi_ihx_c * 1e-3, hi_co * 1e-3]],
+        #       [[pi_co * 1e-5, pi_c * 1e-5, pi_r * 1e-5, pi_ihx_h * 1e-5, pi_ev * 1e-5, pi_v * 1e-5, pi_ihx_c * 1e-5, pi_co * 1e-5]],
+        #       [[1, 2, 3, 4, 5, 6, 7, 1]],
+        #       [fluid_list[0]])
 
 
 if __name__ == "__main__":

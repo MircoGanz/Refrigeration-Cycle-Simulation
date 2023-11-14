@@ -3,8 +3,8 @@ from system import *
 import os
 from CoolProp.CoolProp import PropsSI
 import pandas as pd
-
-
+import matplotlib
+matplotlib.use('TkAgg')
 def main():
     # generates JPCM from .csv-file
     directory = os.getcwd()
@@ -141,10 +141,10 @@ def main():
     circuit.add_output(component_name='Heating Coil 2', output_name='Q')
 
     circuit.add_parameter(component_name='Mixing Valve 1', parameter_name='Kv', value=25.0)
-    circuit.add_parameter(component_name='Mixing Valve 1', parameter_name='U', value=0.5, scale_factor=1e3, is_input=True, bounds=(0.01, 1.0))
+    circuit.add_parameter(component_name='Mixing Valve 1', parameter_name='U', value=0.5, scale_factor=1e3, is_input=True, bounds=(0.001, 1.0))
 
     circuit.add_parameter(component_name='Mixing Valve 2', parameter_name='Kv', value=25.0)
-    circuit.add_parameter(component_name='Mixing Valve 2', parameter_name='U', value=0.9, scale_factor=1.0, is_input=True, bounds=(0.01, 1.0))
+    circuit.add_parameter(component_name='Mixing Valve 2', parameter_name='U', value=0.9, scale_factor=1.0, is_input=True, bounds=(0.001, 1.0))
 
     circuit.add_parameter(component_name='Valve 1', parameter_name='Kv', value=15.0)
     circuit.add_parameter(component_name='Valve 1', parameter_name='U', value=0.5, scale_factor=1.0, is_input=True, bounds=(0.001, 1.0))
@@ -152,20 +152,19 @@ def main():
     circuit.add_parameter(component_name='Valve 2', parameter_name='Kv', value=15.0)
     circuit.add_parameter(component_name='Valve 2', parameter_name='U', value=0.5, scale_factor=1.0, is_input=True, bounds=(0.001, 1.0))
 
-    # circuit.add_parameter(component_name='Pipe', parameter_name='CA', value=50000.0)
-    circuit.add_parameter(component_name='Pipe', parameter_name='CA', value=10000.0)
+    circuit.add_parameter(component_name='Pipe', parameter_name='CA', value=1000.0)
 
     pi_cc_sec = 2.0
     Ti_cc_sec = 0.1
     mi_cc_sec = 18.0
 
     pi_hc1_sec = 1.0
-    Ti_hc1_sec = 40.0
-    mi_hc1_sec = 1.0
+    Ti_hc1_sec = 30.0
+    mi_hc1_sec = 0.5
 
     pi_hc2_sec = 1.0
-    Ti_hc2_sec = 40.0
-    mi_hc2_sec = 1.0
+    Ti_hc2_sec = 30.0
+    mi_hc2_sec = 0.5
 
     circuit.set_parameter('Source Cooling Coil', 'p_source', value=pi_cc_sec * 1e5)
     circuit.set_parameter('Source Cooling Coil', 'T_source', value=Ti_cc_sec + 273.15)
@@ -187,9 +186,11 @@ def main():
     SC = 2.0
     T6_6sp = -5.0
     T10_9sp = 55.0
+    p_sp_1 = 1.0e5
+    p_sp_2 = 1.0e5
 
-    TVL_HC1 = 60.0
-    TVL_HC2 = 60.0
+    TVL_HC1 = 40.0
+    TVL_HC2 = 35.0
     TVL_Cond = 65.0
 
     # adds design equations to circuit
@@ -200,6 +201,23 @@ def main():
                                                           var_type='h',
                                                           port_id=psd['-c'],
                                                           relaxed=False))
+
+
+    circuit.add_design_equa(name='p_sp 1 Equation',
+                            design_equa=DesignParameterEquation(circuit.components['Pump 1'],
+                                                                DC_value=p_sp_1,
+                                                                port_type='in',
+                                                                var_type='p',
+                                                                port_id=psd['p'],
+                                                                relaxed=False))
+    circuit.add_design_equa(name='p_sp 2 Equation',
+                            design_equa=DesignParameterEquation(circuit.components['Pump 2'],
+                                                                DC_value=p_sp_2,
+                                                                port_type='in',
+                                                                var_type='p',
+                                                                port_id=psd['p'],
+                                                                relaxed=False))
+
     circuit.add_design_equa(name='TVL_HC1 Equation',
                             design_equa=DesignParameterEquation(circuit.components['Heating Coil 1'],
                                                                 DC_value=TVL_HC1 + 273.15,
@@ -231,8 +249,8 @@ def main():
     #                                                          DC_value=12000,
     #                                                          output_name='Q',
     #                                                          scale_factor=1e-5,
-    #                                                          relaxed=False))
-
+    #                                                          relaxed=True))
+    #
     # circuit.add_design_equa(name='TVL_Cond Equation',
     #                         design_equa=DesignParameterEquation(circuit.components['Condenser'],
     #                                                             DC_value=TVL_Cond + 273.15,
@@ -273,13 +291,28 @@ def main():
                (1e4, 1e6),
                (2.5e5, 5.0e5),
                (0.01, 1000.0)]
+    # Vt_bnds = [(-np.inf, np.inf),
+    #            (-np.inf, np.inf),
+    #            (-np.inf, np.inf),
+    #            (-np.inf, np.inf),
+    #            (-np.inf, np.inf),
+    #            (-np.inf, np.inf),
+    #            (-np.inf, np.inf),
+    #            (-np.inf, np.inf),
+    #            (-np.inf, np.inf),
+    #            (-np.inf, np.inf),
+    #            (-np.inf, np.inf),
+    #            (-np.inf, np.inf),
+    #            (-np.inf, np.inf),
+    #            (-np.inf, np.inf)]
+
 
     # with open('init.pkl', 'rb') as load_data:
     #     init = pickle.load(load_data)
 
     i = 0
     for var in circuit.Vt:
-        var.initial_value = init[i]
+        var.initial_value = min(max(init[i], Vt_bnds[i][0]), Vt_bnds[i][1])
         var.bounds = Vt_bnds[i]
         i += 1
     # for var in circuit.U:
