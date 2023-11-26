@@ -1,8 +1,9 @@
-from CoolProp.CoolProp import PropsSI
+from CoolProp.CoolProp import PropsSI, PhaseSI
+import matplotlib.pyplot as plt
 import numpy as np
 from math import log
 import scipy.optimize
-from system import *
+from system import Component, psd
 
 
 class HeatExchanger(object):
@@ -69,12 +70,12 @@ class HeatExchanger(object):
         else:
             self.T_ho = self.T_ci
 
-        Qmaxh = self.mdot_h * coolpropsCTP((self.T_hi + self.T_ho) / 2, self.p_hi, self.Fluid_h) * (self.T_hi - self.T_ho)
+        Qmaxh = self.mdot_h * PropsSI('C', 'T', (self.T_hi + self.T_ho) / 2, 'P', self.p_hi, self.Fluid_h) * (self.T_hi - self.T_ho)
 
         if self.T_cmax > self.T_hi:
-            self.h_co = coolpropsHTP(self.T_hi, self.p_ci, self.Fluid_c)
+            self.h_co = PropsSI('H', 'T', self.T_hi, 'P', self.p_ci, self.Fluid_c)
         else:
-            self.h_co = coolpropsHTP(self.T_cmax, self.p_ci, self.Fluid_c)
+            self.h_co = PropsSI('H', 'T', self.T_cmax, 'P', self.p_ci, self.Fluid_c)
 
         Qmaxc = self.mdot_c * (self.h_co - self.h_ci)
 
@@ -89,7 +90,7 @@ class HeatExchanger(object):
 
         # Re-calculate the outlet enthalpies of each stream
         self.h_co = self.h_ci + Q / self.mdot_c
-        self.T_ho = self.T_hi - Q / self.mdot_h / coolpropsCTP((self.T_hi + self.T_ho) / 2, self.p_hi, self.Fluid_h)
+        self.T_ho = self.T_hi - Q / self.mdot_h / PropsSI('C', 'T', (self.T_hi + self.T_ho) / 2, 'P', self.p_hi, self.Fluid_h)
 
         # Start with the external boundaries (sorted in increasing enthalpy)
         self.hvec_c = [self.h_ci, self.h_co]
@@ -109,7 +110,7 @@ class HeatExchanger(object):
                 break
 
             # Determine which stream is the limiting next cell boundary
-            Qcell_hk = self.mdot_h * coolpropsCTP(self.Tvec_h[k], self.p_hi, self.Fluid_h) * (self.Tvec_h[k + 1] - self.Tvec_h[k])
+            Qcell_hk = self.mdot_h * PropsSI('C', 'T', self.Tvec_h[k], 'P', self.p_hi, self.Fluid_h) * (self.Tvec_h[k + 1] - self.Tvec_h[k])
             Qcell_ck = self.mdot_c * (self.hvec_c[k + 1] - self.hvec_c[k])
 
             if abs(Qcell_hk / Qcell_ck - 1) < 1e-6:
@@ -118,13 +119,29 @@ class HeatExchanger(object):
             Qcell_ck = self.mdot_c * (self.hvec_c[k + 1] - self.hvec_c[k])
 
             # Hot stream needs a complementary cell boundary
-            self.Tvec_h.insert(k + 1, self.Tvec_h[k] + Qcell_ck / self.mdot_h / coolpropsCTP(self.Tvec_h[k], self.p_hi, self.Fluid_h))
+            self.Tvec_h.insert(k + 1, self.Tvec_h[k] + Qcell_ck / self.mdot_h / PropsSI('C', 'T', self.Tvec_h[k], 'P',
+                                                                                    self.p_hi, self.Fluid_h))
 
             # Increment index
             k += 1
 
         # Calculate the temperature and entropy at each cell boundary
         self.Tvec_c = PropsSI('T', 'H', self.hvec_c, 'P', self.p_ci, self.Fluid_c)
+
+        self.phases_c = []
+        for i in range(len(self.hvec_c) - 1):
+            havg = (self.hvec_c[i] + self.hvec_c[i + 1]) / 2.0
+            if self.Fluid_c in self.fluid_list:
+                if havg < self.h_cbubble:
+                    self.phases_c.append('liquid')
+                elif havg > self.h_cdew:
+                    self.phases_c.append('vapor')
+                else:
+                    self.phases_c.append('two-phase')
+            else:
+                self.phases_c.append(PhaseSI('H', havg, 'P', self.p_ci, self.Fluid_c))
+
+        self.phases_h = len(self.Tvec_h) * ['liquid']
 
     def internal_pinching(self, stream):
 
@@ -134,7 +151,7 @@ class HeatExchanger(object):
 
         if stream == 'hot':
 
-            Qmax = self.mdot_h * coolpropsCTP((self.T_hi + self.T_ho) / 2, self.p_hi, self.Fluid_h) * (self.Tvec_h[-1] - self.Tvec_h[0])
+            Qmax = self.mdot_h * PropsSI('C', 'T', (self.T_hi + self.T_ho) / 2, 'P', self.p_hi, self.Fluid_h) * (self.Tvec_h[-1] - self.Tvec_h[0])
             return Qmax
 
         elif stream == 'cold':
@@ -154,7 +171,7 @@ class HeatExchanger(object):
                         Qleft = self.mdot_c * (self.h_cbubble - self.h_ci)
 
                         # New value for the limiting heat transfer rate
-                        Qmax = Qleft + self.mdot_h * coolpropsCTP((self.T_hi + self.T_ho) / 2, self.p_hi, self.Fluid_h) * (self.T_hi - self.T_cbubble)
+                        Qmax = Qleft + self.mdot_h * PropsSI ('C', 'T', (self.T_hi + self.T_ho) / 2, 'P', self.p_hi, self.Fluid_h) * (self.T_hi - self.T_cbubble)
 
                         # Recalculate the cell boundaries
                         self.calculate_cell_boundaries(Qmax)
@@ -217,8 +234,8 @@ class HeatExchanger(object):
             h_c = (self.hvec_c[k + 1] + self.hvec_c[k]) / 2
             T_c = (self.Tvec_c[k + 1] + self.Tvec_c[k]) / 2
             T_w = (T_h + T_c) / 2
-            alpha_h = 1000.0
-            alpha_c = 1000.0
+            alpha_h = self.alpha_correlation(self.p_hi, T_h, T_h, T_w, self.mdot_h, self.phases_h[k], self.Fluid_h)
+            alpha_c = self.alpha_correlation(self.p_ci, h_c, T_c, T_w, self.mdot_c, self.phases_c[k], self.Fluid_c)
 
             UA_avail = 1 / (1 / (alpha_h * self.A_h) + 1 / (alpha_c * self.A_c))
             Uj = 1 / (1 / alpha_h + self.A_h / self.A_c * 1 / alpha_c)
@@ -237,6 +254,47 @@ class HeatExchanger(object):
         else:
             self.Q = self.Qmax
         return self.Q
+
+    def alpha_correlation(self, p, h, T, Tw, m, phase, fluid):
+
+        S = self.S
+        D_h = self.Dh
+        n = self.n
+
+        if fluid == 'R134a':
+
+            if phase == "two-phase":
+
+                """
+                R134a Evaporation Heat Transfer Correlation by
+                Yan, Y.Y., Lin, T.F., 1999. Evaporation heat transfer and pressure drop of refrigerant R-134a
+                in a plate heat exchanger. J. Heat Transfer 121
+
+                """
+                x = PropsSI('Q', 'P', p, 'H', h, fluid)
+                rho_l = PropsSI('D', 'P', p, 'Q', 0.0, fluid)
+                rho_v = PropsSI('D', 'P', p, 'Q', 1.0, fluid)
+                mu_l = PropsSI('V', 'P', p, 'Q', 0.0, fluid)
+                lamda_l = PropsSI('L', 'P', p, 'Q', 0.0, fluid)
+                h_evap = PropsSI('H', 'P', p, 'Q', 1.0, fluid) - PropsSI('H', 'P', p, 'Q', 0.0, fluid)
+                G = m / n / S
+                Re = G * D_h / mu_l
+                G_eq = G * ((1 - x) + x * (rho_l / rho_v)) ** (1 / 2)
+                Re_eq = G_eq * D_h / mu_l
+                q = 10.5 * 1e3
+                Bo_eq = q / (G_eq * h_evap)
+                Pr_l = PropsSI('Prandtl', 'P', p, 'Q', 0.0, fluid)
+
+                return 1.926 * (lamda_l / D_h) * Re_eq * Pr_l ** (1 / 3) * Bo_eq ** (0.3) * Re ** (-0.5)
+
+            elif phase == "vapor":
+                return 1000
+
+            else:
+                return 1000
+
+        else:
+            return 12200
 
 
 def solver(component: [Component]):
@@ -262,26 +320,46 @@ def solver(component: [Component]):
         m_in_c = component.ports[psd['c']].m.value
         cold_fluid = component.ports[psd['c']].fluid
 
-        T_in_h = coolpropsTPH(p_in_h, h_in_h, hot_fluid)
-        if T_in_h < coolpropsTPH(p_in_c, h_in_c, cold_fluid):
+        T_in_h = PropsSI('T', 'P', p_in_h, 'H', h_in_h, hot_fluid)
+
+        if T_in_h < PropsSI('T', 'P', p_in_c, 'H', h_in_c, cold_fluid):
             raise RuntimeError('Secondary side fluid is hoter than primary side fluid!')
         else:
             HX = HeatExchanger(hot_fluid, m_in_h, p_in_h, h_in_h, cold_fluid, m_in_c, p_in_c, h_in_c)
             HX.A_h = HX.A_c = A
             HX.run(and_solve=True)
-            Q = HX.Q
+            p_out_c = p_in_c
+            p_out_h = p_in_h
+            m_out_h = m_in_h
+            m_out_c = m_in_c
 
-            rU = np.zeros([len(U)])
-            U = [p_in_h, h_in_h, m_in_h, p_in_c, h_in_c, m_in_c]
-            for i in range(len(U)):
-                U[i].der = 1.0
-                HX = HeatExchanger(hot_fluid, m_in_h, p_in_h, h_in_h, cold_fluid, m_in_c, p_in_c, h_in_c)
-                HX.A_h = HX.A_c = A
-                HX.run(and_solve=True)
-                rU[i] = HX.objective_function(DualVariable(Q, 1.0))
-                U[i].der = 0.0
 
+
+        component.ports[psd['-h']].p.set_value(p_out_h)
+        component.ports[psd['-h']].h.set_value(h_in_h.value + HX.Q / m_in_h.value)
+        component.ports[psd['-h']].m.set_value(m_out_h)
+
+        component.ports[psd['-c']].p.set_value(p_out_c)
+        component.ports[psd['-c']].h.set_value(h_in_c.value + HX.Q / m_in_c.value)
+        component.ports[psd['-c']].m.set_value(m_out_c)
+
+        component.outputs['Q'] = HX.Q
 
     except:
         print('Evaporator ' + str(component.number) + ' ' + 'failed!')
         component.status = 0
+
+    if component.diagramm_plot:
+        A = [0]
+        for i, element in enumerate(HX.Areq):
+            A.append((sum(A) + element))
+        A = A / sum(HX.Areq)
+
+        fig, ax = plt.subplots()
+        fig.suptitle(f'{component.name} \n {round(HX.Q / 1000, 3)} kW', fontsize=16)
+        ax.plot(A, HX.Tvec_c - 273.15, 'b-')
+        ax.plot(A, np.array(HX.Tvec_h) - 273.15, 'r-')
+        ax.set_xlabel('$A / A_{ges} [-]$')
+        ax.set_ylabel('$Temperature [\u00b0 C]$')
+        ax.grid(True)
+        plt.show()

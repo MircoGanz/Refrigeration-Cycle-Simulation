@@ -2771,15 +2771,13 @@ def system_solver(circuit: Circuit):
                 return {'x': sol[0], 'converged': False, 'message': 'model execution error'}
 
     else:
-        print('Start SLSQP Algorithm to solve system')
         pool = multiprocessing.Pool(len(x0_scaled))
         circuit_clones = [deepcopy(circuit)] * len(x0_scaled)
         global x0_global, L_global
         x0_global = x0_scaled[0:len(circuit.Vt)]
         L_global = 1e12
-        # L, DL_du = adjoint_derivative(pool, circuit_clones, x0_scaled[len(circuit.Vt):])
-        # sol = scipy.optimize.minimize(partial(adjoint_derivative, pool, circuit_clones), x0_scaled[len(circuit.Vt):], bounds=bnds_scaled[len(circuit.Vt):], method='L-BFGS-B', jac=True, options={'disp': True, 'maxls': 20, 'gtol': 1e-6, 'ftol': 1e-9})
-        sol = scipy.optimize.minimize(partial(adjoint_derivative, pool, circuit_clones), x0_scaled[len(circuit.Vt):], bounds=bnds_scaled[len(circuit.Vt):], method='L-BFGS-B', jac=True, options={'disp': True})
+        print('Start L-BFGS-B Algorithm to solve system')
+        sol = scipy.optimize.minimize(partial(adjoint_derivative, pool, circuit_clones), x0_scaled[len(circuit.Vt):], bounds=bnds_scaled[len(circuit.Vt):], method='L-BFGS-B', jac=True, options={'disp': True, 'maxls': 20})
         L, x = simulation(sol['x'])
         if sol['success']:
             x = np.append(x, sol['x'])
@@ -2800,7 +2798,7 @@ def system_solver(circuit: Circuit):
                     'message': 'solver converged'}
         else:
             return {'x': [], 'converged': False, 'message': 'model execution error'}
-        t1 = time.time()
+        print('Start SLSQP Algorithm to solve system')
         sol = scipy.optimize.fmin_slsqp(objfun,
                                         x0_scaled,
                                         bounds=bnds_scaled,
@@ -2811,7 +2809,6 @@ def system_solver(circuit: Circuit):
                                         disp=3,
                                         acc=1.0e-6,
                                         iter=1000)
-        print(f'Time first run: {time.time() - t1}')
         if sol[3] == 0:
             print('Solver converged!')
             i = 0

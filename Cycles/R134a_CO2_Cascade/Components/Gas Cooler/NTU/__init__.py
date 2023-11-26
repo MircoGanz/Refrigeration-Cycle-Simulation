@@ -1,6 +1,5 @@
 from system import Component, psd
-from CoolProp.CoolProp import PropsSI, PhaseSI
-import matplotlib.pyplot as plt
+from CoolProp.CoolProp import PropsSI
 import numpy as np
 
 

@@ -1,6 +1,5 @@
 from system import Component, psd
 from CoolProp.CoolProp import PropsSI
-import numpy as np
 
 
 def solver(component: [Component]):

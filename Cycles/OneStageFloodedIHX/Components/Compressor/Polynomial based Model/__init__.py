@@ -1,8 +1,6 @@
 from system import *
-from CoolProp.CoolProp import PropsSI
 from pathlib import Path
 import pandas as pd
-import numpy as np
     
 
 def solver(component: [Component]):
@@ -21,20 +19,11 @@ def solver(component: [Component]):
         p_out = component.ports[psd['-p']].p.value
         fluid = component.ports[psd['-p']].fluid
 
-        if component.linearized:
-            x = np.array(component.x0.copy())
-            i = 0
-            for port in component.ports:
-                if port.port_type == 'in' and port.port_id[-1] == 0:
-                    x[i] = port.p.value
-                    x[i+1] = port.h.value
-                    i += 2
-                elif port.port_type == 'out' and port.port_id[-1] == 0:
-                    x[i] = port.p.value
-                    i += 1
+        t_evap = coolpropsTPQ(p_in, 1, fluid) - 273.15
+        t_cond =  coolpropsTPQ(p_out, 1, fluid) - 273.15
 
-        t_evap = PropsSI("T", "P", p_in, "Q", 1, fluid) - 273.15
-        t_cond = PropsSI("T", "P", p_out, "Q", 0, fluid) - 273.15
+        # t_evap = PropsSI("T", "P", p_in, "Q", 1, fluid) - 273.15
+        # t_cond = PropsSI("T", "P", p_out, "Q", 0, fluid) - 273.15
         SH_ref = 10
 
         if not f % 5 == 0 and 30 <= f <= 70:
@@ -53,11 +42,15 @@ def solver(component: [Component]):
 
             return Phi
 
-        Z = PropsSI("D", "P", p_in, "H", h_in, fluid)
-        if abs(PropsSI("T", "P", p_in, "Q", 1.0, fluid) - (t_evap + SH_ref + 273.15)) < 1e-4:
-            N = PropsSI("D", "P", p_in, "Q", 1.0, fluid)
+        Z = coolpropsDPH(p_in, h_in, fluid) - 273.15
+        # Z = PropsSI("D", "P", p_in, "H", h_in, fluid)
+        if abs(coolpropsTPQ(p_in, 1, fluid) - t_evap + SH_ref + 273.15) < 1e-4:
+        # if abs(PropsSI("T", "P", p_in, "Q", 1.0, fluid) - (t_evap + SH_ref + 273.15)) < 1e-4:
+            N = coolpropsDPQ(p_in, 1, fluid)
+            # N = PropsSI("D", "P", p_in, "Q", 1.0, fluid)
         else:
-            N = PropsSI("D", "P", p_in, "T", t_evap + SH_ref + 273.15, fluid)
+            N = coolpropsDPT(p_in, t_evap + SH_ref + 273.15, fluid)
+            # N = PropsSI("D", "P", p_in, "T", t_evap + SH_ref + 273.15, fluid)
 
         m = evalPoly(t_evap, t_cond, coefficients.loc['m [kg/h]', :]) / 3600
 
@@ -67,19 +60,9 @@ def solver(component: [Component]):
 
         h_out = h_in + P_el / m
 
-        if component.linearized:
-            F = np.dot(component.J, (x - component.x0)) + component.F0
-            m_in = component.lamda * m + (1 - component.lamda) * F[0]
-            h_out = component.lamda * h_out + (1 - component.lamda) * F[1]
-            m_out = component.lamda * m + (1 - component.lamda) * F[2]
-        else:
-            m_in = m
-            h_out = h_out
-            m_out = m
-
-        component.ports[psd['p']].m.set_value(m_in)
+        component.ports[psd['p']].m.set_value(m)
         component.ports[psd['-p']].h.set_value(h_out)
-        component.ports[psd['-p']].m.set_value(m_out)
+        component.ports[psd['-p']].m.set_value(m)
 
 
     except:

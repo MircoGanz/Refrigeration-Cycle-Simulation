@@ -189,8 +189,8 @@ def main():
     p_sp_1 = 1.0e5
     p_sp_2 = 1.0e5
 
-    TVL_HC1 = 40.0
-    TVL_HC2 = 35.0
+    TVL_HC1 = 35.0
+    TVL_HC2 = 32.0
     TVL_Cond = 65.0
 
     # adds design equations to circuit
@@ -232,18 +232,18 @@ def main():
                                                                 var_type='T',
                                                                 port_id=psd['-c'],
                                                                 relaxed=True))
-    circuit.add_design_equa(name='HC1 Q Equation',
-                            design_equa=OutputDesignEquation(circuit.components['Heating Coil 1'],
-                                                             DC_value=10000,
-                                                             output_name='Q',
-                                                             scale_factor=1e-5,
-                                                             relaxed=True))
-    circuit.add_design_equa(name='HC2 Q Equation',
-                            design_equa=OutputDesignEquation(circuit.components['Heating Coil 2'],
-                                                             DC_value=10000,
-                                                             output_name='Q',
-                                                             scale_factor=1e-5,
-                                                             relaxed=True))
+    # circuit.add_design_equa(name='HC1 Q Equation',
+    #                         design_equa=OutputDesignEquation(circuit.components['Heating Coil 1'],
+    #                                                          DC_value=7000,
+    #                                                          output_name='Q',
+    #                                                          scale_factor=1e-5,
+    #                                                          relaxed=True))
+    # circuit.add_design_equa(name='HC2 Q Equation',
+    #                         design_equa=OutputDesignEquation(circuit.components['Heating Coil 2'],
+    #                                                          DC_value=8000,
+    #                                                          output_name='Q',
+    #                                                          scale_factor=1e-5,
+    #                                                          relaxed=True))
     # circuit.add_design_equa(name='CC Q Equation',
     #                         design_equa=OutputDesignEquation(circuit.components['Cooling Coil'],
     #                                                          DC_value=12000,

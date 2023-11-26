@@ -70,7 +70,7 @@ def main():
                       solver_path_list=solver_path_list,
                       fluid_list=fluid_list)
 
-    circuit.add_parameter(component_name='Compressor', parameter_name='f', value=30)
+    circuit.add_parameter(component_name='Compressor', parameter_name='f', value=50)
     circuit.add_output(component_name='Compressor', output_name='P')
 
     circuit.add_parameter(component_name='Condenser', parameter_name='A', value=3.65)
@@ -108,7 +108,8 @@ def main():
     SH = 15.0
     SC = 2.0
     po_co = 11.0
-    To_c_sp = 40.0
+    To_c_sp = 35.0
+    To_v_sp = 0.0
 
     # adds design equations to circuit
     circuit.add_design_equa(name='Superheat Equation',
@@ -119,8 +120,11 @@ def main():
                                                           port_id=psd['-c'],
                                                           relaxed=False))
     circuit.add_design_equa(name='TV_c Equation', design_equa=DesignParameterEquation(circuit.components['Condenser'], To_c_sp + 273.15, 'out', 'T', psd['-c'], relaxed=True))
+    circuit.add_design_equa(name='TV_v Equation',
+                            design_equa=DesignParameterEquation(circuit.components['Evaporator'], To_v_sp + 273.15,
+                                                                'out', 'T', psd['-h'], relaxed=True))
     circuit.add_design_equa(name='Q0 Equation',
-                            design_equa=OutputDesignEquation(circuit.components['Condenser'], 20.0,
+                            design_equa=OutputDesignEquation(circuit.components['Condenser'], 12.0,
                                                              output_name='Q',
                                                              relaxed=True))
 
@@ -142,8 +146,8 @@ def main():
                (1e5, 3e5),
                (0.1e5, 5e5)]
 
-    with open('init.pkl', 'rb') as load_data:
-        init = pickle.load(load_data)
+    # with open('init.pkl', 'rb') as load_data:
+    #     init = pickle.load(load_data)
 
     i = 0
     for var in circuit.Vt:
@@ -153,7 +157,7 @@ def main():
 
     # resets all compontent ports
     [(circuit.components[key].reset(), setattr(circuit.components[key], 'linearized', False)) for key in circuit.components]
-
+    circuit.Vt[0].value.der = 1.0
     # runs the system solver to solve the system of equations of th cycle
     sol = system_solver(circuit)
 
@@ -209,11 +213,11 @@ def main():
                 print(f'{param}: {round(circuit.components[key].parameter[param].value, 3)}')
             print('\n')
 
-        # # plots log ph diagramm
-        # logph([[hi_co * 1e-3, hi_c * 1e-3, hi_r * 1e-3, hi_ihx_h * 1e-3, hi_ev * 1e-3, hi_v * 1e-3, hi_ihx_c * 1e-3, hi_co * 1e-3]],
-        #       [[pi_co * 1e-5, pi_c * 1e-5, pi_r * 1e-5, pi_ihx_h * 1e-5, pi_ev * 1e-5, pi_v * 1e-5, pi_ihx_c * 1e-5, pi_co * 1e-5]],
-        #       [[1, 2, 3, 4, 5, 6, 7, 1]],
-        #       [fluid_list[0]])
+        # plots log ph diagramm
+        logph([[hi_co * 1e-3, hi_c * 1e-3, hi_r * 1e-3, hi_ihx_h * 1e-3, hi_ev * 1e-3, hi_v * 1e-3, hi_ihx_c * 1e-3, hi_co * 1e-3]],
+              [[pi_co * 1e-5, pi_c * 1e-5, pi_r * 1e-5, pi_ihx_h * 1e-5, pi_ev * 1e-5, pi_v * 1e-5, pi_ihx_c * 1e-5, pi_co * 1e-5]],
+              [[1, 2, 3, 4, 5, 6, 7, 1]],
+              [fluid_list[0]])
 
 
 if __name__ == "__main__":
