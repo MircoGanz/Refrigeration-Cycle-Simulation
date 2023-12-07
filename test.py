@@ -180,6 +180,33 @@ def comp_polynomial_map(pi, po, hi, f, fluid):
 
     return m, ho, m
 
+def IHX(pi_h, hi_h, mi_h, pi_c, hi_c, mi_c, hot_fluid, cold_fluid):
+    A = 0.76
+    k = 130
+
+    C_h = mi_h * coolpropsCPH(pi_h, hi_h, hot_fluid)
+    C_c = mi_c * coolpropsCPH(pi_c, hi_c, cold_fluid)
+    T_in_h = coolpropsTPH(pi_h, hi_h, hot_fluid)
+    T_in_c = coolpropsTPH(pi_c, hi_c, cold_fluid)
+
+    R = C_h / C_c
+    NTU = k * A / C_h
+    n = (-1) * NTU * (1 + R)
+    if isinstance(n, DualNumber):
+        epsilon = (1 - n.exp()) / (1 + R)
+    else:
+        epsilon = (1 - np.exp(n)) / (1 + R)
+    Q = epsilon * C_h * (T_in_h - T_in_c)
+
+    p_out_c = pi_c
+    p_out_h = pi_h
+    h_out_h = (hi_h - Q / mi_h)
+    h_out_c = (hi_c + Q / mi_c)
+    m_out_h = mi_h
+    m_out_c = mi_c
+
+    return p_out_h, h_out_h, m_out_h, p_out_c, h_out_c, m_out_c
+
 
 from CoolProp.CoolProp import PropsSI, PhaseSI
 import matplotlib.pyplot as plt
@@ -419,8 +446,8 @@ class HeatExchanger(object):
             h_c = (self.hvec_c[k + 1] + self.hvec_c[k]) / 2
             T_c = (self.Tvec_c[k + 1] + self.Tvec_c[k]) / 2
             T_w = (T_h + T_c) / 2
-            alpha_h = 100.0
-            alpha_c = 100.0
+            alpha_h = 500.0
+            alpha_c = 500.0
 
             UA_avail = 1 / (1 / (alpha_h * self.A_h) + 1 / (alpha_c * self.A_c))
             Uj = 1 / (1 / alpha_h + self.A_h / self.A_c * 1 / alpha_c)
@@ -443,59 +470,98 @@ class HeatExchanger(object):
 
 def HX(pi_h, hi_h, mi_h, pi_c, hi_c, mi_c, hot_fluid, cold_fluid):
 
-        def fun(pi_h, hi_h, mi_h, pi_c, hi_c, mi_c, Q):
+    def mapping_func(pi_h, hi_h, mi_h, pi_c, hi_c, mi_c, Q):
 
-            po_h = pi_h
-            ho_h = hi_h - Q / mi_h
-            mo_h = mi_h
-            po_c = pi_c
-            ho_c = hi_c + Q / mi_c
-            mo_c = mi_c
+        po_h = pi_h
+        ho_h = hi_h - Q / mi_h
+        mo_h = mi_h
+        po_c = pi_c
+        ho_c = hi_c + Q / mi_c
+        mo_c = mi_c
 
-            return np.array([po_h.der, ho_h.der, mo_h.der, po_c.der, ho_c.der, mo_c.der])
+        return np.array([po_h.der, ho_h.der, mo_h.der, po_c.der, ho_c.der, mo_c.der])
 
-        A = 3.65
-        T_in_h = coolpropsTPH(pi_h, hi_h, hot_fluid)
-        T_in_c = coolpropsTPH(pi_c, hi_c, cold_fluid)
-        if T_in_h < T_in_c:
-            raise RuntimeError('Secondary side fluid is hoter than primary side fluid!')
-        else:
-            HX = HeatExchanger(hot_fluid, mi_h.no, pi_h.no, hi_h.no, cold_fluid, mi_c.no, pi_c.no, hi_c.no)
-            HX.A_h = HX.A_c = A
-            HX.run(and_solve=True)
-            Q = HX.Q
-            u = [DualNumber(pi_h.no, 0.0), DualNumber(hi_h.no, 0.0), DualNumber(mi_h.no, 0.0), DualNumber(pi_c.no, 0.0), DualNumber(hi_c.no, 0.0), DualNumber(mi_c.no, 0.0)]
-            ru = np.zeros(len(u))
-            for i in range(len(u)):
-                u[i].der = 1.0
-                HX = HeatExchanger(hot_fluid, u[2], u[0], u[1], cold_fluid, u[5], u[3], u[4])
-                HX.Q = Q
-                HX.A_h = HX.A_c = A
-                ru[i] = HX.objective_function(Q).der
-                u[i].der = 0.0
-            HX = HeatExchanger(hot_fluid, u[2], u[0], u[1], cold_fluid, u[5], u[3], u[4])
-            HX.A_h = HX.A_c = A
-            rx = HX.objective_function(DualNumber(Q, 1.0)).der
-        phi = ru/rx
-        fu = np.array([])
+    def dF(pi_h, hi_h, mi_h, pi_c, hi_c, mi_c, Q):
+        Fu = np.array([])
+        u = [DualNumber(pi_h.no, 0.0), DualNumber(hi_h.no, 0.0), DualNumber(mi_h.no, 0.0),
+             DualNumber(pi_c.no, 0.0),
+             DualNumber(hi_c.no, 0.0), DualNumber(mi_c.no, 0.0)]
         for i in range(len(u)):
             u[i].der = 1.0
             if i == 0:
-                fu = fun(u[0], u[1], u[2], u[3], u[4], u[5], Q)
+                Fu = mapping_func(u[0], u[1], u[2], u[3], u[4], u[5], Q)
             else:
-                fu = np.column_stack([fu, fun(u[0], u[1], u[2], u[3], u[4], u[5], Q)])
+                Fu = np.column_stack([Fu, mapping_func(u[0], u[1], u[2], u[3], u[4], u[5], Q)])
             u[i].der = 0.0
         Q = DualNumber(Q, 1.0)
-        fx = fun(u[0], u[1], u[2], u[3], u[4], u[5], Q)
-        Df = fu - np.outer(fx, phi)
+        Fx = mapping_func(u[0], u[1], u[2], u[3], u[4], u[5], Q)
+        return Fu, Fx
+
+    def dr(pi_h, hi_h, mi_h, pi_c, hi_c, mi_c, Q):
+        u = [DualNumber(pi_h.no, 0.0), DualNumber(hi_h.no, 0.0), DualNumber(mi_h.no, 0.0),
+             DualNumber(pi_c.no, 0.0),
+             DualNumber(hi_c.no, 0.0), DualNumber(mi_c.no, 0.0)]
+        ru = np.zeros(len(u))
+        for i in range(len(u)):
+            u[i].der = 1.0
+            HX = HeatExchanger(hot_fluid, u[2], u[0], u[1], cold_fluid, u[5], u[3], u[4])
+            HX.A_h = HX.A_c = A
+            ru[i] = HX.objective_function(Q).der
+            u[i].der = 0.0
+        HX = HeatExchanger(hot_fluid, u[2], u[0], u[1], cold_fluid, u[5], u[3], u[4])
+        HX.A_h = HX.A_c = A
+        rx = HX.objective_function(DualNumber(Q, 1.0)).der
+        return ru, rx
+
+
+    A = 3.65
+
+    T_in_h = coolpropsTPH(pi_h, hi_h, hot_fluid)
+    T_in_c = coolpropsTPH(pi_c, hi_c, cold_fluid)
+    if T_in_h < T_in_c:
+        raise RuntimeError('Secondary side fluid is hotter than primary side fluid!')
+    else:
+
+        HX = HeatExchanger(hot_fluid, mi_h.no, pi_h.no, hi_h.no, cold_fluid, mi_c.no, pi_c.no, hi_c.no)
+        HX.A_h = HX.A_c = A
+        HX.run(and_solve=True)
+        Q = HX.Q
+        ru, rx = dr(pi_h, hi_h, mi_h, pi_c, hi_c, mi_c, Q)
+        phi = ru / rx
+        Fu, Fx = dF(pi_h, hi_h, mi_h, pi_c, hi_c, mi_c, Q)
+        Df = Fu - np.outer(Fx, phi)
+
         du = np.array([pi_h.der, hi_h.der, mi_h.der, pi_c.der, hi_c.der, mi_c.der])
         po_h = DualNumber(pi_h.no, np.dot(Df[0, :], du))
-        ho_h = DualNumber(hi_h.no - Q.no / mi_h.no, np.dot(Df[1, :], du))
+        ho_h = DualNumber(hi_h.no - Q / mi_h.no, np.dot(Df[1, :], du))
         mo_h = DualNumber(mi_h.no, np.dot(Df[2, :], du))
         po_c = DualNumber(pi_c.no, np.dot(Df[3, :], du))
-        ho_c = DualNumber(hi_c.no + Q.no / mi_c.no, np.dot(Df[4, :], du))
+        ho_c = DualNumber(hi_c.no + Q / mi_c.no, np.dot(Df[4, :], du))
         mo_c = DualNumber(mi_c.no, np.dot(Df[5, :], du))
-        return po_h, ho_h, mo_h, po_c, ho_c, mo_c
+
+    return po_h, ho_h, mo_h, po_c, ho_c, mo_c
+
+
+# Ti_h_list = np.linspace(20.0, 50.0, 100)
+# D = np.zeros([len(Ti_h_list), 2])
+# for i, Ti_h in enumerate(Ti_h_list):
+#     print(i)
+#     hot_fluid = 'Water'
+#     cold_fluid = 'R134a'
+#     pi_c = DualNumber(2e5, 0.0)
+#     mi_c = DualNumber(0.5, 1.0)
+#     pi_h = DualNumber(1e5, 0.0)
+#     Ti_h = DualNumber(Ti_h+273.15, 0.0)
+#     hi_c = DualNumber(PropsSI('H', 'P', pi_c.no, 'Q', 0.5, cold_fluid), 0.0)
+#     hi_h = DualNumber(PropsSI('H', 'T', Ti_h.no, 'P', pi_h.no, hot_fluid), 0.0)
+#     mi_h = DualNumber(1.0, 0.0)
+#
+#     ε = 1e-6 * max(abs(hi_c.no), 1.0)
+#     po_h, ho_h, mo_h, po_c, ho_c, mo_c = IHX(pi_h, hi_h, mi_h, pi_c, hi_c, mi_c, hot_fluid, cold_fluid)
+#     po_h_fw, ho_h_fw, mo_h_fw, po_c_fw, ho_c_fw, mo_c_fw = IHX(pi_h, hi_h, mi_h, pi_c, hi_c, mi_c+ε, hot_fluid, cold_fluid)
+#     D[i, 0] = ho_c.der
+#     D[i, 1] = (ho_c_fw.no - ho_c.no) / ε
+
 
 Ti_h_list = np.linspace(20.0, 50.0, 100)
 D = np.zeros([len(Ti_h_list), 2])
@@ -504,16 +570,16 @@ for i, Ti_h in enumerate(Ti_h_list):
     hot_fluid = 'Water'
     cold_fluid = 'R134a'
     pi_c = DualNumber(2e5, 0.0)
-    mi_c = DualNumber(0.5, 0.0)
+    mi_c = DualNumber(0.5, 1.0)
     pi_h = DualNumber(1e5, 0.0)
     Ti_h = DualNumber(Ti_h+273.15, 0.0)
-    hi_c = DualNumber(PropsSI('H', 'P', pi_c.no, 'Q', 0.5, cold_fluid), 1.0)
+    hi_c = DualNumber(PropsSI('H', 'P', pi_c.no, 'Q', 0.5, cold_fluid), 0.0)
     hi_h = DualNumber(PropsSI('H', 'T', Ti_h.no, 'P', pi_h.no, hot_fluid), 0.0)
     mi_h = DualNumber(1.0, 0.0)
 
     ε = 1e-6 * max(abs(hi_c.no), 1.0)
     po_h, ho_h, mo_h, po_c, ho_c, mo_c = HX(pi_h, hi_h, mi_h, pi_c, hi_c, mi_c, hot_fluid, cold_fluid)
-    po_h_fw, ho_h_fw, mo_h_fw, po_c_fw, ho_c_fw, mo_c_fw = HX(pi_h, hi_h, mi_h, pi_c, hi_c+ε, mi_c, hot_fluid, cold_fluid)
+    po_h_fw, ho_h_fw, mo_h_fw, po_c_fw, ho_c_fw, mo_c_fw = HX(pi_h, hi_h, mi_h, pi_c, hi_c, mi_c+ε, hot_fluid, cold_fluid)
     D[i, 0] = ho_c.der
     D[i, 1] = (ho_c_fw.no - ho_c.no) / ε
 

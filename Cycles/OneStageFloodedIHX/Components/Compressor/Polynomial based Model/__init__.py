@@ -42,7 +42,7 @@ def solver(component: [Component]):
 
             return Phi
 
-        Z = coolpropsDPH(p_in, h_in, fluid) - 273.15
+        Z = coolpropsDPH(p_in, h_in, fluid)
         # Z = PropsSI("D", "P", p_in, "H", h_in, fluid)
         if abs(coolpropsTPQ(p_in, 1, fluid) - t_evap + SH_ref + 273.15) < 1e-4:
         # if abs(PropsSI("T", "P", p_in, "Q", 1.0, fluid) - (t_evap + SH_ref + 273.15)) < 1e-4:

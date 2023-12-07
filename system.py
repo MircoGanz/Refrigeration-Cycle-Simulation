@@ -22,7 +22,6 @@ import numpy as np
 import scipy.optimize
 from CoolProp.CoolProp import PropsSI, PhaseSI
 from labellines import labelLines
-import time
 import math
 
 # from pyoptsparse import OPT, Optimization
@@ -129,14 +128,14 @@ class Variable:
         self.port_type = port_type
         self.port_id = port_id
         self.var_type = var_type
-        self.value = DualNumber(value, 0.0)
+        self.value = value
         self.initial_value = value
         self.known = known
         self.is_input = is_input
         self.scale_factor = scale_factor
         self.bounds = bounds
 
-    def set_value(self, value: float):
+    def set_value(self, value):
         """
         Set the value of the variable.
 
@@ -144,10 +143,9 @@ class Variable:
             value: Value to set.
         """
         if isinstance(value, DualNumber):
-            self.value.no = value.no
-            self.value.der = value.der
+            self.value = DualNumber(value.no, value.der)
         else:
-            self.value.no = value
+            self.value = value
         self.known = True
 
     def reset(self):
@@ -155,161 +153,7 @@ class Variable:
         Reset the variable to its initial state.
         """
         self.known = False
-        self.value = DualNumber(None, 0.0)
-
-def coolpropsHTP(T, p, fluid):
-    def calculate_derivative(T, p, fluid, prop, var, const):
-        if PhaseSI('T', T, 'P', p, fluid) in ['twophase']:
-            if var == 'T':
-                delta = 1e-6 * max(abs(T), 1.0)
-                prop_plus = PropsSI(prop, var, T + delta, "P", p, fluid)
-                prop_minus = PropsSI(prop, var, T - delta, "P", p, fluid)
-                derivative = (prop_plus - prop_minus) / (2 * delta)
-            else:
-                delta = 1e-6 * max(abs(p), 1.0)
-                prop_plus = PropsSI(prop, const, T, var, p + delta, fluid)
-                prop_minus = PropsSI(prop, const, T, var, p - delta, fluid)
-                derivative = (prop_plus - prop_minus) / (2 * delta)
-            return derivative
-        else:
-            return PropsSI(f"d({prop})/d({var})|{const}", 'T', T, "P", p, fluid)
-    if isinstance(T, DualNumber) and isinstance(p, DualNumber):
-        h_no = PropsSI("H", "T", T.no, "P", p.no, fluid)
-        dH_dT = calculate_derivative(T.no, p.no, fluid, "H", "T", "P")
-        dH_dP = calculate_derivative(T.no, p.no, fluid, "H", "P", "T")
-        h_der = dH_dT * T.der + dH_dP * p.der
-        return DualNumber(h_no, h_der)
-    elif not isinstance(T, DualNumber) and isinstance(p, DualNumber):
-        h_no = PropsSI("H", "T", T, "P", p.no, fluid)
-        dH_dP = calculate_derivative(T, p.no, fluid, "H", "P", "T")
-        h_der = dH_dP * p.der
-        return DualNumber(h_no, h_der)
-    elif isinstance(T, DualNumber) and not isinstance(p, DualNumber):
-        h_no = PropsSI("H", "T", T.no, "P", p, fluid)
-        dH_dT = calculate_derivative(T.no, p, fluid, "H", "T", "P")
-        h_der = dH_dT * T.der
-        return DualNumber(h_no, h_der)
-    else:
-        return PropsSI("H", "T", T, "P", p, fluid)
-
-
-def coolpropsHTQ(T, Q, fluid):
-    if isinstance(T, DualNumber) and isinstance(Q, DualNumber):
-        return DualNumber(PropsSI("H", "T", T.no, "Q", Q.no, fluid), PropsSI("d(H)/d(T)|sigma", "T", T.no, "Q", Q.no, fluid) * T.der + (PropsSI('H', 'T', T.no, 'Q', 1.0, 'R134a') - PropsSI('H', 'T', T.no, 'Q', 0.0, fluid)) * Q.der)
-    elif not isinstance(T, DualNumber) and isinstance(Q, DualNumber):
-        return DualNumber(PropsSI("H", "T", T, "Q", Q.no, fluid), (PropsSI('H', 'T', T.no, 'Q', 1.0, 'R134a') - PropsSI('H', 'T', T.no, 'Q', 0.0, fluid)) * Q.der)
-    elif isinstance(T, DualNumber) and not isinstance(Q, DualNumber):
-        return DualNumber(PropsSI("H", "T", T.no, "Q", Q, fluid), PropsSI("d(H)/d(T)|sigma", "T", T.no, "Q", Q, fluid) * T.der)
-    else:
-        return PropsSI("H", "T", T, "Q", Q, fluid)
-
-def coolpropsTPH(p, h, fluid):
-    def calculate_derivative(p, h, fluid, prop, var, const):
-        if PhaseSI('P', p, 'H', h, fluid) in ['twophase']:
-            if var == 'P':
-                delta = 1e-6 * max(abs(p), 1.0)
-                prop_plus = PropsSI(prop, var, p + delta, const, h, fluid)
-                prop_minus = PropsSI(prop, var, p - delta, const, h, fluid)
-                derivative = (prop_plus - prop_minus) / (2 * delta)
-            else:
-                delta = 1e-6 * max(abs(h), 1.0)
-                prop_plus = PropsSI(prop, const, p, var, h + delta, fluid)
-                prop_minus = PropsSI(prop, const, p, var, h - delta, fluid)
-                derivative = (prop_plus - prop_minus) / (2 * delta)
-            return derivative
-        else:
-            return PropsSI(f"d({prop})/d({var})|{const}", 'P', p, "H", h, fluid)
-
-    if isinstance(p, DualNumber) and isinstance(h, DualNumber):
-        T_no = PropsSI("T", "P", p.no, "H", h.no, fluid)
-        dT_dP = calculate_derivative(p.no, h.no, fluid, "T", "P", "H")
-        dT_dH = calculate_derivative(p.no, h.no, fluid, "T", "H", "P")
-        T_der = dT_dP * p.der + dT_dH * h.der
-        return DualNumber(T_no, T_der)
-
-    elif not isinstance(p, DualNumber) and isinstance(h, DualNumber):
-        T_no = PropsSI("T", "P", p, "P", h.no, fluid)
-        dT_dH = calculate_derivative(p, h.no, fluid, "T", "H", "P")
-        T_der = dT_dH * h.der
-        return DualNumber(T_no, T_der)
-
-    elif isinstance(p, DualNumber) and not isinstance(h, DualNumber):
-        T_no = PropsSI("T", "P", p.no, "H", h, fluid)
-        dT_dP = calculate_derivative(p.no, h, fluid, "T", "P", "H")
-        T_der = dT_dP * p.der
-        return DualNumber(T_no, T_der)
-
-    else:
-        return PropsSI("T", "P", p, "H", h, fluid)
-
-def coolpropsTPQ(p, Q, fluid):
-    if isinstance(p, DualNumber) and isinstance(Q, DualNumber):
-        return DualNumber(PropsSI("T", "P", p.no, "Q", Q.no, fluid), PropsSI("d(D)/d(T)|sigma", "P", p.no, "Q", Q.no, fluid) * p.der + PropsSI("d(T)/d(H)|sigma", "P", p.no, "Q", Q.no, fluid) * Q.der)
-    elif not isinstance(p, DualNumber) and isinstance(Q, DualNumber):
-        return DualNumber(PropsSI("T", "P", p, "Q", Q.no, fluid), 0.0)
-    elif isinstance(p, DualNumber) and not isinstance(Q, DualNumber):
-        return DualNumber(PropsSI("T", "P", p.no, "Q", Q, fluid), PropsSI("d(T)/d(P)|sigma", "P", p.no, "Q", Q, fluid) * p.der)
-    else:
-        return PropsSI("T", "P", p, "Q", Q, fluid)
-
-def coolpropsDPT(p, T, fluid):
-    if isinstance(p, DualNumber) and isinstance(T, DualNumber):
-        return DualNumber(PropsSI("D", "P", p.no, "T", T.no, fluid), PropsSI("d(D)/d(P)|T", "P", p.no, "T", T.no, fluid) * p.der + PropsSI("d(D)/d(T)|P", "P", p.no, "T", T.no, fluid) * T.der)
-    elif not isinstance(p, DualNumber) and isinstance(T, DualNumber):
-        return DualNumber(PropsSI("D", "P", p, "T", T.no, fluid), PropsSI("d(D)/d(T)|P", "P", p, "T", T.no, fluid) * T.der)
-    elif isinstance(p, DualNumber) and not isinstance(T, DualNumber):
-        return DualNumber(PropsSI("D", "P", p.no, "T", T, fluid), PropsSI("d(D)/d(P)|H", "P", p.no, "T", T, fluid) * p.der)
-    else:
-        return PropsSI("D", "P", p, "T", T, fluid)
-
-def coolpropsDPH(p, h, fluid):
-    def calculate_derivative(p, h, fluid, prop, var, const):
-        if PhaseSI('P', p, 'H', h, fluid) in ['twophase']:
-            if var == 'P':
-                delta = 1e-6 * max(abs(p), 1.0)
-                prop_plus = PropsSI(prop, var, p + delta, const, h, fluid)
-                prop_minus = PropsSI(prop, var, p - delta, const, h, fluid)
-                derivative = (prop_plus - prop_minus) / (2 * delta)
-            else:
-                delta = 1e-6 * max(abs(h), 1.0)
-                prop_plus = PropsSI(prop, const, p, var, h + delta, fluid)
-                prop_minus = PropsSI(prop, const, p, var, h - delta, fluid)
-                derivative = (prop_plus - prop_minus) / (2 * delta)
-            return derivative
-        else:
-            return PropsSI(f"d({prop})/d({var})|{const}", 'P', p, "H", h, fluid)
-
-    if isinstance(p, DualNumber) and isinstance(h, DualNumber):
-        D_no = PropsSI("D", "P", p.no, "H", h.no, fluid)
-        dD_dP = calculate_derivative(p.no, h.no, fluid, "D", "P", "H")
-        dD_dH = calculate_derivative(p.no, h.no, fluid, "D", "H", "P")
-        D_der = dD_dP * p.der + dD_dH * h.der
-        return DualNumber(D_no, D_der)
-
-    elif not isinstance(p, DualNumber) and isinstance(h, DualNumber):
-        D_no = PropsSI("D", "P", p, "P", h.no, fluid)
-        dD_dH = calculate_derivative(p, h.no, fluid, "D", "H", "P")
-        D_der = dD_dH * h.der
-        return DualNumber(D_no, D_der)
-
-    elif isinstance(p, DualNumber) and not isinstance(h, DualNumber):
-        D_no = PropsSI("D", "P", p.no, "H", h, fluid)
-        dD_dP = calculate_derivative(p.no, h, fluid, "D", "P", "H")
-        D_der = dD_dP * p.der
-        return DualNumber(D_no, D_der)
-
-    else:
-        return PropsSI("D", "P", p, "H", h, fluid)
-
-def coolpropsDPQ(p, Q, fluid):
-    if isinstance(p, DualNumber) and isinstance(Q, DualNumber):
-        return DualNumber(PropsSI("D", "P", p.no, "Q", Q.no, fluid), PropsSI("d(D)/d(P)|sigma", "P", p.no, "Q", Q.no, fluid) * p.der + (1/PropsSI('D', 'P', p.no, 'Q', 1.0, 'R134a') - 1/PropsSI('D', 'P', p.no, 'Q', 0.0, 'R134a')) / (1/PropsSI('D', 'P', p.no, 'Q', Q.no, fluid)) * Q.der)
-    elif not isinstance(p, DualNumber) and isinstance(Q, DualNumber):
-        return DualNumber(PropsSI("D", "P", p, "Q", Q.no, fluid), (1/PropsSI('D', 'P', p.no, 'Q', 1.0, 'R134a') - 1/PropsSI('D', 'P', p.no, 'Q', 0.0, 'R134a')) / (1/PropsSI('D', 'P', p.no, 'Q', Q.no, fluid)) * Q.der)
-    elif isinstance(p, DualNumber) and not isinstance(Q, DualNumber):
-        return DualNumber(PropsSI("D", "P", p.no, "Q", Q, fluid), PropsSI("d(D)/d(P)|sigma", "P", p.no, "Q", Q, fluid) * p.der)
-    else:
-        return PropsSI("D", "P", p, "H", Q, fluid)
+        self.value = None
 
 
 class DualNumber:
@@ -412,6 +256,11 @@ class DualNumber:
         elif isinstance(other, (float, int)):
             return DualNumber(self.no ** float(other), float(other) * self.no ** (float(other) - 1) * self.der)
 
+    def sqrt(self):
+        return DualNumber(math.sqrt(self.no), 1 / (2 * math.sqrt(self.no)) * self.der)
+
+    def exp(self):
+        return DualNumber(math.exp(self.no), math.exp(self.no) * self.der)
 
     def __abs__(self):
         if self.no > 0:
@@ -587,6 +436,7 @@ class Component:
         self.executed = False
         self.solved = False
         self.diagramm_plot = False
+        self.calculate_derivatives = False
         self.ports = {}
         self.specifications = {}
         self.parameter = {}
@@ -623,7 +473,7 @@ class Component:
             self.ports[key].h.reset()
             self.ports[key].m.reset()
 
-    def solve(self):
+    def solve(self, calculate_derivatives=False):
         pass
 
 
@@ -820,10 +670,8 @@ class SeparatorComponent(Component):
         p_out = p_in
         # phase = PhaseSI('H', h_in, 'P', p_in, fluid)
         # if phase == 'twophase':
-        #     # h_out = PropsSI('H', 'P', p_in, 'Q', 0.0, fluid) + self.parameter['hLP'].value
-        #     h_out = PropsSI('H', 'P', p_in, 'Q', 0.0, fluid)
+        #     h_out = coolpropsHPQ(p_in, 0.0, fluid)
         # else:
-        #     # h_out = h_in + self.parameter['hLP'].value
         #     h_out = h_in
         m_out = m_in
         h_out = h_in
@@ -961,7 +809,10 @@ class MassFlowBalance(BalanceEquation):
 
         This method calculates the unknown variable by summing the known variables and applying mass conservation.
         """
-        m_total = DualNumber(0.0, 0.0)
+        if any([isinstance(var, DualNumber) for var in self.variables]):
+            m_total = DualNumber(0.0, 0.0)
+        else:
+            m_total = 0
         unknown_variable = None
         for variable in self.variables:
             if variable.known:
@@ -977,6 +828,7 @@ class MassFlowBalance(BalanceEquation):
 
         unknown_variable.set_value(m_total)
         self.solved = True
+
 
     def residual(self):
         """
@@ -1010,7 +862,10 @@ class PressureEquality(BalanceEquation):
 
         This method sets the unknown variable to the known pressure value.
         """
-        p = DualNumber(0.0, 0.0)
+        if any([isinstance(var, DualNumber) for var in self.variables]):
+            p = DualNumber(0.0, 0.0)
+        else:
+            p = 0
         unknown_variable = None
         for variable in self.variables:
             if variable.known:
@@ -1057,7 +912,10 @@ class EnthalpyEquality(BalanceEquation):
         if not self.is_solvable():
             raise RuntimeError("Tried to solve equation: " + self.name + ", but it is not solvable yet.")
 
-        h = DualNumber(0.0, 0.0)
+        if any([isinstance(var, DualNumber) for var in self.variables]):
+            h = DualNumber(0.0, 0.0)
+        else:
+            h = 0
         unknown_variable = None
         for variable in self.variables:
             if variable.known:
@@ -1217,14 +1075,11 @@ class SuperheatEquation(DesignEquation):
         Returns:
             float: The residual value of the equation.
         """
-        T_sat = PropsSI("T", "P", self.component.ports[psd['-c']].p.value, "Q", 1.0,
-                        self.component.ports[psd['-c']].fluid)
+        T_sat = coolpropsTPQ(self.component.ports[psd['-c']].p.value, 1.0, self.component.ports[psd['-c']].fluid)
         if self.DC_value < 1e-4:
-            h_SH = PropsSI("H", "P", self.component.ports[psd['-c']].p.value, "Q", 1.0,
-                           self.component.ports[psd['-c']].fluid)
+            h_SH = coolpropsHPQ(self.component.ports[psd['-c']].p.value, 1.0, self.component.ports[psd['-c']].fluid)
         else:
-            h_SH = PropsSI("H", "P", self.component.ports[psd['-c']].p.value, "T", T_sat + self.DC_value,
-                           self.component.ports[psd['-c']].fluid)
+            h_SH = coolpropsHTP(T_sat + self.DC_value, self.component.ports[psd['-c']].p.value, self.component.ports[psd['-c']].fluid)
         self.res = (self.component.ports[psd['-c']].h.value - h_SH)
         return self.res
 
@@ -1254,15 +1109,12 @@ class SubcoolingEquation(DesignEquation):
             float: The residual value of the equation.
         """
 
-        T_sat = PropsSI("T", "P", self.component.ports[psd['-h']].p.value, "Q", 0.0,
-                        self.component.ports[psd['-h']].fluid)
+        T_sat = coolpropsTPQ(self.component.ports[psd['-c']].p.value, 0.0, self.component.ports[psd['-c']].fluid)
         if self.DC_value < 1e-4:
-            h_SH = PropsSI("H", "P", self.component.ports[psd['-h']].p.value, "Q", 0.0,
-                           self.component.ports[psd['-h']].fluid)
+            h_SC = coolpropsHPQ(self.component.ports[psd['-c']].p.value, 0.0, self.component.ports[psd['-c']].fluid)
         else:
-            h_SH = PropsSI("H", "P", self.component.ports[psd['-h']].p.value, "T", T_sat - self.DC_value,
-                           self.component.ports[psd['-h']].fluid)
-        self.res = (self.component.ports[psd['-h']].h.value - h_SH)
+            h_SC = coolpropsHTP(T_sat + self.DC_value, self.component.ports[psd['-c']].p.value, self.component.ports[psd['-c']].fluid)
+        self.res = (self.component.ports[psd['-h']].h.value - h_SC)
         return self.res
 
 
@@ -1303,8 +1155,7 @@ class DesignParameterEquation(DesignEquation):
         """
 
         for key in self.component.ports:
-            if self.component.ports[key].p.var_type == self.DC_var_type and self.component.ports[
-                key].p.port_type == self.DC_port_type:
+            if self.component.ports[key].p.var_type == self.DC_var_type and self.component.ports[key].p.port_type == self.DC_port_type:
                 self.res = (self.component.ports[key].p.value - self.DC_value)
                 break
             elif self.component.ports[key].h.var_type == self.DC_var_type and self.component.ports[key].h.port_id[
@@ -1312,8 +1163,7 @@ class DesignParameterEquation(DesignEquation):
                 self.res = (self.component.ports[key].h.value - self.DC_value)
                 break
             elif self.DC_var_type == 'T' and self.component.ports[key].port_id[2] == self.port_id:
-                T = PropsSI('T', 'H', self.component.ports[key].h.value, 'P', self.component.ports[key].p.value,
-                            self.component.ports[key].fluid)
+                T = coolpropsTPH(self.component.ports[key].p.value, self.component.ports[key].h.value, self.component.ports[key].fluid)
                 self.res = (T - self.DC_value)
         return self.res
 
@@ -1879,6 +1729,50 @@ class Circuit:
                 item.diagramm_plot = False
                 item.solve()
 
+    def jacobian(self, x):
+        for k in range(len(self.Vt) + len(self.U)):
+            i = 0
+            for var in self.Vt:
+                if i == k:
+                    var.set_value(DualNumber(x[i] / var.scale_factor, 1.0 / var.scale_factor))
+                else:
+                    var.set_value(DualNumber(x[i] / var.scale_factor, 0.0))
+                i += 1
+
+            for var in self.U:
+                if i == k:
+                    var.set_value(DualNumber(x[i] / var.scale_factor, 1.0 / var.scale_factor))
+                else:
+                    var.set_value(DualNumber(x[i] / var.scale_factor, 0.0))
+                i += 1
+
+            for item in self.exec_list:
+                if isinstance(item, BalanceEquation) or isinstance(item, EnthalpyFlowBalance):
+                    item.solve()
+                elif isinstance(item, Component):
+                    item.lamda = 1.0
+                    item.diagramm_plot = False
+                    item.calculate_derivatives = True
+                    item.solve()
+                    item.calculate_derivatives = False
+            dr = [equa.residual().der for equa in self.res_equa]
+            try:
+                for key in self.design_equa:
+                    if not self.design_equa[key].relaxed:
+                        dr += [(self.design_equa[key].solve() * self.design_equa[key].scale_factor).der]
+                    else:
+                        pass
+            except Exception as e:
+                print(e)
+                [self.components[key].reset() for key in self.components]
+            # resets all components
+            [self.components[key].reset() for key in self.components]
+            if k == 0:
+                J = np.array(dr)
+            else:
+                J = np.column_stack([J, np.array(dr)])
+        return J
+
 
 def tearing_alg(tpg: TripartiteGraph):
     """
@@ -2283,7 +2177,7 @@ def system_solver(circuit: Circuit):
             items = [(circuit_clones[j], x_new[j]) for j in range(len(x_new))]
             f_fw = pool.starmap(circuit_objfun, items)
             circuit.grad_objfun = np.transpose(np.array(f_fw) - np.array(f_0)) / np.diag(x_new - x)
-            print(f'Max Norm Residuals: {max(np.abs(circuit.reslast))}')
+        print(f'Max Norm Residuals: {max(np.abs(circuit.reslast))}')
         return np.array(circuit.reslast)
 
     def grad_objfun(pool, circuit_clones, x):
@@ -3085,16 +2979,16 @@ def system_solver(circuit: Circuit):
                (1e5, 3e5),
                (0.1e5, 5e5)]
 
-    with open('init.pkl', 'rb') as load_data:
-        init = pickle.load(load_data)
-        i = 0
-        for var in circuit.Vt:
-            var.initial_value = init[i]
-            var.bounds = Vt_bnds[i]
-            i += 1
-        for var in circuit.U:
-            var.initial_value = init[i]
-            i += 1
+    # with open('init.pkl', 'rb') as load_data:
+    #     init = pickle.load(load_data)
+    #     i = 0
+    #     for var in circuit.Vt:
+    #         var.initial_value = init[i]
+    #         var.bounds = Vt_bnds[i]
+    #         i += 1
+    #     for var in circuit.U:
+    #         var.initial_value = init[i]
+    #         i += 1
         # for var in circuit.S:
         #     var.initial_value = init[i]
         #     i += 1
@@ -3114,10 +3008,6 @@ def system_solver(circuit: Circuit):
         x0_scaled[i] = var.initial_value * var.scale_factor
         bnds_scaled[i] = (var.bounds[0] * var.scale_factor, var.bounds[1] * var.scale_factor)
         i += 1
-
-    # if len(circuit.res_equa) + len(circuit.design_equa) + len(circuit.loop_breaker_equa) > len(circuit.Vt) + len(
-    #         circuit.U) + len(circuit.S):
-    #     raise RuntimeWarning(f'More equations than number of independent variables!')
 
     if len(circuit.res_equa) + len(circuit.design_equa) + len(circuit.loop_breaker_equa) == len(circuit.Vt) + len(
             circuit.U) \
@@ -3220,6 +3110,17 @@ def system_solver(circuit: Circuit):
                                         disp=3,
                                         acc=1.0e-6,
                                         iter=1000)
+
+        # sol = scipy.optimize.fmin_slsqp(objfun,
+        #                                 x0_scaled,
+        #                                 bounds=bnds_scaled,
+        #                                 f_eqcons=circuit.econ,
+        #                                 fprime=partial(grad_objfun, pool, circuit_clones),
+        #                                 fprime_eqcons=circuit.jacobian,
+        #                                 full_output=True,
+        #                                 disp=3,
+        #                                 acc=1.0e-6,
+        #                                 iter=1000)
 
         if sol[3] == 0:
             print('Solver converged!')
@@ -3351,39 +3252,212 @@ def logph(h: List[list], p: List[list], no: List[list], fluids: List[str]):
         plt.show()
 
 
-# function for just creating widget to define boundary conditions and later on saving them in variables
-def set_inputs_onestage(pi_v_so=1.0, Ti_v_so=-5, mi_v_so=1.0, pi_c_so=1.0, Ti_c_so=30, mi_c_so=1.0):
-    print(f'Evaporator: pi_v_so= {pi_v_so:5.1f} bar, Ti_v_so = {Ti_v_so:5.1f} °C, mi_v_so = {mi_v_so:5.1f} kg/s \n')
-    print(f'Condenser:  pi_c_so= {pi_c_so:5.1f} bar, Ti_c_so = {Ti_c_so:5.1f} °C, mi_c_so = {mi_c_so:5.1f} kg/s \n')
-    return pi_v_so, Ti_v_so, mi_v_so, pi_c_so, Ti_c_so, mi_c_so
+def coolpropsHTP(T, p, fluid):
+    def calculate_derivative(T, p, fluid, prop, var, const):
+        if PhaseSI('T', T, 'P', p, fluid) in ['twophase']:
+            if var == 'T':
+                delta = 1e-6 * max(abs(T), 1.0)
+                prop_plus = PropsSI(prop, var, T + delta, "P", p, fluid)
+                prop_minus = PropsSI(prop, var, T - delta, "P", p, fluid)
+                derivative = (prop_plus - prop_minus) / (2 * delta)
+            else:
+                delta = 1e-6 * max(abs(p), 1.0)
+                prop_plus = PropsSI(prop, const, T, var, p + delta, fluid)
+                prop_minus = PropsSI(prop, const, T, var, p - delta, fluid)
+                derivative = (prop_plus - prop_minus) / (2 * delta)
+            return derivative
+        else:
+            return PropsSI(f"d({prop})/d({var})|{const}", 'T', T, "P", p, fluid)
+    if isinstance(T, DualNumber) and isinstance(p, DualNumber):
+        h_no = PropsSI("H", "T", T.no, "P", p.no, fluid)
+        dH_dT = calculate_derivative(T.no, p.no, fluid, "H", "T", "P")
+        dH_dP = calculate_derivative(T.no, p.no, fluid, "H", "P", "T")
+        h_der = dH_dT * T.der + dH_dP * p.der
+        return DualNumber(h_no, h_der)
+    elif not isinstance(T, DualNumber) and isinstance(p, DualNumber):
+        h_no = PropsSI("H", "T", T, "P", p.no, fluid)
+        dH_dP = calculate_derivative(T, p.no, fluid, "H", "P", "T")
+        h_der = dH_dP * p.der
+        return DualNumber(h_no, h_der)
+    elif isinstance(T, DualNumber) and not isinstance(p, DualNumber):
+        h_no = PropsSI("H", "T", T.no, "P", p, fluid)
+        dH_dT = calculate_derivative(T.no, p, fluid, "H", "T", "P")
+        h_der = dH_dT * T.der
+        return DualNumber(h_no, h_der)
+    else:
+        return PropsSI("H", "T", T, "P", p, fluid)
 
 
-# function for just creating widget to define boundary conditions and later on saving them in variables
-def set_inputs_cascade(pi_v_so=1.0, Ti_v_so=-10, mi_v_so=1.0,
-                       pi_c_so=1.0, Ti_c_so=20, mi_c_so=1.0,
-                       pi_gc_so=1.0, Ti_gc_so=20, mi_gc_so=1.0):
-    print(f'Evaporator: pi_v_so= {pi_v_so:5.1f} bar, Ti_v_so = {Ti_v_so:5.1f} °C, mi_v_so = {mi_v_so:5.1f} kg/s \n')
-    print(f'Condenser:  pi_c_so= {pi_c_so:5.1f} bar, Ti_c_so = {Ti_c_so:5.1f} °C, mi_c_so = {mi_c_so:5.1f} kg/s \n')
-    print(
-        f'Gas cooler:  pi_gc_so= {pi_gc_so:5.1f} bar, Ti_gc_so = {Ti_gc_so:5.1f} °C, mi_gc_so = {mi_gc_so:5.1f} kg/s \n')
-    return pi_v_so, Ti_v_so, mi_v_so, pi_c_so, Ti_c_so, mi_c_so, pi_gc_so, Ti_gc_so, mi_gc_so
+def coolpropsHTQ(T, Q, fluid):
+    if isinstance(T, DualNumber) and isinstance(Q, DualNumber):
+        return DualNumber(PropsSI("H", "T", T.no, "Q", Q.no, fluid), PropsSI("d(H)/d(T)|sigma", "T", T.no, "Q", Q.no, fluid) * T.der + (PropsSI('H', 'T', T.no, 'Q', 1.0, 'R134a') - PropsSI('H', 'T', T.no, 'Q', 0.0, fluid)) * Q.der)
+    elif not isinstance(T, DualNumber) and isinstance(Q, DualNumber):
+        return DualNumber(PropsSI("H", "T", T, "Q", Q.no, fluid), (PropsSI('H', 'T', T.no, 'Q', 1.0, 'R134a') - PropsSI('H', 'T', T.no, 'Q', 0.0, fluid)) * Q.der)
+    elif isinstance(T, DualNumber) and not isinstance(Q, DualNumber):
+        return DualNumber(PropsSI("H", "T", T.no, "Q", Q, fluid), PropsSI("d(H)/d(T)|sigma", "T", T.no, "Q", Q, fluid) * T.der)
+    else:
+        return PropsSI("H", "T", T, "Q", Q, fluid)
 
 
-# function for just creating widget to define dc values and later on saving them in variables
-def set_dc_values_onestage(SH_v=5.0):
-    print(f'Evaporator Superheat:  SH_v= {SH_v:5.1f} K')
-    print('\n--> Change the values with the sliders,',
-          '\n    then execute all (code) cells below the widget again!',
-          '\n    Only then the new values are used for the computations.')
-    return SH_v
+def coolpropsHPQ(p, Q, fluid):
+    if isinstance(P, DualNumber) and isinstance(Q, DualNumber):
+        return DualNumber(PropsSI("H", "P", p.no, "Q", Q.no, fluid), PropsSI("d(H)/d(P)|sigma", "P", p.no, "Q", Q.no, fluid) * p.der + (PropsSI('H', 'p', p.no, 'Q', 1.0, 'R134a') - PropsSI('H', 'P', p.no, 'Q', 0.0, fluid)) * Q.der)
+    elif not isinstance(p, DualNumber) and isinstance(Q, DualNumber):
+        return DualNumber(PropsSI("H", "P", p, "Q", Q.no, fluid), (PropsSI('H', 'P', p.no, 'Q', 1.0, 'R134a') - PropsSI('H', 'P', p.no, 'Q', 0.0, fluid)) * Q.der)
+    elif isinstance(p, DualNumber) and not isinstance(Q, DualNumber):
+        return DualNumber(PropsSI("H", "P", p.no, "Q", Q, fluid), PropsSI("d(H)/d(T)|sigma", "P", p.no, "Q", Q, fluid) * p.der)
+    else:
+        return PropsSI("H", "P", p, "Q", Q, fluid)
 
 
-# function for just creating widget to define dc values and later on saving them in variables
-def set_dc_values_cascade(SH_v=10.0, SH_chx1=5.0, SH_chx2=5.0):
-    print(f'Evaporator Superheat:  SH_v= {SH_v:5.1f} K')
-    print(f'Cascade HX 1 Superheat:  SH_v_chx1= {SH_chx1:5.1f} K')
-    print(f'Cascade HX 2 Superheat:  SH_v_chx2= {SH_chx2:5.1f} K')
-    print('\n--> Change the values with the sliders,',
-          '\n    then execute all (code) cells below the widget again!',
-          '\n    Only then the new values are used for the computations.')
-    return SH_v, SH_chx1, SH_chx2
+def coolpropsTPH(p, h, fluid):
+    def calculate_derivative(p, h, fluid, prop, var, const):
+        if PhaseSI('P', p, 'H', h, fluid) in ['twophase']:
+            if var == 'P':
+                delta = 1e-6 * max(abs(p), 1.0)
+                prop_plus = PropsSI(prop, var, p + delta, const, h, fluid)
+                prop_minus = PropsSI(prop, var, p - delta, const, h, fluid)
+                derivative = (prop_plus - prop_minus) / (2 * delta)
+            else:
+                delta = 1e-6 * max(abs(h), 1.0)
+                prop_plus = PropsSI(prop, const, p, var, h + delta, fluid)
+                prop_minus = PropsSI(prop, const, p, var, h - delta, fluid)
+                derivative = (prop_plus - prop_minus) / (2 * delta)
+            return derivative
+        else:
+            return PropsSI(f"d({prop})/d({var})|{const}", 'P', p, "H", h, fluid)
+
+    if isinstance(p, DualNumber) and isinstance(h, DualNumber):
+        T_no = PropsSI("T", "P", p.no, "H", h.no, fluid)
+        dT_dP = calculate_derivative(p.no, h.no, fluid, "T", "P", "H")
+        dT_dH = calculate_derivative(p.no, h.no, fluid, "T", "H", "P")
+        T_der = dT_dP * p.der + dT_dH * h.der
+        return DualNumber(T_no, T_der)
+
+    elif not isinstance(p, DualNumber) and isinstance(h, DualNumber):
+        T_no = PropsSI("T", "P", p, "H", h.no, fluid)
+        dT_dH = calculate_derivative(p, h.no, fluid, "T", "H", "P")
+        T_der = dT_dH * h.der
+        return DualNumber(T_no, T_der)
+
+    elif isinstance(p, DualNumber) and not isinstance(h, DualNumber):
+        T_no = PropsSI("T", "P", p.no, "H", h, fluid)
+        dT_dP = calculate_derivative(p.no, h, fluid, "T", "P", "H")
+        T_der = dT_dP * p.der
+        return DualNumber(T_no, T_der)
+
+    else:
+        return PropsSI("T", "P", p, "H", h, fluid)
+
+
+def coolpropsTPQ(p, Q, fluid):
+    if isinstance(p, DualNumber) and isinstance(Q, DualNumber):
+        return DualNumber(PropsSI("T", "P", p.no, "Q", Q.no, fluid), PropsSI("d(D)/d(T)|sigma", "P", p.no, "Q", Q.no, fluid) * p.der + PropsSI("d(T)/d(H)|sigma", "P", p.no, "Q", Q.no, fluid) * Q.der)
+    elif not isinstance(p, DualNumber) and isinstance(Q, DualNumber):
+        return DualNumber(PropsSI("T", "P", p, "Q", Q.no, fluid), 0.0)
+    elif isinstance(p, DualNumber) and not isinstance(Q, DualNumber):
+        return DualNumber(PropsSI("T", "P", p.no, "Q", Q, fluid), PropsSI("d(T)/d(P)|sigma", "P", p.no, "Q", Q, fluid) * p.der)
+    else:
+        return PropsSI("T", "P", p, "Q", Q, fluid)
+
+
+def coolpropsDPT(p, T, fluid):
+    if isinstance(p, DualNumber) and isinstance(T, DualNumber):
+        return DualNumber(PropsSI("D", "P", p.no, "T", T.no, fluid), PropsSI("d(D)/d(P)|T", "P", p.no, "T", T.no, fluid) * p.der + PropsSI("d(D)/d(T)|P", "P", p.no, "T", T.no, fluid) * T.der)
+    elif not isinstance(p, DualNumber) and isinstance(T, DualNumber):
+        return DualNumber(PropsSI("D", "P", p, "T", T.no, fluid), PropsSI("d(D)/d(T)|P", "P", p, "T", T.no, fluid) * T.der)
+    elif isinstance(p, DualNumber) and not isinstance(T, DualNumber):
+        return DualNumber(PropsSI("D", "P", p.no, "T", T, fluid), PropsSI("d(D)/d(P)|H", "P", p.no, "T", T, fluid) * p.der)
+    else:
+        return PropsSI("D", "P", p, "T", T, fluid)
+
+
+def coolpropsDPH(p, h, fluid):
+    def calculate_derivative(p, h, fluid, prop, var, const):
+        if PhaseSI('P', p, 'H', h, fluid) in ['twophase']:
+            if var == 'P':
+                delta = 1e-6 * max(abs(p), 1.0)
+                prop_plus = PropsSI(prop, var, p + delta, const, h, fluid)
+                prop_minus = PropsSI(prop, var, p - delta, const, h, fluid)
+                derivative = (prop_plus - prop_minus) / (2 * delta)
+            else:
+                delta = 1e-6 * max(abs(h), 1.0)
+                prop_plus = PropsSI(prop, const, p, var, h + delta, fluid)
+                prop_minus = PropsSI(prop, const, p, var, h - delta, fluid)
+                derivative = (prop_plus - prop_minus) / (2 * delta)
+            return derivative
+        else:
+            return PropsSI(f"d({prop})/d({var})|{const}", 'P', p, "H", h, fluid)
+
+    if isinstance(p, DualNumber) and isinstance(h, DualNumber):
+        D_no = PropsSI("D", "P", p.no, "H", h.no, fluid)
+        dD_dP = calculate_derivative(p.no, h.no, fluid, "D", "P", "H")
+        dD_dH = calculate_derivative(p.no, h.no, fluid, "D", "H", "P")
+        D_der = dD_dP * p.der + dD_dH * h.der
+        return DualNumber(D_no, D_der)
+
+    elif not isinstance(p, DualNumber) and isinstance(h, DualNumber):
+        D_no = PropsSI("D", "P", p, "P", h.no, fluid)
+        dD_dH = calculate_derivative(p, h.no, fluid, "D", "H", "P")
+        D_der = dD_dH * h.der
+        return DualNumber(D_no, D_der)
+
+    elif isinstance(p, DualNumber) and not isinstance(h, DualNumber):
+        D_no = PropsSI("D", "P", p.no, "H", h, fluid)
+        dD_dP = calculate_derivative(p.no, h, fluid, "D", "P", "H")
+        D_der = dD_dP * p.der
+        return DualNumber(D_no, D_der)
+
+    else:
+        return PropsSI("D", "P", p, "H", h, fluid)
+
+
+def coolpropsDPQ(p, Q, fluid):
+    if isinstance(p, DualNumber) and isinstance(Q, DualNumber):
+        return DualNumber(PropsSI("D", "P", p.no, "Q", Q.no, fluid), PropsSI("d(D)/d(P)|sigma", "P", p.no, "Q", Q.no, fluid) * p.der + (1/PropsSI('D', 'P', p.no, 'Q', 1.0, 'R134a') - 1/PropsSI('D', 'P', p.no, 'Q', 0.0, 'R134a')) / (1/PropsSI('D', 'P', p.no, 'Q', Q.no, fluid)) * Q.der)
+    elif not isinstance(p, DualNumber) and isinstance(Q, DualNumber):
+        return DualNumber(PropsSI("D", "P", p, "Q", Q.no, fluid), (1/PropsSI('D', 'P', p.no, 'Q', 1.0, 'R134a') - 1/PropsSI('D', 'P', p.no, 'Q', 0.0, 'R134a')) / (1/PropsSI('D', 'P', p.no, 'Q', Q.no, fluid)) * Q.der)
+    elif isinstance(p, DualNumber) and not isinstance(Q, DualNumber):
+        return DualNumber(PropsSI("D", "P", p.no, "Q", Q, fluid), PropsSI("d(D)/d(P)|sigma", "P", p.no, "Q", Q, fluid) * p.der)
+    else:
+        return PropsSI("D", "P", p, "H", Q, fluid)
+
+
+def coolpropsCPH(p, h, fluid):
+    def calculate_derivative(p, h, fluid, prop, var, const):
+        if PhaseSI('P', p, 'H', h, fluid) in ['twophase']:
+            if var == 'P':
+                delta = 1e-6 * max(abs(p), 1.0)
+                prop_plus = PropsSI(prop, var, p + delta, const, h, fluid)
+                prop_minus = PropsSI(prop, var, p - delta, const, h, fluid)
+                derivative = (prop_plus - prop_minus) / (2 * delta)
+            else:
+                delta = 1e-6 * max(abs(h), 1.0)
+                prop_plus = PropsSI(prop, const, p, var, h + delta, fluid)
+                prop_minus = PropsSI(prop, const, p, var, h - delta, fluid)
+                derivative = (prop_plus - prop_minus) / (2 * delta)
+            return derivative
+        else:
+            return PropsSI(f"d({prop})/d({var})|{const}", 'P', p, "H", h, fluid)
+
+    if isinstance(p, DualNumber) and isinstance(h, DualNumber):
+        C_no = PropsSI("C", "P", p.no, "H", h.no, fluid)
+        dC_dP = calculate_derivative(p.no, h.no, fluid, "C", "P", "H")
+        dC_dH = calculate_derivative(p.no, h.no, fluid, "C", "H", "P")
+        C_der = dC_dP * p.der + dC_dH * h.der
+        return DualNumber(C_no, C_der)
+
+    elif not isinstance(p, DualNumber) and isinstance(h, DualNumber):
+        C_no = PropsSI("C", "P", p, "H", h.no, fluid)
+        dC_dH = calculate_derivative(p, h.no, fluid, "C", "H", "P")
+        C_der = dC_dH * h.der
+        return DualNumber(C_no, C_der)
+
+    elif isinstance(p, DualNumber) and not isinstance(h, DualNumber):
+        C_no = PropsSI("C", "P", p.no, "H", h, fluid)
+        dC_dP = calculate_derivative(p.no, h, fluid, "C", "P", "H")
+        C_der = dC_dP * p.der
+        return DualNumber(C_no, C_der)
+
+    else:
+        return PropsSI("C", "P", p, "H", h, fluid)

@@ -119,14 +119,14 @@ def main():
                                                           var_type='h',
                                                           port_id=psd['-c'],
                                                           relaxed=False))
-    circuit.add_design_equa(name='TV_c Equation', design_equa=DesignParameterEquation(circuit.components['Condenser'], To_c_sp + 273.15, 'out', 'T', psd['-c'], relaxed=True))
-    circuit.add_design_equa(name='TV_v Equation',
-                            design_equa=DesignParameterEquation(circuit.components['Evaporator'], To_v_sp + 273.15,
-                                                                'out', 'T', psd['-h'], relaxed=True))
-    circuit.add_design_equa(name='Q0 Equation',
-                            design_equa=OutputDesignEquation(circuit.components['Condenser'], 12.0,
-                                                             output_name='Q',
-                                                             relaxed=True))
+    # circuit.add_design_equa(name='TV_c Equation', design_equa=DesignParameterEquation(circuit.components['Condenser'], To_c_sp + 273.15, 'out', 'T', psd['-c'], relaxed=True))
+    # circuit.add_design_equa(name='TV_v Equation',
+    #                         design_equa=DesignParameterEquation(circuit.components['Evaporator'], To_v_sp + 273.15,
+    #                                                             'out', 'T', psd['-h'], relaxed=True))
+    # circuit.add_design_equa(name='Q0 Equation',
+    #                         design_equa=OutputDesignEquation(circuit.components['Condenser'], 12.0,
+    #                                                          output_name='Q',
+    #                                                          relaxed=True))
 
     # solver initial values
     p1 = PropsSI('P', 'T', Ti_v_sec + 273.15 - 5.0, 'Q', 1.0, fluid_list[0])
@@ -157,7 +157,7 @@ def main():
 
     # resets all compontent ports
     [(circuit.components[key].reset(), setattr(circuit.components[key], 'linearized', False)) for key in circuit.components]
-    circuit.Vt[0].value.der = 1.0
+
     # runs the system solver to solve the system of equations of th cycle
     sol = system_solver(circuit)
 
